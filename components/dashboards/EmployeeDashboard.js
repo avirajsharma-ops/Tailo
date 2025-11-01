@@ -105,7 +105,7 @@ export default function EmployeeDashboard({ user }) {
       const data = await response.json()
 
       if (data.success) {
-        toast.success('Clocked in successfully! 🎉')
+        toast.success('Clocked in successfully!')
         setTodayAttendance(data.data)
       } else {
         toast.error(data.message || 'Failed to clock in')
@@ -322,14 +322,14 @@ export default function EmployeeDashboard({ user }) {
 
   return (
     <div className="page-container space-y-4 sm:space-y-6">
-      {/* Check-In/Check-Out Section - New Design */}
-      <div style={{ backgroundColor: '#1A295A' }} className="rounded-3xl shadow-xl p-6 sm:p-8 text-white">
+      {/* Check-In/Check-Out Section - Compact Design */}
+      <div style={{ backgroundColor: '#1A295A' }} className="rounded-2xl shadow-md p-4 sm:p-6 text-white">
         {/* User Profile and Buttons */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           {/* User Profile Section */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {/* Profile Picture */}
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center flex-shrink-0">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center flex-shrink-0">
               {dashboardStats?.employee?.profilePicture || user?.employeeId?.profilePicture ? (
                 <img
                   src={dashboardStats?.employee?.profilePicture || user.employeeId.profilePicture}
@@ -337,23 +337,23 @@ export default function EmployeeDashboard({ user }) {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <FaUser className="w-12 h-12 sm:w-14 sm:h-14 text-white" />
+                <FaUser className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
               )}
             </div>
 
             {/* User Name and ID */}
             <div>
-              <p className="text-sm text-gray-300 mb-1">
+              <p className="text-xs text-gray-300 mb-0.5">
                 ID:{dashboardStats?.employee?.employeeId || user?.employeeId?.employeeCode || '---'}
               </p>
-              <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-wide">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold uppercase tracking-wide">
                 {dashboardStats?.employee?.name ||
                  (user?.employeeId?.firstName && user?.employeeId?.lastName
                   ? `${user.employeeId.firstName} ${user.employeeId.lastName}`
                   : 'User')}
               </h2>
               {dashboardStats?.employee?.designation && (
-                <p className="text-sm text-gray-300 mt-1">
+                <p className="text-xs text-gray-300 mt-0.5">
                   {dashboardStats.employee.designation}
                 </p>
               )}
@@ -361,78 +361,48 @@ export default function EmployeeDashboard({ user }) {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 w-full lg:w-auto">
+          <div className="flex gap-2 sm:gap-3 w-full lg:w-auto">
             <button
               onClick={handleClockIn}
               disabled={attendanceLoading || (todayAttendance && todayAttendance.checkIn)}
-              className="group relative bg-white text-gray-800 hover:bg-gray-100 disabled:bg-gray-400 disabled:text-gray-600 disabled:cursor-not-allowed px-6 py-3 rounded-xl font-semibold text-base shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 flex-1 lg:min-w-[160px]"
+              className="bg-white text-gray-800 hover:bg-gray-100 disabled:bg-gray-400 disabled:text-gray-600 disabled:cursor-not-allowed px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center flex-1 lg:min-w-[140px]"
             >
               <span>Check In</span>
-              <div className="w-6 h-6 rounded-full border-2 border-gray-800 flex items-center justify-center">
-                <div className="w-3 h-3 bg-gray-800 rounded-full transform rotate-45"></div>
-              </div>
-              {todayAttendance?.checkIn && (
-                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                  ✓
-                </span>
-              )}
             </button>
 
             <button
               onClick={handleClockOut}
               disabled={attendanceLoading || !todayAttendance || !todayAttendance.checkIn || todayAttendance.checkOut}
-              className="group relative bg-transparent border-2 border-white text-white hover:bg-white hover:bg-opacity-10 disabled:border-gray-500 disabled:text-gray-500 disabled:cursor-not-allowed px-6 py-3 rounded-xl font-semibold text-base shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 flex-1 lg:min-w-[160px]"
+              className="bg-transparent border-2 border-white text-white hover:bg-white hover:bg-opacity-10 disabled:border-gray-500 disabled:text-gray-500 disabled:cursor-not-allowed px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center flex-1 lg:min-w-[140px]"
             >
               <span>Check Out</span>
-              <div className="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center">
-                <div className="w-3 h-3 bg-white rounded-full transform rotate-45"></div>
-              </div>
-              {todayAttendance?.checkOut && (
-                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                  ✓
-                </span>
-              )}
             </button>
-          </div>
-        </div>
-
-        {/* Office Timing Info */}
-        <div className="mt-6 bg-white bg-opacity-5 rounded-xl p-3">
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="font-medium">Office: 11:00 AM - 7:00 PM</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-              <span>Full Day: 8+ hrs</span>
-            </div>
           </div>
         </div>
       </div>
 
       {/* Quick Glance Section - Separate Card */}
-      <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8">
-        <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Quick Glance</h3>
+      <div className="bg-white rounded-2xl shadow-md p-4 sm:p-6">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">Quick Glance</h3>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {/* Check In Time */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
-                <FaSignInAlt className="w-3 h-3 text-gray-600" />
+              <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
+                <FaSignInAlt className="w-2.5 h-2.5 text-gray-600" />
               </div>
-              <p className="text-xs sm:text-sm font-medium text-gray-600">Check In Time</p>
+              <p className="text-xs font-medium text-gray-600">Check In Time</p>
             </div>
-            <div className="bg-green-100 rounded-xl p-3 sm:p-4">
-              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+            <div className="bg-green-100 rounded-lg p-3">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
                 {todayAttendance?.checkIn
                   ? new Date(todayAttendance.checkIn).toLocaleTimeString('en-IN', {
                       hour: '2-digit',
                       minute: '2-digit',
                       hour12: true
                     })
-                  : '11:00 AM'}
+                  : '--:--'}
               </p>
             </div>
           </div>
@@ -440,20 +410,20 @@ export default function EmployeeDashboard({ user }) {
           {/* Check Out Time */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
-                <FaSignOutAlt className="w-3 h-3 text-gray-600" />
+              <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
+                <FaSignOutAlt className="w-2.5 h-2.5 text-gray-600" />
               </div>
-              <p className="text-xs sm:text-sm font-medium text-gray-600">Check Out Time</p>
+              <p className="text-xs font-medium text-gray-600">Check Out Time</p>
             </div>
-            <div className="bg-red-100 rounded-xl p-3 sm:p-4">
-              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+            <div className="bg-red-100 rounded-lg p-3">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
                 {todayAttendance?.checkOut
                   ? new Date(todayAttendance.checkOut).toLocaleTimeString('en-IN', {
                       hour: '2-digit',
                       minute: '2-digit',
                       hour12: true
                     })
-                  : '06:30 PM'}
+                  : '--:--'}
               </p>
             </div>
           </div>
@@ -461,35 +431,43 @@ export default function EmployeeDashboard({ user }) {
           {/* Work Hours */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
-                <FaClock className="w-3 h-3 text-gray-600" />
+              <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
+                <FaClock className="w-2.5 h-2.5 text-gray-600" />
               </div>
-              <p className="text-xs sm:text-sm font-medium text-gray-600">Work Hours</p>
+              <p className="text-xs font-medium text-gray-600">Work Hours</p>
             </div>
-            <div className="bg-yellow-100 rounded-xl p-3 sm:p-4">
-              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
-                {todayAttendance?.workHours || '07:30'}
+            <div className="bg-yellow-100 rounded-lg p-3">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
+                {todayAttendance?.workHours
+                  ? `${todayAttendance.workHours}h`
+                  : '--:--'}
               </p>
             </div>
           </div>
 
-          {/* Additional Work Hours */}
+          {/* Work Status */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
-                <FaClock className="w-3 h-3 text-gray-600" />
+              <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
+                <FaCheckCircle className="w-2.5 h-2.5 text-gray-600" />
               </div>
-              <p className="text-xs sm:text-sm font-medium text-gray-600">Work Hours</p>
+              <p className="text-xs font-medium text-gray-600">Work Status</p>
             </div>
-            <div className="bg-blue-50 rounded-xl p-3 sm:p-4">
-              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
-                {todayAttendance?.checkIn && !todayAttendance?.checkOut
-                  ? new Date(todayAttendance.checkIn).toLocaleTimeString('en-IN', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: true
-                    })
-                  : '11:00 AM'}
+            <div className={`rounded-lg p-3 ${
+              todayAttendance?.status === 'present' ? 'bg-green-100' :
+              todayAttendance?.status === 'half-day' ? 'bg-yellow-100' :
+              todayAttendance?.status === 'in-progress' ? 'bg-blue-100' :
+              todayAttendance?.workFromHome ? 'bg-purple-100' :
+              todayAttendance?.status === 'on-leave' ? 'bg-orange-100' :
+              'bg-red-100'
+            }`}>
+              <p className="text-sm sm:text-base md:text-lg font-bold text-gray-800 capitalize">
+                {todayAttendance?.workFromHome ? 'WFH' :
+                 todayAttendance?.status === 'present' ? 'Present' :
+                 todayAttendance?.status === 'half-day' ? 'Half Day' :
+                 todayAttendance?.status === 'in-progress' ? 'In Progress' :
+                 todayAttendance?.status === 'on-leave' ? 'On Leave' :
+                 'Absent'}
               </p>
             </div>
           </div>
