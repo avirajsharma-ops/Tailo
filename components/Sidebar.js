@@ -65,8 +65,12 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           w-[60vw] md:w-64 bg-gray-900 text-white
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          overflow-y-auto
+          overflow-y-auto scrollbar-hide
         `}
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}
       >
         <div className="p-4 border-b border-gray-700">
           <div className="flex items-center justify-between">

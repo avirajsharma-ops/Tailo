@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { FaBars, FaBell, FaUser, FaSignOutAlt, FaCog, FaSearch } from 'react-icons/fa'
+import { FaBars, FaBell, FaUser, FaSignOutAlt, FaCog, FaSearch, FaComments, FaTimes, FaSpinner } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import { PWAStatus } from '@/components/PWAInstaller'
 
@@ -12,8 +12,14 @@ export default function Header({ toggleSidebar }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState(null)
+  const [showSearchResults, setShowSearchResults] = useState(false)
+  const [searching, setSearching] = useState(false)
   const notifRef = useRef(null)
   const profileRef = useRef(null)
+  const searchRef = useRef(null)
+  const searchTimeoutRef = useRef(null)
 
   useEffect(() => {
     setMounted(true)
@@ -29,6 +35,9 @@ export default function Header({ toggleSidebar }) {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setShowProfileMenu(false)
       }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSearchResults(false)
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
@@ -40,6 +49,44 @@ export default function Header({ toggleSidebar }) {
     }
   }, [])
 
+  // Search functionality
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+
+    if (searchQuery.trim().length < 2) {
+      setSearchResults(null)
+      setShowSearchResults(false)
+      return
+    }
+
+    setSearching(true)
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        const result = await response.json()
+        if (result.success) {
+          setSearchResults(result.data)
+          setShowSearchResults(true)
+        }
+      } catch (error) {
+        console.error('Search error:', error)
+      } finally {
+        setSearching(false)
+      }
+    }, 300)
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [searchQuery])
+
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
@@ -47,6 +94,28 @@ export default function Header({ toggleSidebar }) {
     document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
     toast.success('Logged out successfully')
     router.push('/login')
+  }
+
+  const handleSearchResultClick = (link) => {
+    setShowSearchResults(false)
+    setSearchQuery('')
+    router.push(link)
+  }
+
+  const getResultIcon = (type) => {
+    const icons = {
+      employee: '👤',
+      task: '📋',
+      leave: '🏖️',
+      attendance: '⏰',
+      department: '🏢',
+      designation: '💼',
+      document: '📄',
+      asset: '💻',
+      announcement: '📢',
+      policy: '📜'
+    }
+    return icons[type] || '📌'
   }
 
   // Don't render user-specific content until mounted to avoid hydration mismatch
@@ -83,13 +152,74 @@ export default function Header({ toggleSidebar }) {
           </button>
 
           {/* Search bar */}
-          <div className="hidden md:flex items-center bg-gray-100 rounded-lg px-3 sm:px-4 py-2 w-64 lg:w-96">
+          <div ref={searchRef} className="hidden md:flex items-center bg-gray-100 rounded-lg px-3 sm:px-4 py-2 w-64 lg:w-96 relative">
             <FaSearch className="text-gray-400 mr-2 w-4 h-4" />
             <input
               type="text"
-              placeholder="Search employees, documents..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search everything..."
               className="bg-transparent border-none focus:outline-none w-full text-sm"
             />
+            {searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery('')
+                  setShowSearchResults(false)
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <FaTimes className="w-3 h-3" />
+              </button>
+            )}
+            {searching && <FaSpinner className="animate-spin text-blue-600 ml-2 w-4 h-4" />}
+
+            {/* Search Results Dropdown */}
+            {showSearchResults && searchResults && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 max-h-[80vh] overflow-y-auto z-50">
+                {Object.entries(searchResults).map(([category, items]) => {
+                  if (items.length === 0) return null
+                  return (
+                    <div key={category} className="border-b border-gray-100 last:border-b-0">
+                      <div className="px-4 py-2 bg-gray-50 font-semibold text-xs text-gray-600 uppercase sticky top-0">
+                        {category} ({items.length})
+                      </div>
+                      {items.map((item) => (
+                        <div
+                          key={item._id}
+                          onClick={() => handleSearchResultClick(item.link)}
+                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-b-0"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="text-2xl flex-shrink-0">{getResultIcon(item.type)}</div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-semibold text-sm text-gray-900 truncate">{item.title}</h4>
+                                {item.meta && (
+                                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{item.meta}</span>
+                                )}
+                              </div>
+                              {item.subtitle && (
+                                <p className="text-xs text-gray-600 mb-1">{item.subtitle}</p>
+                              )}
+                              {item.description && (
+                                <p className="text-xs text-gray-500 truncate">{item.description}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })}
+                {Object.values(searchResults).every(arr => arr.length === 0) && (
+                  <div className="px-4 py-8 text-center text-gray-500">
+                    <FaSearch className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p className="text-sm">No results found for "{searchQuery}"</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -100,6 +230,15 @@ export default function Header({ toggleSidebar }) {
 
         {/* Right side */}
         <div className="flex items-center space-x-2 sm:space-x-4">
+          {/* Chat Button - Desktop Only */}
+          <button
+            onClick={() => router.push('/dashboard/chat')}
+            className="hidden md:flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
+            <FaComments className="w-5 h-5" />
+            <span className="text-sm font-medium">Chat</span>
+          </button>
+
           {/* PWA Status */}
           <PWAStatus />
 
