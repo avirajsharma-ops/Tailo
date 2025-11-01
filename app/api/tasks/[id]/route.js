@@ -32,7 +32,6 @@ export async function GET(request, { params }) {
       .populate('project', 'name projectCode')
       .populate('parentTask', 'title taskNumber')
       .populate('subtasks', 'title taskNumber status progress dueDate')
-      .populate('deletedBy', 'firstName lastName employeeCode')
 
     if (!task) {
       return NextResponse.json(
