@@ -48,12 +48,15 @@ export async function GET(request) {
 
     const teamMemberIds = teamMembers.map(emp => emp._id)
 
-    // Get pending task approvals
+    // Get pending task approvals (tasks in 'review' or 'completed' status that need approval)
     const pendingTasks = await Task.find({
       'assignedTo.employee': { $in: teamMemberIds },
-      status: 'completed',
-      requiresApproval: true,
-      approvalStatus: 'pending'
+      status: { $in: ['review', 'completed'] },
+      $or: [
+        { requiresApproval: true, approvalStatus: 'pending' },
+        { requiresApproval: true, approvalStatus: null },
+        { status: 'review' } // All tasks in review status need approval
+      ]
     })
       .populate('assignedTo.employee', 'firstName lastName employeeCode profilePicture email designation')
       .populate('assignedBy', 'firstName lastName employeeCode')

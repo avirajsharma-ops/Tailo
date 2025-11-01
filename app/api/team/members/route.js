@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Employee from '@/models/Employee'
 import Department from '@/models/Department'
+import Designation from '@/models/Designation'
 import User from '@/models/User'
 import { verifyToken } from '@/lib/auth'
 
