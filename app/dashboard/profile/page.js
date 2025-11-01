@@ -6,17 +6,41 @@ import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCalendarAlt, FaEdit } fr
 export default function ProfilePage() {
   const [user, setUser] = useState(null)
   const [employee, setEmployee] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const userData = localStorage.getItem('user')
-    if (userData) {
-      const parsedUser = JSON.parse(userData)
-      setUser(parsedUser)
-      setEmployee(parsedUser.employeeId)
-    }
+    fetchProfile()
   }, [])
 
-  if (!user || !employee) {
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        setUser(result.data.user)
+        setEmployee(result.data.employee)
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error)
+      // Fallback to localStorage
+      const userData = localStorage.getItem('user')
+      if (userData) {
+        const parsedUser = JSON.parse(userData)
+        setUser(parsedUser)
+        setEmployee(parsedUser.employeeId)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading || !user || !employee) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
