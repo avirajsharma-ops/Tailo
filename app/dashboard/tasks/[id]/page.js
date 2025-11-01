@@ -358,6 +358,38 @@ export default function TaskDetailsPage() {
     return ['manager', 'admin'].includes(user.role) && task.status === 'review'
   }
 
+  const sendForReview = async () => {
+    try {
+      setUpdating(true)
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/tasks/${params.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          progress: 100,
+          status: 'review',
+          approvalStatus: 'pending'
+        })
+      })
+
+      if (response.ok) {
+        alert('Task sent for review successfully')
+        fetchTaskDetails()
+      } else {
+        const data = await response.json()
+        alert(data.message || 'Failed to send task for review')
+      }
+    } catch (error) {
+      console.error('Error sending task for review:', error)
+      alert('Failed to send task for review')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
   const acceptTask = async () => {
     try {
       setUpdating(true)
@@ -527,9 +559,9 @@ export default function TaskDetailsPage() {
                 </>
               )}
 
-              {myAssignment?.status === 'accepted' && task.status !== 'completed' && (
+              {myAssignment?.status === 'accepted' && task.status !== 'completed' && task.status !== 'review' && (
                 <>
-                  {task.status === 'assigned' && (
+                  {task.status === 'assigned' && task.approvalStatus !== 'rejected' && (
                     <button
                       onClick={() => updateTaskProgress(10, 'in_progress')}
                       disabled={updating}
@@ -537,6 +569,17 @@ export default function TaskDetailsPage() {
                     >
                       <FaPlay className="w-3 h-3 mr-2" />
                       Start Task
+                    </button>
+                  )}
+
+                  {task.status === 'assigned' && task.approvalStatus === 'rejected' && (
+                    <button
+                      onClick={sendForReview}
+                      disabled={updating}
+                      className="bg-yellow-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-yellow-700 disabled:opacity-50 text-xs sm:text-sm flex items-center"
+                    >
+                      <FaCheck className="w-3 h-3 mr-2" />
+                      Send for Review
                     </button>
                   )}
 
@@ -609,6 +652,24 @@ export default function TaskDetailsPage() {
 
           {/* Task Information */}
           <div className="space-y-6">
+            {/* Rejection Alert */}
+            {task.approvalStatus === 'rejected' && task.rejectionReason && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                <div className="flex items-start">
+                  <FaExclamationTriangle className="text-red-500 mt-1 mr-3 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-red-800 font-semibold text-sm sm:text-base">Task Rejected</h3>
+                    <p className="text-red-700 text-xs sm:text-sm mt-1">
+                      <strong>Reason:</strong> {task.rejectionReason}
+                    </p>
+                    <p className="text-red-600 text-xs mt-2">
+                      Please review the feedback, make necessary changes, and send the task for review again.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Title and Status */}
             <div>
               <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-3">{task.title}</h2>

@@ -263,6 +263,7 @@ export default function MyTasksPage() {
 
     if (filter === 'all') return matchesSearch
     if (filter === 'in_progress') return matchesSearch && (task.status === 'assigned' || task.status === 'in_progress')
+    if (filter === 'review') return matchesSearch && task.status === 'review'
     if (filter === 'completed') return matchesSearch && task.status === 'completed'
     if (filter === 'overdue') return matchesSearch && isOverdue(task.dueDate, task.status)
 
@@ -366,6 +367,14 @@ export default function MyTasksPage() {
                 }`}
               >
                 In Progress
+              </button>
+              <button
+                onClick={() => setFilter('review')}
+                className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                  filter === 'review' ? 'bg-yellow-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Under Review
               </button>
               <button
                 onClick={() => setFilter('completed')}
