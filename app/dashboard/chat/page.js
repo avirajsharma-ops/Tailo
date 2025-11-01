@@ -472,8 +472,8 @@ export default function ChatPage() {
 
       {/* New Chat Modal */}
       {showNewChatModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto scrollbar-hide">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-800">New Chat</h2>
               <button onClick={() => setShowNewChatModal(false)} className="text-gray-500 hover:text-gray-700">
@@ -489,7 +489,7 @@ export default function ChatPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-hide">
               {filteredEmployees.length === 0 ? (
                 <div className="text-center text-gray-500 py-8 text-sm">
                   {employeeSearchQuery ? 'No employees found' : 'No employees available'}
@@ -529,8 +529,8 @@ export default function ChatPage() {
 
       {/* New Group Modal */}
       {showGroupModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto scrollbar-hide">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-800">New Group</h2>
               <button onClick={() => setShowGroupModal(false)} className="text-gray-500 hover:text-gray-700">
@@ -553,7 +553,7 @@ export default function ChatPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
-            <div className="space-y-2 mb-4 max-h-96 overflow-y-auto">
+            <div className="space-y-2 mb-4 max-h-96 overflow-y-auto scrollbar-hide">
               {filteredEmployees.length === 0 ? (
                 <div className="text-center text-gray-500 py-8 text-sm">
                   {employeeSearchQuery ? 'No employees found' : 'No employees available'}

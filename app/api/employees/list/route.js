@@ -24,7 +24,7 @@ export async function GET(request) {
       return NextResponse.json({ success: false, message: 'Employee not found' }, { status: 404 })
     }
 
-    // Fetch all active employees except current user
+    // Fetch all active employees except current user (excluding admin role)
     const employees = await Employee.find({
       _id: { $ne: currentUser._id },
       status: 'active'
@@ -32,11 +32,18 @@ export async function GET(request) {
       .select('firstName lastName employeeCode profilePicture email designation department')
       .populate('designation', 'title')
       .populate('department', 'name')
+      .populate({
+        path: 'user',
+        select: 'role'
+      })
       .sort({ firstName: 1 })
+
+    // Filter out admin users
+    const filteredEmployees = employees.filter(emp => emp.user?.role !== 'admin')
 
     return NextResponse.json({
       success: true,
-      data: employees
+      data: filteredEmployees
     })
   } catch (error) {
     console.error('Get employees error:', error)
