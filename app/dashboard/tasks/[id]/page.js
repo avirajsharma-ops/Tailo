@@ -120,14 +120,52 @@ export default function TaskDetailsPage() {
       return false
     }
     const myId = user.employeeId || user.id || user._id
-    const canDelete = user.role === 'admin' || task.assignedBy?._id === myId
-    console.log('canDeleteTask:', {
+    const assignedById = task.assignedBy?._id || task.assignedBy
+
+    // Admin can delete any task
+    if (user.role === 'admin') {
+      return true
+    }
+
+    // Task creator can delete
+    if (assignedById && assignedById.toString() === myId.toString()) {
+      return true
+    }
+
+    // HR can delete tasks in their department
+    if (user.role === 'hr') {
+      // Check if any assignee is in the same department
+      const userDept = user.department
+      const hasAssigneeInDept = task.assignedTo?.some(assignment => {
+        const emp = assignment.employee
+        return emp?.department === userDept
+      })
+      if (hasAssigneeInDept) {
+        return true
+      }
+    }
+
+    // Manager can delete tasks for their team members
+    if (user.role === 'manager') {
+      // Check if any assignee reports to this manager
+      const hasDirectReport = task.assignedTo?.some(assignment => {
+        const emp = assignment.employee
+        return emp?.reportingManager?._id?.toString() === myId.toString() ||
+               emp?.reportingManager?.toString() === myId.toString()
+      })
+      if (hasDirectReport) {
+        return true
+      }
+    }
+
+    console.log('canDeleteTask: No permission', {
       userRole: user.role,
-      myId,
-      assignedById: task.assignedBy?._id,
-      canDelete
+      myId: myId.toString(),
+      assignedById: assignedById?.toString(),
+      userDept: user.department
     })
-    return canDelete
+
+    return false
   }
 
   const acceptTask = async () => {
