@@ -51,12 +51,16 @@ export default function ChatPage() {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const result = await response.json()
+      console.log('Chats API response:', result)
       if (result.success) {
         setChats(result.data)
         setCurrentUserId(result.currentUserId)
+        console.log('Chats loaded:', result.data.length)
+      } else {
+        console.error('Failed to load chats:', result.message)
       }
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Error fetching chats:', error)
     } finally {
       setLoading(false)
     }
@@ -69,9 +73,15 @@ export default function ChatPage() {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const result = await response.json()
-      if (result.success) setEmployees(result.data)
+      console.log('Employees API response:', result)
+      if (result.success) {
+        setEmployees(result.data)
+        console.log('Employees loaded:', result.data.length)
+      } else {
+        console.error('Failed to load employees:', result.message)
+      }
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Error fetching employees:', error)
     }
   }
 
