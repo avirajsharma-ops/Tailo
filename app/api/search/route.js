@@ -13,6 +13,7 @@ import Asset from '@/models/Asset'
 import Announcement from '@/models/Announcement'
 import Policy from '@/models/Policy'
 import Fuse from 'fuse.js'
+import { getMenuItemsForRole } from '@/utils/roleBasedMenus'
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key')
 
@@ -61,6 +62,44 @@ function expandQueryWithSynonyms(query) {
   return Array.from(expandedWords)
 }
 
+// Function to build searchable pages from menu items
+function buildSearchablePagesFromMenu(menuItems) {
+  const pages = []
+
+  const processMenuItem = (item) => {
+    // Add main menu item
+    if (item.path) {
+      pages.push({
+        title: item.name,
+        description: `View ${item.name.toLowerCase()}`,
+        link: item.path,
+        icon: '📄',
+        keywords: [item.name.toLowerCase(), ...item.name.toLowerCase().split(' ')]
+      })
+    }
+
+    // Add submenu items
+    if (item.submenu && item.submenu.length > 0) {
+      item.submenu.forEach(subItem => {
+        pages.push({
+          title: subItem.name,
+          description: `${subItem.name} - ${item.name}`,
+          link: subItem.path,
+          icon: '📄',
+          keywords: [
+            subItem.name.toLowerCase(),
+            ...subItem.name.toLowerCase().split(' '),
+            item.name.toLowerCase()
+          ]
+        })
+      })
+    }
+  }
+
+  menuItems.forEach(processMenuItem)
+  return pages
+}
+
 export async function GET(request) {
   try {
     const token = request.headers.get('authorization')?.split(' ')[1]
@@ -92,33 +131,9 @@ export async function GET(request) {
       policies: []
     }
 
-    // Define app pages and views for navigation search
-    const appPages = [
-      { title: 'Dashboard', description: 'View your dashboard and overview', link: '/dashboard', icon: '🏠', keywords: ['home', 'overview', 'main', 'dashboard'] },
-      { title: 'My Profile', description: 'View and edit your profile', link: '/dashboard/profile', icon: '👤', keywords: ['profile', 'my profile', 'personal', 'account', 'settings'] },
-      { title: 'Tasks', description: 'Manage your tasks and assignments', link: '/dashboard/tasks', icon: '📋', keywords: ['tasks', 'assignments', 'work', 'todo', 'projects'] },
-      { title: 'Leave Management', description: 'Apply for leave and view leave balance', link: '/dashboard/leave', icon: '🏖️', keywords: ['leave', 'vacation', 'time off', 'absence', 'pto', 'holiday'] },
-      { title: 'Apply for Leave', description: 'Submit a new leave application', link: '/dashboard/leave/apply', icon: '📝', keywords: ['apply leave', 'request leave', 'new leave', 'leave application'] },
-      { title: 'Attendance', description: 'View attendance records and check-in/out', link: '/dashboard/attendance', icon: '⏰', keywords: ['attendance', 'check in', 'check out', 'clock in', 'clock out', 'presence'] },
-      { title: 'Chat & Messages', description: 'Chat with colleagues and teams', link: '/dashboard/chat', icon: '💬', keywords: ['chat', 'messages', 'messaging', 'communication', 'talk'] },
-      { title: 'Documents', description: 'Access and manage documents', link: '/dashboard/documents', icon: '📄', keywords: ['documents', 'files', 'papers', 'forms', 'downloads'] },
-      { title: 'Employees', description: 'View employee directory', link: '/dashboard/employees', icon: '👥', keywords: ['employees', 'staff', 'team', 'colleagues', 'people', 'directory'] },
-      { title: 'Departments', description: 'View departments and organization structure', link: '/dashboard/organization/departments', icon: '🏢', keywords: ['departments', 'organization', 'structure', 'teams', 'divisions'] },
-      { title: 'Designations', description: 'View job designations and roles', link: '/dashboard/organization/designations', icon: '🎯', keywords: ['designations', 'roles', 'positions', 'job titles'] },
-      { title: 'Announcements', description: 'View company announcements', link: '/dashboard/announcements', icon: '📢', keywords: ['announcements', 'news', 'updates', 'notices', 'information'] },
-      { title: 'Policies', description: 'View company policies', link: '/dashboard/policies', icon: '📜', keywords: ['policies', 'rules', 'guidelines', 'regulations', 'procedures'] },
-      { title: 'Payroll', description: 'View payroll and salary information', link: '/dashboard/payroll', icon: '💰', keywords: ['payroll', 'salary', 'pay', 'compensation', 'wages', 'payslip'] },
-      { title: 'Performance', description: 'View performance reviews and goals', link: '/dashboard/performance', icon: '📊', keywords: ['performance', 'reviews', 'appraisal', 'goals', 'objectives', 'kpi'] },
-      { title: 'Assets', description: 'View assigned assets and equipment', link: '/dashboard/assets', icon: '💻', keywords: ['assets', 'equipment', 'devices', 'inventory', 'resources'] },
-      { title: 'Expenses', description: 'Submit and track expense claims', link: '/dashboard/expenses', icon: '💳', keywords: ['expenses', 'claims', 'reimbursement', 'bills', 'receipts'] },
-      { title: 'Travel', description: 'Manage travel requests', link: '/dashboard/travel', icon: '✈️', keywords: ['travel', 'trips', 'business travel', 'journey'] },
-      { title: 'Helpdesk', description: 'Submit support tickets', link: '/dashboard/helpdesk', icon: '🎫', keywords: ['helpdesk', 'support', 'tickets', 'help', 'issues', 'problems'] },
-      { title: 'Recruitment', description: 'View job openings and recruitment', link: '/dashboard/recruitment', icon: '🔍', keywords: ['recruitment', 'hiring', 'jobs', 'careers', 'openings', 'positions'] },
-      { title: 'Onboarding', description: 'View onboarding information', link: '/dashboard/onboarding', icon: '🚀', keywords: ['onboarding', 'new hire', 'joining', 'orientation'] },
-      { title: 'Offboarding', description: 'Manage offboarding process', link: '/dashboard/offboarding', icon: '👋', keywords: ['offboarding', 'exit', 'resignation', 'leaving', 'separation'] },
-      { title: 'Holidays', description: 'View holiday calendar', link: '/dashboard/holidays', icon: '📅', keywords: ['holidays', 'calendar', 'public holidays', 'festivals', 'days off'] },
-      { title: 'Ideas & Sandbox', description: 'Share ideas and suggestions', link: '/dashboard/sandbox', icon: '💡', keywords: ['ideas', 'sandbox', 'suggestions', 'innovation', 'feedback'] },
-    ]
+    // Build searchable pages from user's role-based menu items
+    const menuItems = getMenuItemsForRole(user.role)
+    const appPages = buildSearchablePagesFromMenu(menuItems)
 
     // Expand query with synonyms
     const expandedTerms = expandQueryWithSynonyms(query)
