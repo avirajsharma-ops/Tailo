@@ -155,6 +155,33 @@ const TaskSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Task'
   }],
+  // Checklist for better completion tracking
+  checklist: [{
+    title: {
+      type: String,
+      required: true,
+      maxlength: 200
+    },
+    description: String,
+    completed: {
+      type: Boolean,
+      default: false
+    },
+    completedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Employee'
+    },
+    completedAt: Date,
+    order: {
+      type: Number,
+      default: 0
+    },
+    required: {
+      type: Boolean,
+      default: false
+    },
+    dueDate: Date
+  }],
   dependencies: [{
     task: {
       type: mongoose.Schema.Types.ObjectId,
