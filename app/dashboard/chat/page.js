@@ -485,30 +485,32 @@ export default function ChatPage() {
                   {employeeSearchQuery ? 'No employees found' : 'No employees available'}
                 </div>
               ) : (
-                filteredEmployees.map((emp) => (
-                <div
-                  key={emp._id}
-                  onClick={() => handleCreateChat(emp._id)}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
-                >
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center overflow-hidden">
-                    {emp.profilePicture ? (
-                      <img src={emp.profilePicture} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-white font-bold">{emp.firstName[0]}</span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-800 text-sm">{emp.firstName} {emp.lastName}</p>
-                    <p className="text-xs text-gray-500">{emp.designation?.title || 'Employee'}</p>
-                  </div>
-                </div>
-                ))
-              )}
-              {!employeeSearchQuery && employees.length > 10 && (
-                <div className="text-center text-xs text-gray-500 py-2 border-t">
-                  Showing 10 of {employees.length} employees. Use search to find more.
-                </div>
+                <>
+                  {filteredEmployees.map((emp) => (
+                    <div
+                      key={emp._id}
+                      onClick={() => handleCreateChat(emp._id)}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center overflow-hidden">
+                        {emp.profilePicture ? (
+                          <img src={emp.profilePicture} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-white font-bold">{emp.firstName[0]}</span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-800 text-sm">{emp.firstName} {emp.lastName}</p>
+                        <p className="text-xs text-gray-500">{emp.designation?.title || 'Employee'}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {!employeeSearchQuery && employees.length > 10 && (
+                    <div className="text-center text-xs text-gray-500 py-2 border-t">
+                      Showing 10 of {employees.length} employees. Use search to find more.
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -547,43 +549,45 @@ export default function ChatPage() {
                   {employeeSearchQuery ? 'No employees found' : 'No employees available'}
                 </div>
               ) : (
-                filteredEmployees.map((emp) => (
-                <div
-                  key={emp._id}
-                  onClick={() => {
-                    if (selectedEmployees.includes(emp._id)) {
-                      setSelectedEmployees(selectedEmployees.filter(id => id !== emp._id))
-                    } else {
-                      setSelectedEmployees([...selectedEmployees, emp._id])
-                    }
-                  }}
-                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer ${
-                    selectedEmployees.includes(emp._id) ? 'bg-blue-50 border-2 border-blue-500' : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center overflow-hidden">
-                    {emp.profilePicture ? (
-                      <img src={emp.profilePicture} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-white font-bold">{emp.firstName[0]}</span>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-800 text-sm">{emp.firstName} {emp.lastName}</p>
-                    <p className="text-xs text-gray-500">{emp.designation?.title || 'Employee'}</p>
-                  </div>
-                  {selectedEmployees.includes(emp._id) && (
-                    <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
-                      <FaTimes className="text-white text-xs" />
+                <>
+                  {filteredEmployees.map((emp) => (
+                    <div
+                      key={emp._id}
+                      onClick={() => {
+                        if (selectedEmployees.includes(emp._id)) {
+                          setSelectedEmployees(selectedEmployees.filter(id => id !== emp._id))
+                        } else {
+                          setSelectedEmployees([...selectedEmployees, emp._id])
+                        }
+                      }}
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer ${
+                        selectedEmployees.includes(emp._id) ? 'bg-blue-50 border-2 border-blue-500' : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center overflow-hidden">
+                        {emp.profilePicture ? (
+                          <img src={emp.profilePicture} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-white font-bold">{emp.firstName[0]}</span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-800 text-sm">{emp.firstName} {emp.lastName}</p>
+                        <p className="text-xs text-gray-500">{emp.designation?.title || 'Employee'}</p>
+                      </div>
+                      {selectedEmployees.includes(emp._id) && (
+                        <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
+                          <FaTimes className="text-white text-xs" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {!employeeSearchQuery && employees.length > 10 && (
+                    <div className="text-center text-xs text-gray-500 py-2 border-t">
+                      Showing 10 of {employees.length} employees. Use search to find more.
                     </div>
                   )}
-                </div>
-                ))
-              )}
-              {!employeeSearchQuery && employees.length > 10 && (
-                <div className="text-center text-xs text-gray-500 py-2 border-t">
-                  Showing 10 of {employees.length} employees. Use search to find more.
-                </div>
+                </>
               )}
             </div>
             <button

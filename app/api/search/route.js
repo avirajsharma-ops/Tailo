@@ -178,10 +178,7 @@ export async function GET(request) {
 
     // Search Designations (all designations)
     const designations = await Designation.find({
-      $or: [
-        { title: searchRegex },
-        { level: searchRegex }
-      ]
+      title: searchRegex
     })
       .select('title level')
       .populate('department', 'name')
