@@ -54,18 +54,24 @@ export async function GET(request) {
     // Tasks in 'review' status are those marked complete but not yet approved
     // Once approved, they move to 'completed' status
     const pendingTasks = await Task.find({
-      $or: [
-        // Tasks assigned to team members
-        { 'assignedTo.employee': { $in: teamMemberIds } },
-        // Tasks created by team members
-        { 'assignedBy': { $in: teamMemberIds } }
-      ],
-      // Task must be in review status (awaiting approval)
-      status: 'review',
-      // Task must not be approved or rejected yet
-      $or: [
-        { approvalStatus: 'pending' },
-        { approvalStatus: null }
+      $and: [
+        {
+          $or: [
+            // Tasks assigned to team members
+            { 'assignedTo.employee': { $in: teamMemberIds } },
+            // Tasks created by team members
+            { 'assignedBy': { $in: teamMemberIds } }
+          ]
+        },
+        // Task must be in review status (awaiting approval)
+        { status: 'review' },
+        // Task must not be approved or rejected yet
+        {
+          $or: [
+            { approvalStatus: 'pending' },
+            { approvalStatus: null }
+          ]
+        }
       ]
     })
       .populate({
