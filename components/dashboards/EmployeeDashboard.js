@@ -712,34 +712,46 @@ export default function EmployeeDashboard({ user }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
         {/* Today's Schedule */}
         <div className="bg-white rounded-lg shadow-md p-3 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Today&apos;s Schedule</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Today&apos;s Tasks</h3>
           <div className="space-y-3">
-            {[
-              { time: '9:00 AM', task: 'Daily standup meeting', status: 'completed' },
-              { time: '10:30 AM', task: 'Code review session', status: 'completed' },
-              { time: '2:00 PM', task: 'Client presentation', status: 'upcoming' },
-              { time: '4:00 PM', task: 'Team retrospective', status: 'upcoming' },
-              { time: '5:30 PM', task: 'Documentation update', status: 'pending' },
-            ].map((item, index) => (
-              <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between py-2 border-b border-gray-100 last:border-0 space-y-2 sm:space-y-0">
-                <div className="flex items-center space-x-3 min-w-0 flex-1">
-                  <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                    item.status === 'completed' ? 'bg-green-500' :
-                    item.status === 'upcoming' ? 'bg-blue-500' : 'bg-gray-400'
-                  }`}></div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm font-medium text-gray-900">{item.task}</p>
-                    <p className="text-xs text-gray-500">{item.time}</p>
+            {todayTasks.length > 0 ? (
+              todayTasks.map((task, index) => (
+                <div key={task._id || index} className="flex flex-col sm:flex-row sm:items-center justify-between py-2 border-b border-gray-100 last:border-0 space-y-2 sm:space-y-0">
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                      task.status === 'completed' ? 'bg-green-500' :
+                      task.status === 'in_progress' ? 'bg-blue-500' :
+                      task.status === 'assigned' ? 'bg-yellow-500' : 'bg-gray-400'
+                    }`}></div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                        #{task.taskNumber} - {task.title}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {task.priority && (
+                          <span className={`inline-block mr-2 ${
+                            task.priority === 'high' ? 'text-red-600' :
+                            task.priority === 'medium' ? 'text-yellow-600' : 'text-green-600'
+                          }`}>
+                            {task.priority.toUpperCase()}
+                          </span>
+                        )}
+                        {task.progress || 0}% complete
+                      </p>
+                    </div>
                   </div>
+                  <span className={`px-2 py-1 text-xs rounded-full self-start sm:self-auto ${
+                    task.status === 'completed' ? 'bg-green-100 text-green-800' :
+                    task.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                    task.status === 'assigned' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {task.status?.replace('_', ' ')}
+                  </span>
                 </div>
-                <span className={`px-2 py-1 text-xs rounded-full self-start sm:self-auto ${
-                  item.status === 'completed' ? 'bg-green-100 text-green-800' :
-                  item.status === 'upcoming' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {item.status}
-                </span>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm text-center py-4">No tasks due today</p>
+            )}
           </div>
         </div>
 

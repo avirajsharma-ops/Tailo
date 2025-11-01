@@ -292,28 +292,28 @@ export default function MyTasksPage() {
     <RoleBasedAccess allowedRoles={['admin', 'hr', 'manager', 'employee']}>
       <div className="space-y-6">
         {/* Header */}
-        <div className="bg-white shadow-sm rounded-lg p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                <FaTasks className="mr-3 text-blue-600" />
-                My Tasks
+        <div className="bg-white shadow-sm rounded-lg p-3 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4 sm:mb-6">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
+                <FaTasks className="mr-2 sm:mr-3 text-blue-600 flex-shrink-0" />
+                <span className="truncate">My Tasks</span>
               </h1>
-              <p className="text-gray-600">Manage your assigned tasks and track progress</p>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">Manage your assigned tasks and track progress</p>
             </div>
-            
-            <div className="flex space-x-3">
+
+            <div className="flex gap-2 sm:gap-3 flex-shrink-0">
               <button
                 onClick={() => router.push('/dashboard/tasks/create')}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm sm:text-base whitespace-nowrap"
               >
-                <FaPlus className="w-4 h-4" />
+                <FaPlus className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Create Task</span>
               </button>
-              
+
               <button
                 onClick={() => router.push('/dashboard/tasks')}
-                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                className="bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-700 text-sm sm:text-base whitespace-nowrap"
               >
                 Dashboard
               </button>
@@ -403,12 +403,14 @@ export default function MyTasksPage() {
               {filteredTasks.map((task) => {
                 const myAssignment = getMyAssignment(task)
                 return (
-                  <div key={task._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-3 sm:space-y-0">
+                  <div key={task._id} className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                    <div className="flex flex-col space-y-3">
                       <div className="flex-1">
                         {/* Title and Badges */}
-                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-3">
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 break-words">{task.title}</h3>
+                        <div className="mb-3">
+                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                            {task.title}
+                          </h3>
                           <div className="flex flex-wrap gap-2">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
                               {task.status.replace('_', ' ')}
@@ -463,18 +465,18 @@ export default function MyTasksPage() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex flex-row sm:flex-col space-x-2 sm:space-x-0 sm:space-y-2 sm:ml-4">
+                      <div className="flex flex-wrap gap-2 mt-3">
                         {myAssignment?.status === 'pending' && (
                           <>
                             <button
                               onClick={() => acceptTask(task._id)}
-                              className="bg-green-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-green-700 transition-colors flex-1 sm:flex-none"
+                              className="bg-green-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-green-700 transition-colors flex-1 min-w-[100px]"
                             >
                               Accept
                             </button>
                             <button
                               onClick={() => rejectTask(task._id)}
-                              className="bg-red-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-red-700 transition-colors flex-1 sm:flex-none"
+                              className="bg-red-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-red-700 transition-colors flex-1 min-w-[100px]"
                             >
                               Reject
                             </button>
@@ -486,7 +488,7 @@ export default function MyTasksPage() {
                             {task.status === 'assigned' && (
                               <button
                                 onClick={() => updateTaskProgress(task._id, 10, 'in_progress')}
-                                className="bg-blue-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-blue-700 transition-colors flex items-center justify-center flex-1 sm:flex-none"
+                                className="bg-blue-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-blue-700 transition-colors flex items-center justify-center flex-1 min-w-[100px]"
                               >
                                 <FaPlay className="w-3 h-3 mr-1" />
                                 Start
@@ -496,7 +498,7 @@ export default function MyTasksPage() {
                             {task.status === 'in_progress' && (task.progress || 0) < 100 && (
                               <button
                                 onClick={() => updateTaskProgress(task._id, 100, 'review')}
-                                className="bg-green-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-green-700 transition-colors flex items-center justify-center flex-1 sm:flex-none"
+                                className="bg-green-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-green-700 transition-colors flex items-center justify-center flex-1 min-w-[100px]"
                               >
                                 <FaCheck className="w-3 h-3 mr-1" />
                                 Complete
@@ -507,7 +509,7 @@ export default function MyTasksPage() {
 
                         <button
                           onClick={() => router.push(`/dashboard/tasks/${task._id}`)}
-                          className="bg-gray-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-gray-700 transition-colors flex items-center justify-center flex-1 sm:flex-none"
+                          className="bg-gray-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-gray-700 transition-colors flex items-center justify-center flex-1 min-w-[100px]"
                         >
                           <FaEye className="w-3 h-3 mr-1" />
                           View
@@ -516,7 +518,7 @@ export default function MyTasksPage() {
                         {canDeleteTask(task) && (
                           <button
                             onClick={() => handleDeleteClick(task)}
-                            className="bg-red-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-red-700 transition-colors flex items-center justify-center flex-1 sm:flex-none"
+                            className="bg-red-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-red-700 transition-colors flex items-center justify-center flex-1 min-w-[100px]"
                           >
                             <FaTrash className="w-3 h-3 mr-1" />
                             Delete
