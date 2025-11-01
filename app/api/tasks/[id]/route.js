@@ -199,22 +199,24 @@ async function checkTaskViewPermission(userId, task, userRole) {
     }
 
     // Check if user is assigned to the task
-    const isAssigned = task.assignedTo.some(assignment => 
-      assignment.employee.toString() === userId.toString()
-    )
+    const isAssigned = task.assignedTo.some(assignment => {
+      const empId = assignment.employee?._id || assignment.employee
+      return empId.toString() === userId.toString()
+    })
     if (isAssigned) {
       return true
     }
 
-    // Check if user created the task
-    if (task.assignedBy.toString() === userId.toString()) {
+    // Check if user created the task (handle both populated and non-populated)
+    const assignedById = task.assignedBy?._id || task.assignedBy
+    if (assignedById && assignedById.toString() === userId.toString()) {
       return true
     }
 
     // For managers, check if any assignee reports to them
     if (userRole === 'manager') {
-      const assigneeIds = task.assignedTo.map(a => a.employee)
-      const teamMembers = await Employee.find({ 
+      const assigneeIds = task.assignedTo.map(a => a.employee?._id || a.employee)
+      const teamMembers = await Employee.find({
         reportingManager: userId,
         _id: { $in: assigneeIds }
       })
@@ -238,16 +240,18 @@ async function checkTaskUpdatePermission(userId, task, userRole) {
       return true
     }
 
-    // Task creator can update
-    if (task.assignedBy.toString() === userId.toString()) {
+    // Task creator can update (handle both populated and non-populated)
+    const assignedById = task.assignedBy?._id || task.assignedBy
+    if (assignedById && assignedById.toString() === userId.toString()) {
       return true
     }
 
     // HR can update tasks in their department
     if (userRole === 'hr') {
       const user = await Employee.findById(userId)
-      const assignees = await Employee.find({ 
-        _id: { $in: task.assignedTo.map(a => a.employee) }
+      const assigneeIds = task.assignedTo.map(a => a.employee?._id || a.employee)
+      const assignees = await Employee.find({
+        _id: { $in: assigneeIds }
       })
       const sameDepAssignees = assignees.filter(emp => emp.department === user.department)
       if (sameDepAssignees.length > 0) {
@@ -257,8 +261,8 @@ async function checkTaskUpdatePermission(userId, task, userRole) {
 
     // Managers can update tasks for their team members
     if (userRole === 'manager') {
-      const assigneeIds = task.assignedTo.map(a => a.employee)
-      const teamMembers = await Employee.find({ 
+      const assigneeIds = task.assignedTo.map(a => a.employee?._id || a.employee)
+      const teamMembers = await Employee.find({
         reportingManager: userId,
         _id: { $in: assigneeIds }
       })
@@ -282,7 +286,9 @@ async function checkTaskDeletePermission(userId, task, userRole) {
       return true
     }
 
-    if (task.assignedBy.toString() === userId.toString()) {
+    // Handle both populated and non-populated assignedBy
+    const assignedById = task.assignedBy?._id || task.assignedBy
+    if (assignedById && assignedById.toString() === userId.toString()) {
       return true
     }
 
