@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import dbConnect from '@/lib/mongodb'
 import Department from '@/models/Department'
+import Designation from '@/models/Designation'
 import Employee from '@/models/Employee'
 import Task from '@/models/Task'
+import Project from '@/models/Project'
 import User from '@/models/User'
 
 // GET - Fetch all pending task approvals for department
@@ -40,28 +42,55 @@ export async function GET(request) {
       }, { status: 403 })
     }
 
-    // Get all team members
-    const teamMembers = await Employee.find({ 
+    // Get all team members in the department
+    const teamMembers = await Employee.find({
       department: department._id,
       status: 'active'
     }).select('_id')
 
     const teamMemberIds = teamMembers.map(emp => emp._id)
 
-    // Get pending task approvals (tasks in 'review' or 'completed' status that need approval)
+    // Get pending task approvals - ALL completed tasks in department that need approval
+    // Regardless of who created or assigned them
     const pendingTasks = await Task.find({
-      'assignedTo.employee': { $in: teamMemberIds },
-      status: { $in: ['review', 'completed'] },
       $or: [
-        { requiresApproval: true, approvalStatus: 'pending' },
-        { requiresApproval: true, approvalStatus: null },
-        { status: 'review' } // All tasks in review status need approval
+        // Tasks assigned to team members
+        { 'assignedTo.employee': { $in: teamMemberIds } },
+        // Tasks created by team members
+        { 'assignedBy': { $in: teamMemberIds } }
+      ],
+      // Task must be in review or completed status
+      status: { $in: ['review', 'completed'] },
+      // Task must not be approved yet
+      $and: [
+        {
+          $or: [
+            { approvalStatus: 'pending' },
+            { approvalStatus: null }
+          ]
+        }
       ]
     })
-      .populate('assignedTo.employee', 'firstName lastName employeeCode profilePicture email designation')
-      .populate('assignedBy', 'firstName lastName employeeCode')
-      .populate('parentTask', 'title')
+      .populate({
+        path: 'assignedTo.employee',
+        select: 'firstName lastName employeeCode profilePicture email',
+        populate: {
+          path: 'designation',
+          select: 'name level'
+        }
+      })
+      .populate({
+        path: 'assignedBy',
+        select: 'firstName lastName employeeCode',
+        populate: {
+          path: 'designation',
+          select: 'name level'
+        }
+      })
+      .populate('parentTask', 'title taskNumber')
+      .populate('project', 'name projectCode')
       .sort({ updatedAt: -1 })
+      .lean()
 
     return NextResponse.json({
       success: true,
@@ -177,9 +206,33 @@ export async function POST(request) {
     await task.save()
 
     const updatedTask = await Task.findById(taskId)
-      .populate('assignedTo.employee', 'firstName lastName employeeCode profilePicture')
-      .populate('assignedBy', 'firstName lastName')
-      .populate('approvedBy', 'firstName lastName')
+      .populate({
+        path: 'assignedTo.employee',
+        select: 'firstName lastName employeeCode profilePicture email',
+        populate: {
+          path: 'designation',
+          select: 'name level'
+        }
+      })
+      .populate({
+        path: 'assignedBy',
+        select: 'firstName lastName employeeCode',
+        populate: {
+          path: 'designation',
+          select: 'name level'
+        }
+      })
+      .populate({
+        path: 'approvedBy',
+        select: 'firstName lastName employeeCode',
+        populate: {
+          path: 'designation',
+          select: 'name level'
+        }
+      })
+      .populate('parentTask', 'title taskNumber')
+      .populate('project', 'name projectCode')
+      .lean()
 
     return NextResponse.json({
       success: true,

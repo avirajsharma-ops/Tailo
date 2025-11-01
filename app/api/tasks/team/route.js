@@ -3,6 +3,8 @@ import connectDB from '@/lib/mongodb'
 import Task from '@/models/Task'
 import Employee from '@/models/Employee'
 import Department from '@/models/Department'
+import Designation from '@/models/Designation'
+import Project from '@/models/Project'
 import { verifyToken } from '@/lib/auth'
 
 // GET - Fetch team tasks for department members
@@ -92,18 +94,80 @@ export async function GET(request) {
 
     // Fetch tasks
     const tasks = await Task.find(query)
-      .populate('assignedBy', 'firstName lastName employeeCode email designation')
-      .populate('assignedTo.employee', 'firstName lastName employeeCode email designation department')
-      .populate('assignedTo.delegatedTo', 'firstName lastName employeeCode')
+      .populate({
+        path: 'assignedBy',
+        select: 'firstName lastName employeeCode email',
+        populate: {
+          path: 'designation',
+          select: 'name level'
+        }
+      })
+      .populate({
+        path: 'assignedTo.employee',
+        select: 'firstName lastName employeeCode email',
+        populate: [
+          {
+            path: 'designation',
+            select: 'name level'
+          },
+          {
+            path: 'department',
+            select: 'name code'
+          }
+        ]
+      })
+      .populate({
+        path: 'assignedTo.delegatedTo',
+        select: 'firstName lastName employeeCode',
+        populate: {
+          path: 'designation',
+          select: 'name level'
+        }
+      })
       .populate('project', 'name projectCode')
       .populate('milestone', 'name')
-      .populate('comments.author', 'firstName lastName employeeCode')
+      .populate({
+        path: 'comments.author',
+        select: 'firstName lastName employeeCode',
+        populate: {
+          path: 'designation',
+          select: 'name level'
+        }
+      })
       .populate('comments.mentions', 'firstName lastName employeeCode')
-      .populate('approvalWorkflow.approver', 'firstName lastName employeeCode')
-      .populate('reviewers.reviewer', 'firstName lastName employeeCode')
+      .populate({
+        path: 'approvalWorkflow.approver',
+        select: 'firstName lastName employeeCode',
+        populate: {
+          path: 'designation',
+          select: 'name level'
+        }
+      })
+      .populate({
+        path: 'reviewers.reviewer',
+        select: 'firstName lastName employeeCode',
+        populate: {
+          path: 'designation',
+          select: 'name level'
+        }
+      })
       .populate('attachments.uploadedBy', 'firstName lastName employeeCode')
-      .populate('timeEntries.employee', 'firstName lastName employeeCode')
-      .populate('timeEntries.approvedBy', 'firstName lastName employeeCode')
+      .populate({
+        path: 'timeEntries.employee',
+        select: 'firstName lastName employeeCode',
+        populate: {
+          path: 'designation',
+          select: 'name level'
+        }
+      })
+      .populate({
+        path: 'timeEntries.approvedBy',
+        select: 'firstName lastName employeeCode',
+        populate: {
+          path: 'designation',
+          select: 'name level'
+        }
+      })
       .sort({ [sortBy]: sortOrder })
       .lean()
 
@@ -302,7 +366,14 @@ export async function POST(request) {
     await task.save()
 
     // Populate the new comment
-    await task.populate('comments.author', 'firstName lastName employeeCode')
+    await task.populate({
+      path: 'comments.author',
+      select: 'firstName lastName employeeCode',
+      populate: {
+        path: 'designation',
+        select: 'name level'
+      }
+    })
     await task.populate('comments.mentions', 'firstName lastName employeeCode')
 
     const newComment = task.comments[task.comments.length - 1]
