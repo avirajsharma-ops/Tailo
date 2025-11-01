@@ -23,10 +23,12 @@ function CreateTaskContent() {
     parentTask: ''
   })
   const [employees, setEmployees] = useState([])
+  const [availableTasks, setAvailableTasks] = useState([])
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [createdTaskId, setCreatedTaskId] = useState(null)
   const [isInitializing, setIsInitializing] = useState(true)
   const [currentEmp, setCurrentEmp] = useState(null)
   const router = useRouter()
@@ -40,7 +42,7 @@ function CreateTaskContent() {
           const parsedUser = JSON.parse(userData)
           console.log('User loaded:', parsedUser)
           setUser(parsedUser)
-          await fetchEmployees()
+          await Promise.all([fetchEmployees(), fetchAvailableTasks()])
           setIsInitializing(false)
         } catch (error) {
           console.error('Error parsing user data:', error)
@@ -93,6 +95,26 @@ function CreateTaskContent() {
       }
     } catch (error) {
       console.error('Error fetching employees:', error)
+    }
+  }
+
+  const fetchAvailableTasks = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/tasks?limit=100', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setAvailableTasks(data.data || [])
+      } else {
+        console.error('Failed to fetch tasks:', response.status)
+      }
+    } catch (error) {
+      console.error('Error fetching tasks:', error)
     }
   }
 
@@ -184,9 +206,8 @@ function CreateTaskContent() {
 
       if (response.ok && data.success) {
         setSuccess('Task created successfully!')
-        setTimeout(() => {
-          router.push('/dashboard/tasks/my-tasks')
-        }, 1500)
+        setCreatedTaskId(data.data?._id || null)
+        // Don't auto-redirect, let user choose to view or create another
       } else {
         setError(data.message || 'Failed to create task')
       }
@@ -267,7 +288,47 @@ function CreateTaskContent() {
 
           {success && (
             <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-800 text-sm">{success}</p>
+              <p className="text-green-800 text-sm mb-3">{success}</p>
+              <div className="flex flex-wrap gap-2">
+                {createdTaskId && (
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/dashboard/tasks/${createdTaskId}`)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                  >
+                    View Task
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSuccess('')
+                    setCreatedTaskId(null)
+                    setFormData({
+                      title: '',
+                      description: '',
+                      priority: 'medium',
+                      category: 'other',
+                      dueDate: '',
+                      estimatedHours: '',
+                      assignToSelf: true,
+                      assignToOthers: false,
+                      selectedEmployees: [],
+                      parentTask: ''
+                    })
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                >
+                  Create Another Task
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push('/dashboard/tasks/my-tasks')}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm"
+                >
+                  Go to My Tasks
+                </button>
+              </div>
             </div>
           )}
 
@@ -309,25 +370,24 @@ function CreateTaskContent() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Parent Task (optional)
                 </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    name="parentTask"
-                    value={formData.parentTask}
-                    onChange={handleInputChange}
-                    className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                    placeholder="Paste parent task ID or use 'Create subtask' from a task"
-                  />
-                  {formData.parentTask && (
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, parentTask: '' }))}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
+                <select
+                  name="parentTask"
+                  value={formData.parentTask}
+                  onChange={handleInputChange}
+                  className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white"
+                >
+                  <option value="">-- No Parent Task --</option>
+                  {availableTasks.map((task) => (
+                    <option key={task._id} value={task._id}>
+                      {task.taskNumber} - {task.title}
+                    </option>
+                  ))}
+                </select>
+                {formData.parentTask && (
+                  <p className="mt-1 text-xs sm:text-sm text-gray-500">
+                    This task will be created as a subtask
+                  </p>
+                )}
               </div>
 
               <div>

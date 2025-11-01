@@ -353,6 +353,17 @@ const TaskSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
+  // Soft Delete for History
+  isDeleted: {
+    type: Boolean,
+    default: false
+  },
+  deletedAt: Date,
+  deletedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Employee'
+  },
+  deletionReason: String,
   // Audit Trail
   statusHistory: [{
     status: String,

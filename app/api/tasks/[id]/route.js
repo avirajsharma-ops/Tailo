@@ -25,13 +25,14 @@ export async function GET(request, { params }) {
 
     const taskId = params.id
 
-    // Find the task
-    const task = await Task.findById(taskId)
+    // Find the task (exclude deleted tasks by default)
+    const task = await Task.findOne({ _id: taskId, isDeleted: { $ne: true } })
       .populate('assignedBy', 'firstName lastName employeeCode')
       .populate('assignedTo.employee', 'firstName lastName employeeCode department')
       .populate('project', 'name projectCode')
       .populate('parentTask', 'title taskNumber')
       .populate('subtasks', 'title taskNumber status progress dueDate')
+      .populate('deletedBy', 'firstName lastName employeeCode')
 
     if (!task) {
       return NextResponse.json(
@@ -129,7 +130,7 @@ export async function PUT(request, { params }) {
   }
 }
 
-// DELETE - Delete task
+// DELETE - Delete task (soft delete)
 export async function DELETE(request, { params }) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '')
@@ -148,6 +149,8 @@ export async function DELETE(request, { params }) {
     const employeeId = currentUser?.employeeId
 
     const taskId = params.id
+    const body = await request.json()
+    const deletionReason = body?.reason || 'No reason provided'
 
     const task = await Task.findById(taskId)
     if (!task) {
@@ -166,7 +169,13 @@ export async function DELETE(request, { params }) {
       )
     }
 
-    await Task.findByIdAndDelete(taskId)
+    // Soft delete - mark as deleted instead of removing
+    await Task.findByIdAndUpdate(taskId, {
+      isDeleted: true,
+      deletedAt: new Date(),
+      deletedBy: employeeId,
+      deletionReason: deletionReason
+    })
 
     return NextResponse.json({
       success: true,

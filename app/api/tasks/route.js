@@ -148,6 +148,12 @@ export async function GET(request) {
       query.status = { $nin: ['completed', 'cancelled'] }
     }
 
+    // Exclude deleted tasks by default (unless explicitly requested)
+    const includeDeleted = searchParams.get('includeDeleted')
+    if (includeDeleted !== 'true') {
+      query.isDeleted = { $ne: true }
+    }
+
     // Sort options
     const sortBy = searchParams.get('sortBy') || 'createdAt'
     const sortOrder = searchParams.get('sortOrder') === 'asc' ? 1 : -1

@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { 
-  FaTasks, FaArrowLeft, FaCalendarAlt, FaUser, FaClock, 
-  FaCheckCircle, FaPlay, FaPause, FaCheck, FaEdit
+import {
+  FaTasks, FaArrowLeft, FaCalendarAlt, FaUser, FaClock,
+  FaCheckCircle, FaPlay, FaPause, FaCheck, FaEdit, FaTrash
 } from 'react-icons/fa'
 import RoleBasedAccess from '@/components/RoleBasedAccess'
 
@@ -14,6 +14,8 @@ export default function TaskDetailsPage() {
   const [user, setUser] = useState(null)
   const [updating, setUpdating] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteReason, setDeleteReason] = useState('')
   const router = useRouter()
   const params = useParams()
 
@@ -76,6 +78,46 @@ export default function TaskDetailsPage() {
     } finally {
       setUpdating(false)
     }
+  }
+
+  const deleteTask = async () => {
+    if (!deleteReason.trim()) {
+      alert('Please provide a reason for deletion')
+      return
+    }
+
+    try {
+      setUpdating(true)
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/tasks/${params.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ reason: deleteReason })
+      })
+
+      if (response.ok) {
+        alert('Task deleted successfully')
+        router.push('/dashboard/tasks')
+      } else {
+        const data = await response.json()
+        alert(data.message || 'Failed to delete task')
+      }
+    } catch (error) {
+      console.error('Error deleting task:', error)
+      alert('Failed to delete task')
+    } finally {
+      setUpdating(false)
+      setShowDeleteModal(false)
+    }
+  }
+
+  const canDeleteTask = () => {
+    if (!user || !task) return false
+    const myId = user.employeeId || user.id || user._id
+    return user.role === 'admin' || task.assignedBy?._id === myId
   }
 
   const acceptTask = async () => {
@@ -206,41 +248,41 @@ export default function TaskDetailsPage() {
 
   return (
     <RoleBasedAccess allowedRoles={['admin', 'hr', 'manager', 'employee']}>
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 p-3 sm:p-0">
         {/* Header */}
         <div className="bg-white shadow-sm rounded-lg p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               <button
                 onClick={() => router.back()}
-                className="text-gray-600 hover:text-gray-800 transition-colors"
+                className="text-gray-600 hover:text-gray-800 transition-colors flex-shrink-0"
               >
-                <FaArrowLeft className="w-5 h-5" />
+                <FaArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
-                  <FaTasks className="mr-3 text-blue-600" />
-                  Task Details
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 flex items-center">
+                  <FaTasks className="mr-2 sm:mr-3 text-blue-600 flex-shrink-0" />
+                  <span className="truncate">Task Details</span>
                 </h1>
-                <p className="text-gray-600 text-sm">#{task.taskNumber}</p>
+                <p className="text-gray-600 text-xs sm:text-sm">#{task.taskNumber}</p>
               </div>
             </div>
             
             {/* Action Buttons */}
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2">
               {myAssignment?.status === 'pending' && (
                 <>
                   <button
                     onClick={acceptTask}
                     disabled={updating}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm"
+                    className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 text-xs sm:text-sm"
                   >
                     Accept
                   </button>
                   <button
                     onClick={rejectTask}
                     disabled={updating}
-                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm"
+                    className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 text-xs sm:text-sm"
                   >
                     Reject
                   </button>
@@ -253,24 +295,35 @@ export default function TaskDetailsPage() {
                     <button
                       onClick={() => updateTaskProgress(10, 'in_progress')}
                       disabled={updating}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm flex items-center"
+                      className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 text-xs sm:text-sm flex items-center"
                     >
                       <FaPlay className="w-3 h-3 mr-2" />
                       Start Task
                     </button>
                   )}
-                  
+
                   {task.status === 'in_progress' && (task.progress || 0) < 100 && (
                     <button
                       onClick={() => updateTaskProgress(100, 'review')}
                       disabled={updating}
-                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm flex items-center"
+                      className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 text-xs sm:text-sm flex items-center"
                     >
                       <FaCheck className="w-3 h-3 mr-2" />
                       Mark Complete
                     </button>
                   )}
                 </>
+              )}
+
+              {canDeleteTask() && (
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  disabled={updating}
+                  className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 text-xs sm:text-sm flex items-center"
+                >
+                  <FaTrash className="w-3 h-3 mr-2" />
+                  Delete
+                </button>
               )}
             </div>
           </div>
@@ -279,23 +332,23 @@ export default function TaskDetailsPage() {
           <div className="space-y-6">
             {/* Title and Status */}
             <div>
-              <div className="flex flex-wrap items-center gap-3 mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">{task.title}</h2>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(task.status)}`}>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-3">{task.title}</h2>
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(task.status)}`}>
                   {task.status.replace('_', ' ')}
                 </span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(task.priority)}`}>
+                <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getPriorityColor(task.priority)}`}>
                   {task.priority} priority
                 </span>
                 {isOverdue() && (
-                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                  <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-red-100 text-red-800">
                     Overdue
                   </span>
                 )}
               </div>
-              
+
               {task.description && (
-                <p className="text-gray-700 text-base leading-relaxed">{task.description}</p>
+                <p className="text-gray-700 text-sm sm:text-base leading-relaxed">{task.description}</p>
               )}
             </div>
 
@@ -440,6 +493,49 @@ export default function TaskDetailsPage() {
             </div>
           </div>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Delete Task</h3>
+              <p className="text-gray-600 mb-4">
+                Are you sure you want to delete this task? This action will mark the task as deleted but preserve it in the task history.
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason for deletion *
+                </label>
+                <textarea
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  rows={3}
+                  placeholder="Enter reason for deleting this task..."
+                />
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false)
+                    setDeleteReason('')
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  disabled={updating}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={deleteTask}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                  disabled={updating || !deleteReason.trim()}
+                >
+                  {updating ? 'Deleting...' : 'Delete Task'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </RoleBasedAccess>
   )
