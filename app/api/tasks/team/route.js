@@ -19,7 +19,7 @@ export async function GET(request) {
       )
     }
 
-    const decoded = verifyToken(token)
+    const decoded = await verifyToken(token)
     if (!decoded) {
       return NextResponse.json(
         { success: false, message: 'Invalid token' },
@@ -27,8 +27,19 @@ export async function GET(request) {
       )
     }
 
+    // Get user to find employee ID
+    const User = (await import('@/models/User')).default
+    const user = await User.findById(decoded.userId).select('employeeId').lean()
+
+    if (!user || !user.employeeId) {
+      return NextResponse.json(
+        { success: false, message: 'Employee not found' },
+        { status: 404 }
+      )
+    }
+
     // Get employee details
-    const employee = await Employee.findOne({ user: decoded.userId })
+    const employee = await Employee.findById(user.employeeId)
       .populate('department')
       .lean()
 
@@ -206,7 +217,7 @@ export async function POST(request) {
       )
     }
 
-    const decoded = verifyToken(token)
+    const decoded = await verifyToken(token)
     if (!decoded) {
       return NextResponse.json(
         { success: false, message: 'Invalid token' },
@@ -224,8 +235,19 @@ export async function POST(request) {
       )
     }
 
+    // Get user to find employee ID
+    const User = (await import('@/models/User')).default
+    const user = await User.findById(decoded.userId).select('employeeId').lean()
+
+    if (!user || !user.employeeId) {
+      return NextResponse.json(
+        { success: false, message: 'Employee not found' },
+        { status: 404 }
+      )
+    }
+
     // Get employee details
-    const employee = await Employee.findOne({ user: decoded.userId })
+    const employee = await Employee.findById(user.employeeId)
       .populate('department')
       .lean()
 

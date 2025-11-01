@@ -63,6 +63,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         path: '/dashboard/team',
         submenu: [
           { name: 'Team Dashboard', path: '/dashboard/team' },
+          { name: 'Team Members', path: '/dashboard/team/members' },
           { name: 'Leave Approvals', path: '/dashboard/team/leave-approvals' },
           { name: 'Task Approvals', path: '/dashboard/team/task-approvals' },
           { name: 'Team Tasks', path: '/dashboard/tasks/team-tasks' },
