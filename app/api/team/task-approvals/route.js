@@ -50,8 +50,9 @@ export async function GET(request) {
 
     const teamMemberIds = teamMembers.map(emp => emp._id)
 
-    // Get pending task approvals - ALL completed tasks in department that need approval
-    // Regardless of who created or assigned them
+    // Get pending task approvals - ALL tasks in 'review' status in department
+    // Tasks in 'review' status are those marked complete but not yet approved
+    // Once approved, they move to 'completed' status
     const pendingTasks = await Task.find({
       $or: [
         // Tasks assigned to team members
@@ -59,16 +60,12 @@ export async function GET(request) {
         // Tasks created by team members
         { 'assignedBy': { $in: teamMemberIds } }
       ],
-      // Task must be in review or completed status
-      status: { $in: ['review', 'completed'] },
-      // Task must not be approved yet
-      $and: [
-        {
-          $or: [
-            { approvalStatus: 'pending' },
-            { approvalStatus: null }
-          ]
-        }
+      // Task must be in review status (awaiting approval)
+      status: 'review',
+      // Task must not be approved or rejected yet
+      $or: [
+        { approvalStatus: 'pending' },
+        { approvalStatus: null }
       ]
     })
       .populate({
@@ -180,6 +177,19 @@ export async function POST(request) {
     task.approvalStatus = action
     task.approvedBy = user.employeeId
     task.approvedAt = new Date()
+
+    // Update task status based on approval action
+    if (action === 'approved') {
+      // Move from 'review' to 'completed' when approved
+      task.status = 'completed'
+    } else if (action === 'rejected') {
+      // Move back to 'in_progress' when rejected so it can be reworked
+      task.status = 'in_progress'
+      // Reset progress slightly to indicate rework needed
+      if (task.progress === 100) {
+        task.progress = 95
+      }
+    }
 
     // Add manager remarks
     if (remarks) {

@@ -520,9 +520,9 @@ TaskSchema.methods.updateProgress = function(newProgress, updatedBy, notes) {
     this.status = 'assigned'
   } else if (this.progress > 0 && this.progress < 100 && this.status === 'assigned') {
     this.status = 'in_progress'
-  } else if (this.progress === 100 && this.status !== 'completed') {
-    // Move to completed and set approval status to pending
-    this.status = 'completed'
+  } else if (this.progress === 100 && this.status !== 'completed' && this.status !== 'review') {
+    // Move to review status when task is marked complete (needs approval)
+    this.status = 'review'
     this.approvalStatus = 'pending'
   }
 
