@@ -24,7 +24,13 @@ export async function GET(request) {
     await connectDB()
 
     // Find the user first to get the employeeId
-    const user = await User.findById(decoded.userId).populate('employeeId')
+    const user = await User.findById(decoded.userId).populate({
+      path: 'employeeId',
+      populate: [
+        { path: 'designation', select: 'title code' },
+        { path: 'department', select: 'name' }
+      ]
+    })
     if (!user) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
     }
@@ -187,8 +193,10 @@ export async function GET(request) {
         employee: {
           name: `${employee.firstName} ${employee.lastName}`,
           employeeCode: employee.employeeCode,
+          employeeId: employee.employeeCode,
+          profilePicture: employee.profilePicture,
           department: employee.department,
-          designation: employee.designation
+          designation: employee.designation?.title || null
         }
       }
     })

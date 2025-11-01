@@ -324,15 +324,15 @@ export default function EmployeeDashboard({ user }) {
     <div className="page-container space-y-4 sm:space-y-6">
       {/* Check-In/Check-Out Section - New Design */}
       <div style={{ backgroundColor: '#1A295A' }} className="rounded-3xl shadow-xl p-6 sm:p-8 text-white">
-        {/* Top Section - User Info and Buttons */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
+        {/* User Profile and Buttons */}
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
           {/* User Profile Section */}
           <div className="flex items-center gap-4">
             {/* Profile Picture */}
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
-              {user?.employeeId?.profilePicture ? (
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center flex-shrink-0">
+              {dashboardStats?.employee?.profilePicture || user?.employeeId?.profilePicture ? (
                 <img
-                  src={user.employeeId.profilePicture}
+                  src={dashboardStats?.employee?.profilePicture || user.employeeId.profilePicture}
                   alt="Profile"
                   className="w-full h-full object-cover"
                 />
@@ -344,11 +344,19 @@ export default function EmployeeDashboard({ user }) {
             {/* User Name and ID */}
             <div>
               <p className="text-sm text-gray-300 mb-1">
-                ID:{user?.employeeId?.employeeId || '---'}
+                ID:{dashboardStats?.employee?.employeeId || user?.employeeId?.employeeCode || '---'}
               </p>
               <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-wide">
-                {dashboardStats?.employee?.name || user?.employeeId?.firstName + ' ' + user?.employeeId?.lastName || 'User'}
+                {dashboardStats?.employee?.name ||
+                 (user?.employeeId?.firstName && user?.employeeId?.lastName
+                  ? `${user.employeeId.firstName} ${user.employeeId.lastName}`
+                  : 'User')}
               </h2>
+              {dashboardStats?.employee?.designation && (
+                <p className="text-sm text-gray-300 mt-1">
+                  {dashboardStats.employee.designation}
+                </p>
+              )}
             </div>
           </div>
 
@@ -388,93 +396,8 @@ export default function EmployeeDashboard({ user }) {
           </div>
         </div>
 
-        {/* Quick Glance Section */}
-        <div className="bg-white bg-opacity-5 rounded-2xl p-5">
-          <h3 className="text-lg font-semibold mb-4" style={{ color: '#E8EAF6' }}>Quick Glance</h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Check In Time */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-5 h-5 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
-                  <FaSignInAlt className="w-3 h-3" />
-                </div>
-                <p className="text-sm font-medium" style={{ color: '#B0BEC5' }}>Check In Time</p>
-              </div>
-              <div className="bg-green-100 rounded-xl p-4">
-                <p className="text-2xl sm:text-3xl font-bold text-gray-800">
-                  {todayAttendance?.checkIn
-                    ? new Date(todayAttendance.checkIn).toLocaleTimeString('en-IN', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true
-                      })
-                    : '--:--'}
-                </p>
-              </div>
-            </div>
-
-            {/* Check Out Time */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-5 h-5 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
-                  <FaSignOutAlt className="w-3 h-3" />
-                </div>
-                <p className="text-sm font-medium" style={{ color: '#B0BEC5' }}>Check Out Time</p>
-              </div>
-              <div className="bg-red-100 rounded-xl p-4">
-                <p className="text-2xl sm:text-3xl font-bold text-gray-800">
-                  {todayAttendance?.checkOut
-                    ? new Date(todayAttendance.checkOut).toLocaleTimeString('en-IN', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true
-                      })
-                    : '--:--'}
-                </p>
-              </div>
-            </div>
-
-            {/* Work Hours */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-5 h-5 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
-                  <FaClock className="w-3 h-3" />
-                </div>
-                <p className="text-sm font-medium" style={{ color: '#B0BEC5' }}>Work Hours</p>
-              </div>
-              <div className="bg-yellow-100 rounded-xl p-4">
-                <p className="text-2xl sm:text-3xl font-bold text-gray-800">
-                  {todayAttendance?.workHours || '00:00'}
-                </p>
-              </div>
-            </div>
-
-            {/* Additional Work Hours or Status */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-5 h-5 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
-                  <FaClock className="w-3 h-3" />
-                </div>
-                <p className="text-sm font-medium" style={{ color: '#B0BEC5' }}>Work Hours</p>
-              </div>
-              <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-2xl sm:text-3xl font-bold text-gray-800">
-                  {todayAttendance?.checkIn && !todayAttendance?.checkOut
-                    ? new Date(todayAttendance.checkIn).toLocaleTimeString('en-IN', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true
-                      })
-                    : '--:--'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Office Timing Info */}
-        <div className="mt-4 bg-white bg-opacity-5 rounded-xl p-3">
+        <div className="mt-6 bg-white bg-opacity-5 rounded-xl p-3">
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
@@ -483,6 +406,91 @@ export default function EmployeeDashboard({ user }) {
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
               <span>Full Day: 8+ hrs</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Glance Section - Separate Card */}
+      <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8">
+        <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Quick Glance</h3>
+
+        <div className="grid grid-cols-2 gap-4">
+          {/* Check In Time */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
+                <FaSignInAlt className="w-3 h-3 text-gray-600" />
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Check In Time</p>
+            </div>
+            <div className="bg-green-100 rounded-xl p-3 sm:p-4">
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+                {todayAttendance?.checkIn
+                  ? new Date(todayAttendance.checkIn).toLocaleTimeString('en-IN', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })
+                  : '11:00 AM'}
+              </p>
+            </div>
+          </div>
+
+          {/* Check Out Time */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
+                <FaSignOutAlt className="w-3 h-3 text-gray-600" />
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Check Out Time</p>
+            </div>
+            <div className="bg-red-100 rounded-xl p-3 sm:p-4">
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+                {todayAttendance?.checkOut
+                  ? new Date(todayAttendance.checkOut).toLocaleTimeString('en-IN', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })
+                  : '06:30 PM'}
+              </p>
+            </div>
+          </div>
+
+          {/* Work Hours */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
+                <FaClock className="w-3 h-3 text-gray-600" />
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Work Hours</p>
+            </div>
+            <div className="bg-yellow-100 rounded-xl p-3 sm:p-4">
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+                {todayAttendance?.workHours || '07:30'}
+              </p>
+            </div>
+          </div>
+
+          {/* Additional Work Hours */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
+                <FaClock className="w-3 h-3 text-gray-600" />
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Work Hours</p>
+            </div>
+            <div className="bg-blue-50 rounded-xl p-3 sm:p-4">
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+                {todayAttendance?.checkIn && !todayAttendance?.checkOut
+                  ? new Date(todayAttendance.checkIn).toLocaleTimeString('en-IN', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })
+                  : '11:00 AM'}
+              </p>
             </div>
           </div>
         </div>
