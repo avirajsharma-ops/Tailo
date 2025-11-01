@@ -56,10 +56,10 @@ export async function POST(request, { params }) {
       )
     }
 
-    // Check if task is in completed status
-    if (task.status !== 'completed') {
+    // Check if task is in review status (awaiting approval)
+    if (task.status !== 'review') {
       return NextResponse.json(
-        { success: false, message: 'Only completed tasks can be approved or rejected' },
+        { success: false, message: 'Only tasks in review status can be approved or rejected' },
         { status: 400 }
       )
     }
@@ -68,7 +68,9 @@ export async function POST(request, { params }) {
       task.approvalStatus = 'approved'
       task.approvedBy = employeeId
       task.approvedAt = new Date()
-      
+      // Move from 'review' to 'completed' when approved
+      task.status = 'completed'
+
       // Add remark if provided
       if (remark) {
         task.managerRemarks.push({
@@ -79,7 +81,7 @@ export async function POST(request, { params }) {
       }
 
       task.statusHistory.push({
-        status: 'Task approved',
+        status: 'Task approved and completed',
         changedBy: employeeId,
         reason: remark || 'Task approved by manager'
       })
@@ -93,13 +95,11 @@ export async function POST(request, { params }) {
 
       task.approvalStatus = 'rejected'
       task.rejectionReason = reason
-      task.status = 'assigned' // Move back to assigned
-      
-      // Set estimated actual progress if provided
-      if (estimatedActualProgress !== undefined) {
-        task.estimatedActualProgress = estimatedActualProgress
-        task.progress = estimatedActualProgress
-      }
+      // Move back to 'assigned' (pending) status when rejected
+      // Employee can update and mark complete again to send for review
+      task.status = 'assigned'
+      // Reset progress to 0 to allow employee to update and resubmit
+      task.progress = 0
 
       // Add remark
       task.managerRemarks.push({
@@ -109,7 +109,7 @@ export async function POST(request, { params }) {
       })
 
       task.statusHistory.push({
-        status: 'Task rejected and moved back to assigned',
+        status: 'Task rejected and moved back to assigned (pending)',
         changedBy: employeeId,
         reason
       })

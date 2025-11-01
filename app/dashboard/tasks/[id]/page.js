@@ -355,7 +355,7 @@ export default function TaskDetailsPage() {
 
   const canApproveTask = () => {
     if (!user || !task) return false
-    return ['manager', 'admin'].includes(user.role) && task.status === 'completed'
+    return ['manager', 'admin'].includes(user.role) && task.status === 'review'
   }
 
   const acceptTask = async () => {

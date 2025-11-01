@@ -183,12 +183,13 @@ export async function POST(request) {
       // Move from 'review' to 'completed' when approved
       task.status = 'completed'
     } else if (action === 'rejected') {
-      // Move back to 'in_progress' when rejected so it can be reworked
-      task.status = 'in_progress'
-      // Reset progress slightly to indicate rework needed
-      if (task.progress === 100) {
-        task.progress = 95
-      }
+      // Move back to 'assigned' (pending) status when rejected
+      // Employee can update and mark complete again to send for review
+      task.status = 'assigned'
+      // Reset progress to allow employee to update and resubmit
+      task.progress = 0
+      // Reset approval status so it can be resubmitted
+      task.approvalStatus = null
     }
 
     // Add manager remarks
