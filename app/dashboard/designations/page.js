@@ -1,11 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import ModalPortal from '@/components/ModalPortal'
 import toast from 'react-hot-toast'
-import ModalPortal from '@/components/ModalPortal'
 import { FaPlus, FaEdit, FaTrash, FaBriefcase } from 'react-icons/fa'
-import ModalPortal from '@/components/ModalPortal'
 
 export default function DesignationsPage() {
   const [designations, setDesignations] = useState([])

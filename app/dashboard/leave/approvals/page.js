@@ -1,11 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import ModalPortal from '@/components/ModalPortal'
 import toast from 'react-hot-toast'
-import ModalPortal from '@/components/ModalPortal'
 import { FaCheck, FaTimes, FaEye, FaFilter } from 'react-icons/fa'
-import ModalPortal from '@/components/ModalPortal'
 
 export default function LeaveApprovalsPage() {
   const [leaves, setLeaves] = useState([])

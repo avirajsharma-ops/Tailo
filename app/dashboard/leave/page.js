@@ -1,11 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import ModalPortal from '@/components/ModalPortal'
 import toast from 'react-hot-toast'
-import ModalPortal from '@/components/ModalPortal'
 import { FaPlus, FaCalendarAlt, FaCheckCircle, FaTimesCircle, FaClock } from 'react-icons/fa'
-import ModalPortal from '@/components/ModalPortal'
 
 export default function LeavePage() {
   const [leaves, setLeaves] = useState([])

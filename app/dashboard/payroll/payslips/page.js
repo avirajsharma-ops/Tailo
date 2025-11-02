@@ -1,11 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import ModalPortal from '@/components/ModalPortal'
 import toast from 'react-hot-toast'
-import ModalPortal from '@/components/ModalPortal'
 import { FaMoneyBillWave, FaDownload, FaEye, FaCalendarAlt, FaFilter, FaTimes } from 'react-icons/fa'
-import ModalPortal from '@/components/ModalPortal'
 
 export default function PayslipsPage() {
   const [payslips, setPayslips] = useState([])

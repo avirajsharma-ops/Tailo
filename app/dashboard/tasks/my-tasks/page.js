@@ -1,16 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import ModalPortal from '@/components/ModalPortal'
 import { useRouter } from 'next/navigation'
-import ModalPortal from '@/components/ModalPortal'
 import {
   FaTasks, FaPlus, FaFilter, FaSearch, FaCalendarAlt,
   FaClock, FaUser, FaCheckCircle, FaExclamationTriangle,
   FaEdit, FaEye, FaPlay, FaPause, FaCheck, FaTrash, FaPaperPlane
 } from 'react-icons/fa'
 import RoleBasedAccess from '@/components/RoleBasedAccess'
-import ModalPortal from '@/components/ModalPortal'
 
 export default function MyTasksPage() {
   const [tasks, setTasks] = useState([])
