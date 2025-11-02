@@ -38,7 +38,16 @@ echo ""
 echo "3️⃣ Checking environment variables in container..."
 if docker-compose ps | grep -q "hrms-app.*Up"; then
     echo "Container environment variables:"
-    docker-compose exec -T hrms-app env | grep -E "MONGODB_URI|JWT_SECRET|NEXTAUTH" | sed 's/=.*/=***HIDDEN***/'
+    MONGODB_CHECK=$(docker-compose exec -T hrms-app env | grep "MONGODB_URI")
+    if echo "$MONGODB_CHECK" | grep -q "dummy"; then
+        echo "❌ MONGODB_URI contains 'dummy' - environment variables not loaded!"
+        echo "   $MONGODB_CHECK"
+        echo "   This means .env file is not being read properly"
+    else
+        echo "✅ MONGODB_URI is set (not showing full value for security)"
+        echo "   ${MONGODB_CHECK:0:30}...${MONGODB_CHECK: -10}"
+    fi
+    docker-compose exec -T hrms-app env | grep -E "JWT_SECRET|NEXTAUTH" | sed 's/=.*/=***HIDDEN***/'
 else
     echo "⚠️  Container not running, skipping..."
 fi

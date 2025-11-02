@@ -3,17 +3,15 @@ services:
     build:
       context: .
       args:
-        - MONGODB_URI=${MONGODB_URI}
-        - JWT_SECRET=${JWT_SECRET}
-        - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-        - NEXTAUTH_URL=${NEXTAUTH_URL}
-        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+        # Only pass NEXT_PUBLIC_ vars as build args (they get embedded in client bundle)
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://zenova.sbs}
         - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-Talio HRMS}
     ports:
       - "3000:3000"
     env_file:
       - .env
     environment:
+      # Runtime environment variables (these override any build-time values)
       - NODE_ENV=production
       - MONGODB_URI=${MONGODB_URI}
       - JWT_SECRET=${JWT_SECRET}

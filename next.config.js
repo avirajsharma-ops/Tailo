@@ -40,12 +40,6 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
-  // Disable static page generation for API routes during build
-  experimental: {
-    // This prevents Next.js from trying to connect to DB during build
-    isrMemoryCacheSize: 0,
-  },
-
   async rewrites() {
     return [
       {
