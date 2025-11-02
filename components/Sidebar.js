@@ -102,7 +102,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       {/* Mobile overlay with backdrop blur */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[6] lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -110,7 +110,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       {/* Sidebar */}
       <aside
         className={`
-          fixed lg:static inset-y-0 left-0 z-[70]
+          fixed lg:static inset-y-0 left-0 z-[7]
           w-[70vw] md:w-64 bg-gray-900 text-white
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}

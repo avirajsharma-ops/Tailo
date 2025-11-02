@@ -409,13 +409,13 @@ export default function ProfilePage() {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingImage}
-                  className="absolute bottom-0 right-0 w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="absolute bottom-0 right-0 w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center shadow-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 border-2 border-white"
                   title="Change profile picture"
                 >
                   {uploadingImage ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : (
-                    <FaCamera className="text-white text-sm sm:text-base" />
+                    <FaCamera className="text-white text-base sm:text-lg" />
                   )}
                 </button>
 
@@ -724,8 +724,8 @@ export default function ProfilePage() {
 
       {/* Image Editor Modal */}
       {showImageEditor && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-0 sm:p-4">
-          <div className="bg-white rounded-none sm:rounded-2xl shadow-2xl w-full h-full sm:max-w-3xl sm:max-h-[90vh] sm:h-auto overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4" style={{ zIndex: 99999 }}>
+          <div className="bg-white rounded-none sm:rounded-2xl shadow-2xl w-full h-full sm:max-w-5xl sm:max-h-[95vh] sm:h-auto overflow-hidden flex flex-col">
             {/* Header */}
             <div className="px-4 sm:px-6 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50 flex-shrink-0">
               <h2 className="text-lg font-bold text-gray-800">Edit Profile Picture</h2>
@@ -742,12 +742,12 @@ export default function ProfilePage() {
             <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row lg:p-6 lg:gap-6">
               {/* Preview Area - Sticky on mobile */}
               <div className="lg:flex-[2] flex-shrink-0 sticky top-0 bg-white z-10 lg:static">
-                <div className="bg-gray-100 rounded-none lg:rounded-xl overflow-hidden relative h-[280px] sm:h-[320px] lg:h-[350px]">
+                <div className="bg-gray-100 rounded-none lg:rounded-xl overflow-hidden relative h-[300px] sm:h-[350px] lg:h-[450px]">
                   {/* Circular Crop Preview */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div
                       className="relative overflow-hidden rounded-full bg-white shadow-2xl"
-                      style={{ width: '240px', height: '240px' }}
+                      style={{ width: '260px', height: '260px' }}
                       onMouseDown={handleMouseDown}
                       onMouseMove={handleMouseMove}
                       onMouseUp={handleMouseUp}
