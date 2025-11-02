@@ -205,44 +205,58 @@ const TaskDashboard = () => {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8">
         {/* Tasks by Status */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tasks by Status</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={charts.tasksByStatus}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="_id" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#3B82F6" />
-            </BarChart>
-          </ResponsiveContainer>
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+            <h3 className="text-sm sm:text-base font-bold text-gray-800">Tasks by Status</h3>
+          </div>
+          <div className="h-80 sm:h-80 pr-4 sm:pr-6 pb-4 sm:pb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={charts.tasksByStatus} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
+                <XAxis dataKey="_id" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
+                <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
+                <Tooltip
+                  labelStyle={{ fontSize: '11px', color: '#374151' }}
+                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                />
+                <Bar dataKey="count" fill="#3B82F6" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Tasks by Priority */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tasks by Priority</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={charts.tasksByPriority}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ _id, percent }) => `${_id} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="count"
-                nameKey="_id"
-              >
-                {charts.tasksByPriority.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+            <h3 className="text-sm sm:text-base font-bold text-gray-800">Tasks by Priority</h3>
+          </div>
+          <div className="h-80 sm:h-80 pr-4 sm:pr-6 pb-4 sm:pb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={charts.tasksByPriority}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ _id, percent }) => `${_id} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="count"
+                  nameKey="_id"
+                >
+                  {charts.tasksByPriority.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  labelStyle={{ fontSize: '11px', color: '#374151' }}
+                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 

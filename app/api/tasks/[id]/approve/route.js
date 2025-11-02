@@ -3,6 +3,7 @@ import { jwtVerify } from 'jose'
 import dbConnect from '@/lib/mongodb'
 import Task from '@/models/Task'
 import Employee from '@/models/Employee'
+import { logActivity } from '@/lib/activityLogger'
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key')
 
@@ -119,6 +120,16 @@ export async function POST(request, { params }) {
 
     // Populate for response
     await task.populate('approvedBy', 'firstName lastName')
+
+    // Log activity for task approval/rejection
+    await logActivity({
+      employeeId: employeeId,
+      type: action === 'approve' ? 'task_approve' : 'task_reject',
+      action: action === 'approve' ? 'Approved task' : 'Rejected task',
+      details: `"${task.title}"${action === 'reject' ? ` - ${reason}` : ''}`,
+      relatedModel: 'Task',
+      relatedId: task._id
+    })
 
     return NextResponse.json({
       success: true,

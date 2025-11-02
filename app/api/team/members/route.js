@@ -56,7 +56,7 @@ export async function GET(request) {
       department: department._id,
       status: 'active'
     })
-      .populate('designation', 'name level')
+      .populate('designation', 'title level levelName')
       .populate('reportingManager', 'firstName lastName employeeCode')
       .select('firstName lastName employeeCode email phone dateOfJoining designation reportingManager profilePicture skills')
       .sort({ firstName: 1 })

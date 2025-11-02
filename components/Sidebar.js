@@ -114,17 +114,14 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           w-[70vw] md:w-64 bg-gray-900 text-white
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          overflow-y-auto scrollbar-hide
+          flex flex-col
         `}
-        style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
-        }}
       >
-        <div className="p-4 border-b border-gray-700">
+        {/* Sticky Logo Section */}
+        <div className="p-4 border-b border-gray-700 flex-shrink-0">
           <div className="flex items-center justify-between">
             <img
-              src="/talio-logo.png"
+              src="/assets/logo.png"
               alt="Talio Logo"
               className="h-10 w-auto object-contain"
             />
@@ -137,7 +134,11 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           </div>
         </div>
 
-        <nav className="px-3 sm:px-4 py-4 space-y-2">
+        {/* Scrollable Menu Section */}
+        <nav className="px-3 sm:px-4 py-4 space-y-2 flex-1 overflow-y-auto scrollbar-hide" style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}>
           {menuItems.map((item) => (
             <div key={item.name}>
               {item.submenu ? (

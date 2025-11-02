@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb'
 import Attendance from '@/models/Attendance'
 import Employee from '@/models/Employee'
 import Leave from '@/models/Leave'
+import { logActivity } from '@/lib/activityLogger'
 
 // GET - List attendance records
 export async function GET(request) {
@@ -131,6 +132,16 @@ export async function POST(request) {
         await attendance.save()
       }
 
+      // Log activity
+      await logActivity({
+        employeeId: employeeId,
+        type: 'attendance_checkin',
+        action: 'Clocked in',
+        details: `Started work at ${checkInTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}`,
+        relatedModel: 'Attendance',
+        relatedId: attendance._id
+      })
+
       return NextResponse.json({
         success: true,
         message: 'Clocked in successfully',
@@ -187,6 +198,16 @@ export async function POST(request) {
       }
 
       await attendance.save()
+
+      // Log activity
+      await logActivity({
+        employeeId: employeeId,
+        type: 'attendance_checkout',
+        action: 'Clocked out',
+        details: `Worked for ${attendance.workHours} hours (${attendance.status})`,
+        relatedModel: 'Attendance',
+        relatedId: attendance._id
+      })
 
       return NextResponse.json({
         success: true,

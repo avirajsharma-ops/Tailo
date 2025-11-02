@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* PWA Safe Area Support */
+html {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+body {
+  padding: 0 !important;
+  margin: 0 !important;
+  padding-top: env(safe-area-inset-top) !important;
+  padding-bottom: env(safe-area-inset-bottom) !important;
+}
+
 /* Hide scrollbar utility */
 @layer utilities {
   .scrollbar-hide {

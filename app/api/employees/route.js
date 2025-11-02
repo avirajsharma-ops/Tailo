@@ -42,7 +42,7 @@ export async function GET(request) {
 
     const employees = await Employee.find(query)
       .populate('department', 'name')
-      .populate('designation', 'title')
+      .populate('designation', 'title levelName')
       .populate('reportingManager', 'firstName lastName')
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -118,7 +118,7 @@ export async function POST(request) {
 
     const populatedEmployee = await Employee.findById(employee._id)
       .populate('department', 'name')
-      .populate('designation', 'title')
+      .populate('designation', 'title levelName')
       .populate('reportingManager', 'firstName lastName')
 
     return NextResponse.json({

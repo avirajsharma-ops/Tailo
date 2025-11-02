@@ -99,7 +99,7 @@ export async function GET(request) {
         select: 'firstName lastName employeeCode email',
         populate: {
           path: 'designation',
-          select: 'name level'
+          select: 'name level levelName'
         }
       })
       .populate({
@@ -108,7 +108,7 @@ export async function GET(request) {
         populate: [
           {
             path: 'designation',
-            select: 'name level'
+            select: 'name level levelName'
           },
           {
             path: 'department',
@@ -121,7 +121,7 @@ export async function GET(request) {
         select: 'firstName lastName employeeCode',
         populate: {
           path: 'designation',
-          select: 'name level'
+          select: 'name level levelName'
         }
       })
       .populate('project', 'name projectCode')
@@ -131,7 +131,7 @@ export async function GET(request) {
         select: 'firstName lastName employeeCode',
         populate: {
           path: 'designation',
-          select: 'name level'
+          select: 'name level levelName'
         }
       })
       .populate('comments.mentions', 'firstName lastName employeeCode')

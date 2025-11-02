@@ -4,6 +4,7 @@ import Task from '@/models/Task'
 import Employee from '@/models/Employee'
 import User from '@/models/User'
 import { verifyToken } from '@/lib/auth'
+import { logActivity } from '@/lib/activityLogger'
 
 // GET - Fetch single task by ID
 export async function GET(request, { params }) {
@@ -113,7 +114,7 @@ export async function PUT(request, { params }) {
     // Update the task
     const updatedTask = await Task.findByIdAndUpdate(
       taskId,
-      { 
+      {
         ...updateData,
         updatedAt: new Date()
       },
@@ -122,6 +123,16 @@ export async function PUT(request, { params }) {
       .populate('assignedBy', 'firstName lastName employeeCode')
       .populate('assignedTo.employee', 'firstName lastName employeeCode department')
       .populate('project', 'name projectCode')
+
+    // Log activity for task update
+    await logActivity({
+      employeeId: employeeId,
+      type: 'task_update',
+      action: 'Updated task',
+      details: `"${updatedTask.title}"`,
+      relatedModel: 'Task',
+      relatedId: taskId
+    })
 
     return NextResponse.json({
       success: true,

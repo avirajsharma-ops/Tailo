@@ -56,7 +56,7 @@ export async function GET(request, { params }) {
 
     // Get team member details
     const teamMember = await Employee.findById(id)
-      .populate('designation', 'name level')
+      .populate('designation', 'title level levelName')
       .populate('reportingManager', 'firstName lastName employeeCode email')
       .populate('department', 'name code')
       .lean()

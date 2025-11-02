@@ -215,49 +215,57 @@ export default function AttendanceReportPage() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 mb-4">
         {/* Daily Hours Chart */}
-        <div className="bg-white rounded-lg shadow-md p-4 chart-container">
-          <h3 className="text-base font-semibold text-gray-900 mb-3">Daily Working Hours</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={getChartData()}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" fontSize={12} />
-              <YAxis fontSize={12} />
-              <Tooltip
-                labelStyle={{ fontSize: '12px' }}
-                contentStyle={{ fontSize: '12px' }}
-              />
-              <Bar dataKey="hours" fill="#8b5cf6" name="Hours Worked" />
-            </BarChart>
-          </ResponsiveContainer>
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+            <h3 className="text-sm sm:text-base font-bold text-gray-800">Daily Working Hours</h3>
+          </div>
+          <div className="h-80 sm:h-80 pr-4 sm:pr-6 pb-4 sm:pb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={getChartData()} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
+                <XAxis dataKey="date" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
+                <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
+                <Tooltip
+                  labelStyle={{ fontSize: '11px', color: '#374151' }}
+                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                />
+                <Bar dataKey="hours" fill="#8b5cf6" name="Hours Worked" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Status Distribution */}
-        <div className="bg-white rounded-lg shadow-md p-4 chart-container">
-          <h3 className="text-base font-semibold text-gray-900 mb-3">Attendance Status Distribution</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={getStatusDistribution()}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {getStatusDistribution().map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                labelStyle={{ fontSize: '12px' }}
-                contentStyle={{ fontSize: '12px' }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+            <h3 className="text-sm sm:text-base font-bold text-gray-800">Attendance Status Distribution</h3>
+          </div>
+          <div className="h-80 sm:h-80 pr-4 sm:pr-6 pb-4 sm:pb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={getStatusDistribution()}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {getStatusDistribution().map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  labelStyle={{ fontSize: '11px', color: '#374151' }}
+                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 

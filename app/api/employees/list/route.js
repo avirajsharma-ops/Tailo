@@ -31,7 +31,7 @@ export async function GET(request) {
       status: 'active'
     })
       .select('firstName lastName employeeCode profilePicture email designation department')
-      .populate('designation', 'title')
+      .populate('designation', 'title levelName')
       .populate('department', 'name')
       .sort({ firstName: 1 })
       .lean()

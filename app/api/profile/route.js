@@ -24,7 +24,7 @@ export async function GET(request) {
       .populate({
         path: 'employeeId',
         populate: [
-          { path: 'designation', select: 'title level' },
+          { path: 'designation', select: 'title level levelName' },
           { path: 'department', select: 'name code' },
           { path: 'reportingManager', select: 'firstName lastName employeeCode' }
         ]

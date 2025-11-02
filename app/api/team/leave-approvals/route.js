@@ -5,6 +5,7 @@ import Department from '@/models/Department'
 import Employee from '@/models/Employee'
 import Leave from '@/models/Leave'
 import User from '@/models/User'
+import { logActivity } from '@/lib/activityLogger'
 
 // GET - Fetch all pending leave requests for department
 export async function GET(request) {
@@ -164,6 +165,20 @@ export async function POST(request) {
       .populate('employee', 'firstName lastName employeeCode profilePicture email')
       .populate('leaveType', 'name code')
       .populate('approvedBy', 'firstName lastName')
+
+    // Log activity for leave approval/rejection
+    await logActivity({
+      employeeId: user.employeeId,
+      type: action === 'approved' ? 'leave_approve' : 'leave_reject',
+      action: action === 'approved' ? 'Approved leave request' : 'Rejected leave request',
+      details: `${updatedLeave.employee.firstName} ${updatedLeave.employee.lastName}'s leave request`,
+      metadata: {
+        leaveId: leave._id,
+        employeeId: leave.employee._id
+      },
+      relatedModel: 'Leave',
+      relatedId: leave._id
+    })
 
     return NextResponse.json({
       success: true,

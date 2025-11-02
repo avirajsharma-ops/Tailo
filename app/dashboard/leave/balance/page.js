@@ -163,35 +163,48 @@ export default function LeaveBalancePage() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 mb-6">
         {/* Leave Balance Chart */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Leave Balance by Type</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={getChartData()}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="used" fill="#ef4444" name="Used" />
-              <Bar dataKey="remaining" fill="#10b981" name="Remaining" />
-            </BarChart>
-          </ResponsiveContainer>
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+            <h3 className="text-sm sm:text-base font-bold text-gray-800">Leave Balance by Type</h3>
+          </div>
+          <div className="h-80 sm:h-80 pr-4 sm:pr-6 pb-4 sm:pb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={getChartData()} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
+                <XAxis dataKey="name" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
+                <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
+                <Tooltip
+                  labelStyle={{ fontSize: '11px', color: '#374151' }}
+                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                />
+                <Bar dataKey="used" fill="#ef4444" name="Used" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="remaining" fill="#10b981" name="Remaining" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Monthly Usage */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Leave Usage</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={getMonthlyUsage()}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="leaves" fill="#8b5cf6" name="Days Taken" />
-            </BarChart>
-          </ResponsiveContainer>
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+            <h3 className="text-sm sm:text-base font-bold text-gray-800">Monthly Leave Usage</h3>
+          </div>
+          <div className="h-80 sm:h-80 pr-4 sm:pr-6 pb-4 sm:pb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={getMonthlyUsage()} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
+                <XAxis dataKey="month" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
+                <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
+                <Tooltip
+                  labelStyle={{ fontSize: '11px', color: '#374151' }}
+                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                />
+                <Bar dataKey="leaves" fill="#8b5cf6" name="Days Taken" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 

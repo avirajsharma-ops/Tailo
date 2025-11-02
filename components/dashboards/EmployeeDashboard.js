@@ -310,7 +310,7 @@ export default function EmployeeDashboard({ user }) {
   ] : []
 
   return (
-    <div className="page-container space-y-4 sm:space-y-6">
+    <div className="page-container space-y-5 sm:space-y-8">
       {/* Check-In/Check-Out Section - Compact Design */}
       <div style={{ backgroundColor: '#1A295A' }} className="rounded-2xl shadow-md p-4 sm:p-6 text-white">
         {/* User Profile Section */}
@@ -370,8 +370,8 @@ export default function EmployeeDashboard({ user }) {
       </div>
 
       {/* Quick Glance Section - Separate Card */}
-      <div className="bg-white rounded-2xl shadow-md p-4 sm:p-6">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">Quick Glance</h3>
+      <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-2xl p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4">Quick Glance</h3>
 
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {/* Check In Time */}
@@ -543,9 +543,9 @@ export default function EmployeeDashboard({ user }) {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {employeeStatsData.map((stat, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-md p-3 sm:p-6 hover:shadow-lg transition-shadow">
+          <div key={index} style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg p-3 sm:p-6 transition-all">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-gray-500 text-xs sm:text-sm font-medium truncate">{stat.title}</p>
@@ -574,36 +574,44 @@ export default function EmployeeDashboard({ user }) {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8">
         {/* Daily Hours */}
-        <div className="bg-white rounded-lg shadow-md p-3 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Daily Working Hours (Last 7 Days)</h3>
-          <div className="h-64 sm:h-80">
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+            <h3 className="text-sm sm:text-base font-bold text-gray-800">Daily Working Hours (Last 7 Days)</h3>
+          </div>
+          <div className="h-80 sm:h-80 pr-4 sm:pr-6 pb-4 sm:pb-6">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dashboardStats?.attendanceData || []}>
-                <CartesianGrid strokeDasharray="3 3" />
+              <LineChart
+                data={dashboardStats?.attendanceData || []}
+                margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
                 <XAxis
                   dataKey="date"
-                  fontSize={12}
-                  tick={{ fontSize: 12 }}
+                  fontSize={9}
+                  tick={{ fontSize: 9, fill: '#6b7280' }}
+                  stroke="#9ca3af"
                 />
                 <YAxis
-                  fontSize={12}
-                  tick={{ fontSize: 12 }}
+                  fontSize={9}
+                  tick={{ fontSize: 9, fill: '#6b7280' }}
+                  stroke="#9ca3af"
+                  width={35}
                 />
                 <Tooltip
                   formatter={(value) => [`${value} hours`, 'Working Hours']}
-                  labelStyle={{ fontSize: '12px' }}
-                  contentStyle={{ fontSize: '12px' }}
+                  labelStyle={{ fontSize: '11px', color: '#374151' }}
+                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
                 />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
                 <Line
                   type="monotone"
                   dataKey="hours"
                   stroke="#10b981"
                   strokeWidth={2}
                   name="Hours Worked"
-                  dot={{ r: 4 }}
+                  dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#ffffff' }}
+                  activeDot={{ r: 6 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -611,28 +619,35 @@ export default function EmployeeDashboard({ user }) {
         </div>
 
         {/* Leave Balance */}
-        <div className="bg-white rounded-lg shadow-md p-3 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Leave Balance Trend</h3>
-          <div className="h-64 sm:h-80">
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+            <h3 className="text-sm sm:text-base font-bold text-gray-800">Leave Balance Trend</h3>
+          </div>
+          <div className="h-80 sm:h-80 pr-4 sm:pr-6 pb-4 sm:pb-6">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dashboardStats?.leaveData || []}>
-                <CartesianGrid strokeDasharray="3 3" />
+              <BarChart
+                data={dashboardStats?.leaveData || []}
+                margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
                 <XAxis
                   dataKey="month"
-                  fontSize={12}
-                  tick={{ fontSize: 12 }}
+                  fontSize={9}
+                  tick={{ fontSize: 9, fill: '#6b7280' }}
+                  stroke="#9ca3af"
                 />
                 <YAxis
-                  fontSize={12}
-                  tick={{ fontSize: 12 }}
+                  fontSize={9}
+                  tick={{ fontSize: 9, fill: '#6b7280' }}
+                  stroke="#9ca3af"
+                  width={35}
                 />
                 <Tooltip
-                  labelStyle={{ fontSize: '12px' }}
-                  contentStyle={{ fontSize: '12px' }}
+                  labelStyle={{ fontSize: '11px', color: '#374151' }}
+                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
                 />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="used" fill="#ef4444" name="Used" />
-                <Bar dataKey="available" fill="#10b981" name="Available" />
+                <Bar dataKey="used" fill="#ef4444" name="Used" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="available" fill="#10b981" name="Available" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -642,8 +657,8 @@ export default function EmployeeDashboard({ user }) {
       {/* Personal Activities & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
         {/* Recent Activities */}
-        <div className="bg-white rounded-lg shadow-md p-3 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">My Recent Activities</h3>
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg p-3 sm:p-6">
+          <h3 className="text-sm sm:text-base font-bold text-gray-800 mb-4">My Recent Activities</h3>
           <div className="space-y-3 sm:space-y-4">
             {recentActivities.length > 0 ? (
               recentActivities.map((activity, index) => (
@@ -665,8 +680,8 @@ export default function EmployeeDashboard({ user }) {
         </div>
 
         {/* Employee Quick Actions */}
-        <div className="bg-white rounded-lg shadow-md p-3 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg p-3 sm:p-6">
+          <h3 className="text-sm sm:text-base font-bold text-gray-800 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             {[
               { name: 'Mark Attendance', icon: FaClock, href: '/dashboard/attendance', color: 'bg-green-500' },
@@ -692,8 +707,8 @@ export default function EmployeeDashboard({ user }) {
       {/* Personal Information & Goals */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
         {/* Today's Schedule */}
-        <div className="bg-white rounded-lg shadow-md p-3 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Today&apos;s Tasks</h3>
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg p-3 sm:p-6">
+          <h3 className="text-sm sm:text-base font-bold text-gray-800 mb-4">Today&apos;s Tasks</h3>
           <div className="space-y-3">
             {todayTasks.length > 0 ? (
               todayTasks.map((task, index) => (
@@ -737,8 +752,8 @@ export default function EmployeeDashboard({ user }) {
         </div>
 
         {/* Learning Progress */}
-        <div className="bg-white rounded-lg shadow-md p-3 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Learning Progress</h3>
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg p-3 sm:p-6">
+          <h3 className="text-sm sm:text-base font-bold text-gray-800 mb-4">Learning Progress</h3>
           <div className="space-y-4">
             {[
               { course: 'React Advanced Concepts', progress: 100, status: 'Completed' },

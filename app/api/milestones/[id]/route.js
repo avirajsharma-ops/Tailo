@@ -4,6 +4,7 @@ import Milestone from '@/models/Milestone'
 import Task from '@/models/Task'
 import User from '@/models/User'
 import { verifyToken } from '@/lib/auth'
+import { logActivity } from '@/lib/activityLogger'
 
 // PUT - Update milestone progress
 export async function PUT(request, { params }) {
@@ -64,6 +65,20 @@ export async function PUT(request, { params }) {
         })
         await task.save()
       }
+
+      // Log activity for milestone completion
+      await logActivity({
+        employeeId: employeeId,
+        type: 'milestone_complete',
+        action: 'Completed milestone',
+        details: `"${milestone.title}" - ${body.completionRemark}`,
+        metadata: {
+          milestoneId: milestone._id,
+          taskId: milestone.task
+        },
+        relatedModel: 'Milestone',
+        relatedId: milestone._id
+      })
     }
     // Update progress with remark (legacy support)
     else if (body.progress !== undefined) {

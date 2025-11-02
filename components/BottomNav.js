@@ -41,21 +41,22 @@ export default function BottomNav() {
   ]
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 md:hidden">
-      <div className="flex items-center justify-around h-12">
+    <div className="bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden" style={{ margin: 0, padding: 0, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="flex items-center justify-around" style={{ margin: 0, padding: '6px 0' }}>
         {navItems.map((item) => {
           const Icon = item.icon
           return (
             <button
               key={item.path}
               onClick={() => router.push(item.path)}
-              className={`flex items-center justify-center flex-1 h-full transition-colors ${
+              className={`p-2 rounded-lg transition-all ${
                 item.active
-                  ? 'text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-[#EEF3FF] text-gray-600'
               }`}
+              style={{ margin: 0 }}
             >
-              <Icon className={`text-2xl ${item.active ? 'text-blue-600' : 'text-gray-500'}`} />
+              <Icon className="w-5 h-5" />
             </button>
           )
         })}

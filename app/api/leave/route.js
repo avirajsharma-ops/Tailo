@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb'
 import Leave from '@/models/Leave'
 import LeaveBalance from '@/models/LeaveBalance'
 import LeaveType from '@/models/LeaveType'
+import { logActivity } from '@/lib/activityLogger'
 
 // GET - List leave requests
 export async function GET(request) {
@@ -78,6 +79,20 @@ export async function POST(request) {
     const populatedLeave = await Leave.findById(leave._id)
       .populate('employee', 'firstName lastName employeeCode')
       .populate('leaveType', 'name')
+
+    // Log activity for leave application
+    await logActivity({
+      employeeId: data.employee,
+      type: 'leave_apply',
+      action: 'Applied for leave',
+      details: `${diffDays} day(s) leave from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`,
+      metadata: {
+        leaveType: data.leaveType,
+        numberOfDays: diffDays
+      },
+      relatedModel: 'Leave',
+      relatedId: leave._id
+    })
 
     return NextResponse.json({
       success: true,

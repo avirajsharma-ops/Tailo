@@ -5,6 +5,7 @@ import Employee from '@/models/Employee'
 import Project from '@/models/Project'
 import User from '@/models/User'
 import { verifyToken } from '@/lib/auth'
+import { logActivity } from '@/lib/activityLogger'
 
 // GET - Fetch tasks with filters and pagination
 export async function GET(request) {
@@ -383,6 +384,21 @@ export async function POST(request) {
     })
 
     await task.save()
+
+    // Log activity for task creation
+    await logActivity({
+      employeeId: currentEmployeeId,
+      type: 'task_create',
+      action: 'Created task',
+      details: `"${task.title}" - Due: ${new Date(task.dueDate).toLocaleDateString()}`,
+      metadata: {
+        taskId: task._id,
+        priority: task.priority,
+        assignmentType: assignmentType
+      },
+      relatedModel: 'Task',
+      relatedId: task._id
+    })
 
     return NextResponse.json({
       success: true,

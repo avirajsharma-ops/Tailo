@@ -35,7 +35,7 @@ const performanceData = [
 
 export default function ManagerDashboard({ user }) {
   return (
-    <div className="page-container space-y-6">
+    <div className="page-container space-y-5 sm:space-y-8">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg p-3 sm:p-6 text-white">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Manager Dashboard</h1>
@@ -43,7 +43,7 @@ export default function ManagerDashboard({ user }) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {managerStatsData.map((stat, index) => (
           <div key={index} className="bg-white rounded-lg shadow-md p-3 sm:p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between">
@@ -71,36 +71,49 @@ export default function ManagerDashboard({ user }) {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8">
         {/* Team Attendance */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Attendance This Week</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={teamAttendanceData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="present" fill="#10b981" name="Present" />
-              <Bar dataKey="absent" fill="#ef4444" name="Absent" />
-            </BarChart>
-          </ResponsiveContainer>
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+            <h3 className="text-sm sm:text-base font-bold text-gray-800">Team Attendance This Week</h3>
+          </div>
+          <div className="h-80 sm:h-80 pr-4 sm:pr-6 pb-4 sm:pb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={teamAttendanceData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
+                <XAxis dataKey="name" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
+                <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
+                <Tooltip
+                  labelStyle={{ fontSize: '11px', color: '#374151' }}
+                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                />
+                <Bar dataKey="present" fill="#10b981" name="Present" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="absent" fill="#ef4444" name="Absent" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Team Performance Trend */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Performance Trend</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={performanceData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip formatter={(value) => [`${value}%`, 'Performance']} />
-              <Legend />
-              <Line type="monotone" dataKey="performance" stroke="#8b5cf6" strokeWidth={3} name="Team Performance %" />
-            </LineChart>
-          </ResponsiveContainer>
+        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+            <h3 className="text-sm sm:text-base font-bold text-gray-800">Team Performance Trend</h3>
+          </div>
+          <div className="h-80 sm:h-80 pr-4 sm:pr-6 pb-4 sm:pb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={performanceData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
+                <XAxis dataKey="month" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
+                <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
+                <Tooltip
+                  formatter={(value) => [`${value}%`, 'Performance']}
+                  labelStyle={{ fontSize: '11px', color: '#374151' }}
+                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                />
+                <Line type="monotone" dataKey="performance" stroke="#8b5cf6" strokeWidth={2} name="Team Performance %" dot={{ r: 4, fill: '#8b5cf6', strokeWidth: 2, stroke: '#ffffff' }} activeDot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 

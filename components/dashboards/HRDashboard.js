@@ -118,7 +118,7 @@ export default function HRDashboard() {
   ] : []
 
   return (
-    <div className="page-container space-y-6">
+    <div className="page-container space-y-5 sm:space-y-8">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-green-500 to-teal-600 rounded-lg p-3 sm:p-6 text-white">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">HR Dashboard 👥</h1>
@@ -177,49 +177,63 @@ export default function HRDashboard() {
 
       {/* Department Distribution & Gender Ratio */}
       {stats && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8">
           {/* Department Distribution */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Department Distribution</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={stats.departmentStats}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="_id" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#3b82f6" />
-              </BarChart>
-            </ResponsiveContainer>
+          <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+            <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+              <h3 className="text-sm sm:text-base font-bold text-gray-800">Department Distribution</h3>
+            </div>
+            <div className="h-80 sm:h-80 pr-4 sm:pr-6 pb-4 sm:pb-6">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats.departmentStats} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
+                  <XAxis dataKey="_id" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
+                  <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
+                  <Tooltip
+                    labelStyle={{ fontSize: '11px', color: '#374151' }}
+                    contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                  />
+                  <Bar dataKey="count" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Gender Ratio */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Gender Distribution</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: 'Male', value: stats.genderRatio.male, color: '#3b82f6' },
-                    { name: 'Female', value: stats.genderRatio.female, color: '#ec4899' }
-                  ]}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {[
-                    { name: 'Male', value: stats.genderRatio.male, color: '#3b82f6' },
-                    { name: 'Female', value: stats.genderRatio.female, color: '#ec4899' }
-                  ].map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+          <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+            <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+              <h3 className="text-sm sm:text-base font-bold text-gray-800">Gender Distribution</h3>
+            </div>
+            <div className="h-80 sm:h-80 pr-4 sm:pr-6 pb-4 sm:pb-6">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Male', value: stats.genderRatio.male, color: '#3b82f6' },
+                      { name: 'Female', value: stats.genderRatio.female, color: '#ec4899' }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {[
+                      { name: 'Male', value: stats.genderRatio.male, color: '#3b82f6' },
+                      { name: 'Female', value: stats.genderRatio.female, color: '#ec4899' }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    labelStyle={{ fontSize: '11px', color: '#374151' }}
+                    contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       )}

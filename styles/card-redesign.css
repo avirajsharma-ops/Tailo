@@ -1,0 +1,117 @@
+/* Card Redesign - Modern UI with #EEF3FF Background */
+
+/* Apply new background color to all white cards - More specific selectors */
+.page-container .bg-white,
+.dashboard-card,
+.stats-card,
+div.bg-white.rounded-lg,
+div.bg-white.rounded-2xl,
+div.bg-white.rounded-xl,
+div.bg-white.rounded,
+.bg-white.shadow-md,
+.bg-white.shadow-lg,
+.bg-white.shadow-sm {
+  background-color: #EEF3FF !important;
+  box-shadow: none !important;
+}
+
+/* Keep header and bottom bar white */
+header,
+header.bg-white,
+.bottom-nav,
+.bottom-nav.bg-white {
+  background-color: #FFFFFF !important;
+}
+
+/* Remove shadows from all cards */
+.page-container .shadow-md,
+.page-container .shadow-lg,
+.page-container .shadow-sm,
+.page-container .shadow-xl,
+.page-container .hover\:shadow-lg:hover,
+.page-container .hover\:shadow-md:hover {
+  box-shadow: none !important;
+}
+
+/* Keep shadows on buttons and modals */
+button.shadow-md,
+button.shadow-lg,
+.modal .shadow-md,
+.modal .shadow-lg,
+.dropdown .shadow-md {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Revert pill-style headings - back to normal */
+/* Headings should look normal without pill styling */
+
+/* Chart containers - full width with proper margins */
+.recharts-responsive-container {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Fix chart alignment - start from where headings start */
+.recharts-wrapper {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.recharts-surface {
+  overflow: visible !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Improve chart readability */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: #d1d5db;
+}
+
+.recharts-text {
+  fill: #6b7280;
+  font-size: 9px !important;
+}
+
+/* Y-axis width to prevent left spacing */
+.recharts-yAxis {
+  width: 35px !important;
+}
+
+/* Hide legend on mobile */
+@media (max-width: 768px) {
+  .recharts-legend-wrapper {
+    display: none !important;
+  }
+}
+
+/* Better tooltip styling */
+.recharts-tooltip-wrapper {
+  border-radius: 8px !important;
+}
+
+.recharts-default-tooltip {
+  background-color: white !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+}
+
+/* Mobile bottom padding for bottom bar */
+@media (max-width: 768px) {
+  .page-container,
+  main {
+    padding-bottom: 3.5rem !important;
+  }
+
+  /* Remove ALL chart padding/margin on mobile */
+  .recharts-wrapper,
+  .recharts-responsive-container,
+  .recharts-surface {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+}
+

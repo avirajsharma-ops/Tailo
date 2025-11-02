@@ -2,6 +2,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import '../styles/mobile-responsive.css'
 import '../styles/mobile-fix.css'
+import '../styles/card-redesign.css'
 import { Toaster } from 'react-hot-toast'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -44,14 +45,14 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#ffffff" />
         <meta name="theme-color" content="#101827" media="(min-width: 769px)" />
 
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="light-content" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Tailo HRMS" />
         <meta name="application-name" content="Tailo HRMS" />
         <meta name="msapplication-TileColor" content="#ffffff" />

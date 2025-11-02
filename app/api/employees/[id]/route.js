@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Employee from '@/models/Employee'
+import { logActivity } from '@/lib/activityLogger'
 
 // GET - Get single employee
 export async function GET(request, { params }) {
@@ -9,7 +10,7 @@ export async function GET(request, { params }) {
 
     const employee = await Employee.findById(params.id)
       .populate('department', 'name')
-      .populate('designation', 'title')
+      .populate('designation', 'title levelName')
       .populate('reportingManager', 'firstName lastName email')
 
     if (!employee) {
@@ -76,8 +77,18 @@ export async function PUT(request, { params }) {
       { new: true, runValidators: true }
     )
       .populate('department', 'name')
-      .populate('designation', 'title')
+      .populate('designation', 'title levelName')
       .populate('reportingManager', 'firstName lastName')
+
+    // Log activity for profile update
+    await logActivity({
+      employeeId: params.id,
+      type: 'profile_update',
+      action: 'Updated profile',
+      details: 'Profile information updated',
+      relatedModel: 'Employee',
+      relatedId: params.id
+    })
 
     return NextResponse.json({
       success: true,

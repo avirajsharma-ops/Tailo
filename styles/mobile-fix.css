@@ -1,16 +1,29 @@
 /* Mobile Responsive Fixes - Standardized Padding & Overflow Prevention */
 
+/* Remove PWA separator line */
+html {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+body {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
 @media (max-width: 640px) {
   /* OUTER PADDING ONLY - 0.5rem (8px) left/right for page containers */
   .page-container {
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
+    padding-bottom: 3.5rem !important; /* Buffer for bottom bar */
   }
 
   /* Main layout outer padding only */
   main {
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
+    padding-bottom: 3.5rem !important; /* Buffer for bottom bar */
   }
 
   /* STANDARDIZED CARD PADDING - All cards get consistent 1rem padding */
