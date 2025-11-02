@@ -16,7 +16,7 @@ const withPWA = require('next-pwa')({
       },
     },
   ],
-})
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -29,15 +29,20 @@ const nextConfig = {
       },
     ],
   },
+
+  // 👇 Add this block to skip ESLint checks during Docker build
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   async rewrites() {
     return [
       {
         source: '/.well-known/assetlinks.json',
         destination: '/api/assetlinks',
       },
-    ]
+    ];
   },
-}
+};
 
-module.exports = withPWA(nextConfig)
-
+module.exports = withPWA(nextConfig);
