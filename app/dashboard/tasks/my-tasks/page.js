@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import {
   FaTasks, FaPlus, FaFilter, FaSearch, FaCalendarAlt,
   FaClock, FaUser, FaCheckCircle, FaExclamationTriangle,
-  FaEdit, FaEye, FaPlay, FaPause, FaCheck, FaTrash
+  FaEdit, FaEye, FaPlay, FaPause, FaCheck, FaTrash, FaPaperPlane
 } from 'react-icons/fa'
 import RoleBasedAccess from '@/components/RoleBasedAccess'
 
@@ -21,6 +21,10 @@ export default function MyTasksPage() {
   const [deleteReason, setDeleteReason] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [view, setView] = useState('personal') // personal, team, external
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [taskToReview, setTaskToReview] = useState(null)
+  const [completionRemarks, setCompletionRemarks] = useState('')
+  const [sending, setSending] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -214,6 +218,53 @@ export default function MyTasksPage() {
       alert('Failed to delete task')
     } finally {
       setDeleting(false)
+    }
+  }
+
+  const openReviewModal = (task) => {
+    setTaskToReview(task)
+    setShowReviewModal(true)
+    setCompletionRemarks('')
+  }
+
+  const sendForReview = async () => {
+    if (!completionRemarks.trim()) {
+      alert('Please provide completion remarks before sending for review')
+      return
+    }
+
+    try {
+      setSending(true)
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/tasks/${taskToReview._id}/progress`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          progress: 100,
+          status: 'review',
+          approvalStatus: 'pending',
+          completionRemarks: completionRemarks
+        })
+      })
+
+      if (response.ok) {
+        alert('Task sent for review successfully')
+        setShowReviewModal(false)
+        setTaskToReview(null)
+        setCompletionRemarks('')
+        fetchMyTasks() // Refresh tasks
+      } else {
+        const data = await response.json()
+        alert(data.message || 'Failed to send task for review')
+      }
+    } catch (error) {
+      console.error('Error sending task for review:', error)
+      alert('Failed to send task for review')
+    } finally {
+      setSending(false)
     }
   }
 
@@ -535,6 +586,17 @@ export default function MyTasksPage() {
                           </>
                         )}
 
+                        {/* Send for Review Button - Shows when progress is 100% and status is in_progress or assigned */}
+                        {(task.status === 'in_progress' || task.status === 'assigned') && (task.progress || 0) === 100 && (
+                          <button
+                            onClick={() => openReviewModal(task)}
+                            className="bg-purple-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-purple-700 transition-colors flex items-center justify-center flex-1 min-w-[120px]"
+                          >
+                            <FaPaperPlane className="w-3 h-3 mr-1" />
+                            Send for Review
+                          </button>
+                        )}
+
                         <button
                           onClick={() => router.push(`/dashboard/tasks/${task._id}`)}
                           className="bg-gray-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-gray-700 transition-colors flex items-center justify-center flex-1 min-w-[100px]"
@@ -601,6 +663,51 @@ export default function MyTasksPage() {
                 disabled={deleting || !deleteReason.trim()}
               >
                 {deleting ? 'Deleting...' : 'Delete Task'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Send for Review Modal */}
+      {showReviewModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Send Task for Review</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Please provide completion remarks describing what you've accomplished and any important notes for the reviewer.
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Completion Remarks <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={completionRemarks}
+                onChange={(e) => setCompletionRemarks(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                rows="5"
+                placeholder="Describe what you've completed, any challenges faced, and any notes for the reviewer..."
+                required
+              />
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowReviewModal(false)
+                  setTaskToReview(null)
+                  setCompletionRemarks('')
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                disabled={sending}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={sendForReview}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                disabled={sending || !completionRemarks.trim()}
+              >
+                {sending ? 'Sending...' : 'Send for Review'}
               </button>
             </div>
           </div>
