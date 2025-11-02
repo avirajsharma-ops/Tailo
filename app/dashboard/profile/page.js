@@ -410,7 +410,7 @@ export default function ProfilePage() {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingImage}
-                  className="absolute bottom-0.8 right-1 w-11 h-11 sm:w-11 sm:h-11 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center shadow-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 border-0 border-white"
+                  className="absolute bottom-1 right-1 w-11 h-11 sm:w-11 sm:h-11 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center shadow-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 border-0 border-white"
                   title="Change profile picture"
                 >
                   {uploadingImage ? (
