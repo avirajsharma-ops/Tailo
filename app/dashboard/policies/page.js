@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { FaPlus, FaFileAlt, FaEdit, FaTrash } from 'react-icons/fa'
+import ModalPortal from '@/components/ModalPortal'
 
 export default function PoliciesPage() {
   const [policies, setPolicies] = useState([])
@@ -219,8 +220,8 @@ export default function PoliciesPage() {
       </div>
 
       {/* Add/Edit Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]">
+      <ModalPortal show={showModal}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center" style={{ zIndex: 99999 }}>
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">
               {editingPolicy ? 'Edit Policy' : 'Add Policy'}
@@ -306,7 +307,7 @@ export default function PoliciesPage() {
             </form>
           </div>
         </div>
-      )}
+      </ModalPortal>
     </div>
   )
 }

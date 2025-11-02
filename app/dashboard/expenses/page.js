@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import ModalPortal from '@/components/ModalPortal'
 import toast from 'react-hot-toast'
+import ModalPortal from '@/components/ModalPortal'
 import { FaPlus, FaMoneyBillWave, FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa'
+import ModalPortal from '@/components/ModalPortal'
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState([])
@@ -207,7 +210,7 @@ export default function ExpensesPage() {
 
       {/* Submit Expense Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center style={{ zIndex: 99999 }}">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Submit Expense</h2>
             <form>

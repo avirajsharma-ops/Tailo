@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCalendarAlt, FaEdit, FaSave, FaTimes, FaCheck, FaCamera, FaSearchPlus, FaSearchMinus, FaUndo, FaRedo, FaSun, FaAdjust } from 'react-icons/fa'
 import toast from 'react-hot-toast'
+import ModalPortal from '@/components/ModalPortal'
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null)
@@ -723,7 +724,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Image Editor Modal */}
-      {showImageEditor && (
+      <ModalPortal show={showImageEditor}>
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4" style={{ zIndex: 99999 }}>
           <div className="bg-white rounded-none sm:rounded-2xl shadow-2xl w-full h-full sm:max-w-5xl sm:max-h-[95vh] sm:h-auto overflow-hidden flex flex-col">
             {/* Header */}
@@ -950,7 +951,7 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-      )}
+      </ModalPortal>
     </div>
   )
 }

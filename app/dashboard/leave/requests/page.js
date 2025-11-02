@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { FaCalendarAlt, FaClock, FaCheck, FaTimes, FaEye, FaFilter } from 'react-icons/fa'
+import ModalPortal from '@/components/ModalPortal'
 
 export default function LeaveRequestsPage() {
   const [leaves, setLeaves] = useState([])
@@ -240,8 +241,8 @@ export default function LeaveRequestsPage() {
       </div>
 
       {/* Leave Details Modal */}
-      {showModal && selectedLeave && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]">
+      <ModalPortal show={showModal && selectedLeave}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center" style={{ zIndex: 99999 }}>
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800">Leave Request Details</h2>
@@ -316,7 +317,7 @@ export default function LeaveRequestsPage() {
             </div>
           </div>
         </div>
-      )}
+      </ModalPortal>
     </div>
   )
 }

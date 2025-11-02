@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import ModalPortal from '@/components/ModalPortal'
 import toast from 'react-hot-toast'
+import ModalPortal from '@/components/ModalPortal'
 import { FaPlus, FaCalendarAlt, FaCheckCircle, FaTimesCircle, FaClock } from 'react-icons/fa'
+import ModalPortal from '@/components/ModalPortal'
 
 export default function LeavePage() {
   const [leaves, setLeaves] = useState([])
@@ -311,7 +314,7 @@ export default function LeavePage() {
 
       {/* Apply Leave Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center style={{ zIndex: 99999 }}">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Apply for Leave</h2>
             <form onSubmit={handleSubmit}>
