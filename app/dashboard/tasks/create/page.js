@@ -29,6 +29,7 @@ function CreateTaskContent() {
   const [createdTaskId, setCreatedTaskId] = useState(null)
   const [isInitializing, setIsInitializing] = useState(true)
   const [currentEmp, setCurrentEmp] = useState(null)
+  const [isDepartmentHead, setIsDepartmentHead] = useState(false)
   const router = useRouter()
 
 
@@ -41,6 +42,7 @@ function CreateTaskContent() {
           console.log('User loaded:', parsedUser)
           setUser(parsedUser)
           await fetchEmployees()
+          await checkDepartmentHead()
           setIsInitializing(false)
         } catch (error) {
           console.error('Error parsing user data:', error)
@@ -67,7 +69,7 @@ function CreateTaskContent() {
   const fetchEmployees = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/employees?status=active&limit=100', {
+      const response = await fetch('/api/employees?status=active&limit=1000', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -83,6 +85,27 @@ function CreateTaskContent() {
       }
     } catch (error) {
       console.error('Error fetching employees:', error)
+    }
+  }
+
+  const checkDepartmentHead = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+
+      const response = await fetch('/api/team/check-head', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+      if (data.success && data.isDepartmentHead) {
+        console.log('User is department head:', data.department)
+        setIsDepartmentHead(true)
+      }
+    } catch (error) {
+      console.error('Error checking department head:', error)
     }
   }
 
@@ -189,29 +212,56 @@ function CreateTaskContent() {
   }
 
   const getFilteredEmployees = () => {
-    if (!user) return []
-    const myId = user.employeeId || user.id || user._id
+    if (!user || !currentEmp) {
+      console.log('No user or currentEmp:', { user: !!user, currentEmp: !!currentEmp })
+      return []
+    }
 
-    return employees.filter(emp => {
+    const myId = user.employeeId || user.id || user._id
+    console.log('Filtering employees. Total:', employees.length, 'MyId:', myId, 'IsDeptHead:', isDepartmentHead)
+
+    const filtered = employees.filter(emp => {
       if (emp._id === myId) return false // Don't show self in others list
 
-      // Show based on role permissions
+      // Admin and HR can assign to anyone
       if (user.role === 'admin' || user.role === 'hr') {
-        return true // Can assign to anyone
-      } else if (user.role === 'manager') {
-        // Check if this employee reports to this manager
-        const isDirectReport = (emp.reportingManager?._id === myId) || (emp.reportingManager === myId)
-
-        // Check if same department (for peer assignment)
-        const sameDept = !!(emp.department?._id && currentEmp?.department?._id && emp.department._id === currentEmp.department._id)
-
-        return isDirectReport || sameDept
-      } else {
-        // Regular employees can only assign to same department colleagues
-        const sameDept = !!(emp.department?._id && currentEmp?.department?._id && emp.department._id === currentEmp.department._id)
-        return sameDept
+        return true
       }
+
+      // Check if in same department
+      const empDeptId = emp.department?._id || emp.department
+      const myDeptId = currentEmp.department?._id || currentEmp.department
+      const sameDepartment = empDeptId && myDeptId && empDeptId.toString() === myDeptId.toString()
+
+      console.log('Employee:', emp.firstName, emp.lastName, 'SameDept:', sameDepartment, 'EmpDept:', empDeptId, 'MyDept:', myDeptId)
+
+      // If not in same department, cannot assign
+      if (!sameDepartment) return false
+
+      // Department head can assign to anyone in their department
+      if (isDepartmentHead) {
+        console.log('Dept head - including employee:', emp.firstName, emp.lastName)
+        return true
+      }
+
+      // Get hierarchy levels
+      const myLevel = currentEmp.designation?.level || 0
+      const empLevel = emp.designation?.level || 0
+
+      console.log('Hierarchy check:', emp.firstName, 'MyLevel:', myLevel, 'EmpLevel:', empLevel)
+
+      // Cannot assign to higher hierarchy (lower level number = higher hierarchy)
+      if (empLevel < myLevel) {
+        console.log('Excluding higher hierarchy:', emp.firstName)
+        return false
+      }
+
+      // Can assign to same level or lower hierarchy (higher level number)
+      return empLevel >= myLevel
     })
+
+    console.log('Filtered employees count:', filtered.length)
+    return filtered
   }
 
   if (isInitializing || !user) {
@@ -442,8 +492,9 @@ function CreateTaskContent() {
                     <div className="flex items-start justify-between">
                       <p className="text-sm font-medium text-gray-700">Select employees:</p>
                       <p className="text-xs text-gray-500 italic">
-                        {user?.role === 'manager' && '(Direct reports & same department)'}
-                        {user?.role === 'employee' && '(Same department colleagues)'}
+                        {isDepartmentHead && '(All department members)'}
+                        {!isDepartmentHead && user?.role === 'manager' && '(Same department colleagues)'}
+                        {!isDepartmentHead && user?.role === 'employee' && '(Same department colleagues)'}
                         {(user?.role === 'admin' || user?.role === 'hr') && '(All employees)'}
                       </p>
                     </div>
@@ -459,15 +510,16 @@ function CreateTaskContent() {
                           <label className="ml-2 text-sm text-gray-700">
                             {employee.firstName} {employee.lastName}
                             {employee.department?.name && ` (${employee.department.name})`}
-                            {employee.designation?.title && ` - ${employee.designation.title}`}
+                            {employee.designation?.levelName && ` - ${employee.designation.levelName}`}
+                            {employee.designation?.title && !employee.designation?.levelName && ` - ${employee.designation.title}`}
                           </label>
                         </div>
                       ))}
                       {getFilteredEmployees().length === 0 && (
                         <p className="text-sm text-gray-500">
                           No employees available for assignment.
-                          {user?.role === 'manager' && ' You can only assign to your direct reports or same department colleagues.'}
-                          {user?.role === 'employee' && ' You can only assign to colleagues in your department.'}
+                          {isDepartmentHead && ' All department members may already be assigned or there are no other employees in your department.'}
+                          {!isDepartmentHead && ' You can only assign to colleagues at your level or lower hierarchy in your department.'}
                         </p>
                       )}
                     </div>
