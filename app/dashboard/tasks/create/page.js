@@ -215,20 +215,40 @@ function CreateTaskContent() {
   }
 
   const getFilteredEmployees = () => {
-    if (!user || !currentEmp) {
-      console.log('No user or currentEmp:', { user: !!user, currentEmp: !!currentEmp })
+    if (!user) {
+      console.log('No user found')
       return []
     }
 
-    const myId = user.employeeId || user.id || user._id
-    console.log('Filtering employees. Total:', employees.length, 'MyId:', myId, 'IsDeptHead:', isDepartmentHead)
+    // Get my employee ID - handle both populated and non-populated employeeId
+    const myId = (typeof user.employeeId === 'object' && user.employeeId?._id)
+      ? user.employeeId._id
+      : (user.employeeId || user.id || user._id)
+
+    console.log('=== FILTERING EMPLOYEES ===')
+    console.log('User:', user)
+    console.log('My ID:', myId)
+    console.log('Total employees:', employees.length)
+    console.log('Current Emp:', currentEmp)
+    console.log('Is Dept Head:', isDepartmentHead)
 
     const filtered = employees.filter(emp => {
-      if (emp._id === myId) return false // Don't show self in others list
+      // Don't show self in others list
+      if (emp._id === myId || emp._id.toString() === myId.toString()) {
+        console.log('Excluding self:', emp.firstName, emp.lastName)
+        return false
+      }
 
       // Admin and HR can assign to anyone
       if (user.role === 'admin' || user.role === 'hr') {
+        console.log('Admin/HR - including:', emp.firstName, emp.lastName)
         return true
+      }
+
+      // If currentEmp not loaded yet, wait
+      if (!currentEmp) {
+        console.log('CurrentEmp not loaded yet, skipping filter')
+        return false
       }
 
       // Check if in same department
@@ -236,14 +256,20 @@ function CreateTaskContent() {
       const myDeptId = currentEmp.department?._id || currentEmp.department
       const sameDepartment = empDeptId && myDeptId && empDeptId.toString() === myDeptId.toString()
 
-      console.log('Employee:', emp.firstName, emp.lastName, 'SameDept:', sameDepartment, 'EmpDept:', empDeptId, 'MyDept:', myDeptId)
+      console.log('Employee:', emp.firstName, emp.lastName,
+        'EmpDept:', empDeptId,
+        'MyDept:', myDeptId,
+        'SameDept:', sameDepartment)
 
       // If not in same department, cannot assign
-      if (!sameDepartment) return false
+      if (!sameDepartment) {
+        console.log('Different department, excluding:', emp.firstName)
+        return false
+      }
 
       // Department head can assign to anyone in their department
       if (isDepartmentHead) {
-        console.log('Dept head - including employee:', emp.firstName, emp.lastName)
+        console.log('Dept head - including:', emp.firstName, emp.lastName)
         return true
       }
 
@@ -255,15 +281,18 @@ function CreateTaskContent() {
 
       // Cannot assign to higher hierarchy (lower level number = higher hierarchy)
       if (empLevel < myLevel) {
-        console.log('Excluding higher hierarchy:', emp.firstName)
+        console.log('Higher hierarchy, excluding:', emp.firstName)
         return false
       }
 
       // Can assign to same level or lower hierarchy (higher level number)
+      console.log('Same/lower hierarchy, including:', emp.firstName)
       return empLevel >= myLevel
     })
 
+    console.log('=== FILTERED RESULT ===')
     console.log('Filtered employees count:', filtered.length)
+    console.log('Filtered employees:', filtered.map(e => `${e.firstName} ${e.lastName}`))
     return filtered
   }
 
