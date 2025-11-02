@@ -60,7 +60,10 @@ function CreateTaskContent() {
   useEffect(() => {
     if (user && employees.length) {
       const myId = user.employeeId || user.id || user._id
+      console.log('Looking for current employee with ID:', myId)
+      console.log('Available employees:', employees.map(e => ({ id: e._id, name: `${e.firstName} ${e.lastName}` })))
       const me = employees.find(e => e._id === myId)
+      console.log('Found current employee:', me)
       setCurrentEmp(me || null)
     }
   }, [user, employees])

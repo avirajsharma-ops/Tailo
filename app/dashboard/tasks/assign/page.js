@@ -133,9 +133,9 @@ export default function AssignTaskPage() {
   return (
     <RoleBasedAccess allowedRoles={['admin', 'hr', 'manager', 'employee']}>
       <div className="space-y-6">
-        <div className="bg-white shadow-sm rounded-lg p-6">
+        <div className="bg-white shadow-sm rounded-lg p-4 sm:p-6">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => router.back()}
@@ -144,24 +144,27 @@ export default function AssignTaskPage() {
                 <FaArrowLeft className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <FaUsers className="mr-3 text-blue-600" />
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
+                  <FaUsers className="mr-2 sm:mr-3 text-blue-600" />
                   Assign Tasks
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-sm sm:text-base text-gray-600 hidden sm:block">
                   {user.role === 'admin' ? 'Assign tasks to any employee in the organization' :
                    user.role === 'hr' ? 'Assign tasks to employees in your department' :
                    user.role === 'manager' ? 'Assign tasks to your team members' :
                    'Assign tasks to your colleagues'}
                 </p>
+                <p className="text-xs text-gray-600 sm:hidden">
+                  Assign tasks to your colleagues
+                </p>
               </div>
             </div>
-            
+
             <button
               onClick={() => router.push('/dashboard/tasks/create')}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm sm:text-base whitespace-nowrap"
             >
-              Create New Task
+              Create New...
             </button>
           </div>
 
@@ -206,16 +209,16 @@ export default function AssignTaskPage() {
             </div>
           ) : (
             /* Task Selection Interface */
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Search and Filters */}
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 sm:space-x-4">
                 <div className="relative flex-1 max-w-md">
                   <input
                     type="text"
                     placeholder="Search tasks..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                   />
                   <FaSearch className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 </div>
@@ -224,7 +227,7 @@ export default function AssignTaskPage() {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 sm:flex-none px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                   >
                     <option value="all">All Status</option>
                     <option value="assigned">Assigned</option>
