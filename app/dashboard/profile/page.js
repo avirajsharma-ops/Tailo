@@ -724,10 +724,10 @@ export default function ProfilePage() {
 
       {/* Image Editor Modal */}
       {showImageEditor && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-none sm:rounded-2xl shadow-2xl w-full h-full sm:max-w-3xl sm:max-h-[90vh] sm:h-auto overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="px-4 sm:px-6 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+            <div className="px-4 sm:px-6 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50 flex-shrink-0">
               <h2 className="text-lg font-bold text-gray-800">Edit Profile Picture</h2>
               <button
                 onClick={closeImageEditor}
@@ -739,51 +739,51 @@ export default function ProfilePage() {
             </div>
 
             {/* Editor Content */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                {/* Preview Area */}
-                <div className="lg:col-span-2">
-                  <div className="bg-gray-100 rounded-xl overflow-hidden relative" style={{ height: '350px' }}>
-                    {/* Circular Crop Preview */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div
-                        className="relative overflow-hidden rounded-full bg-white shadow-2xl"
-                        style={{ width: '280px', height: '280px' }}
-                        onMouseDown={handleMouseDown}
-                        onMouseMove={handleMouseMove}
-                        onMouseUp={handleMouseUp}
-                        onMouseLeave={handleMouseUp}
-                        onTouchStart={handleTouchStart}
-                        onTouchMove={handleTouchMove}
-                        onTouchEnd={handleTouchEnd}
-                      >
-                        <img
-                          ref={imageRef}
-                          src={selectedImage}
-                          alt="Preview"
-                          className="absolute inset-0 w-full h-full object-cover"
-                          style={{
-                            transform: `translate(${imagePosition.x}px, ${imagePosition.y}px) scale(${imageScale}) rotate(${imageRotation}deg)`,
-                            filter: `brightness(${imageBrightness}%) contrast(${imageContrast}%) saturate(${imageSaturation}%)`,
-                            cursor: isDragging ? 'grabbing' : 'grab',
-                            transformOrigin: 'center center'
-                          }}
-                          draggable={false}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Instructions */}
-                    <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1.5 rounded-lg text-xs">
-                      Drag to reposition • Use controls to adjust
+            <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row lg:p-6 lg:gap-6">
+              {/* Preview Area - Sticky on mobile */}
+              <div className="lg:flex-[2] flex-shrink-0 sticky top-0 bg-white z-10 lg:static">
+                <div className="bg-gray-100 rounded-none lg:rounded-xl overflow-hidden relative h-[280px] sm:h-[320px] lg:h-[350px]">
+                  {/* Circular Crop Preview */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div
+                      className="relative overflow-hidden rounded-full bg-white shadow-2xl"
+                      style={{ width: '240px', height: '240px' }}
+                      onMouseDown={handleMouseDown}
+                      onMouseMove={handleMouseMove}
+                      onMouseUp={handleMouseUp}
+                      onMouseLeave={handleMouseUp}
+                      onTouchStart={handleTouchStart}
+                      onTouchMove={handleTouchMove}
+                      onTouchEnd={handleTouchEnd}
+                    >
+                      <img
+                        ref={imageRef}
+                        src={selectedImage}
+                        alt="Preview"
+                        className="absolute inset-0 w-full h-full object-cover"
+                        style={{
+                          transform: `translate(${imagePosition.x}px, ${imagePosition.y}px) scale(${imageScale}) rotate(${imageRotation}deg)`,
+                          filter: `brightness(${imageBrightness}%) contrast(${imageContrast}%) saturate(${imageSaturation}%)`,
+                          cursor: isDragging ? 'grabbing' : 'grab',
+                          transformOrigin: 'center center'
+                        }}
+                        draggable={false}
+                      />
                     </div>
                   </div>
-                </div>
 
-                {/* Controls */}
-                <div className="space-y-3">
+                  {/* Instructions */}
+                  <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1.5 rounded-lg text-xs">
+                    Drag to reposition • Use controls to adjust
+                  </div>
+                </div>
+              </div>
+
+              {/* Controls - Scrollable on mobile, 2x2 grid */}
+              <div className="lg:flex-1 overflow-y-auto p-4 sm:p-6 lg:p-0">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {/* Zoom Control */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <div className="bg-white border border-gray-200 rounded-lg p-3 col-span-2 sm:col-span-1">
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
                         <FaSearchPlus className="text-gray-600 text-xs" />
@@ -817,7 +817,7 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Rotation Control */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <div className="bg-white border border-gray-200 rounded-lg p-3 col-span-2 sm:col-span-1">
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
                         <FaUndo className="text-gray-600 text-xs" />
@@ -851,7 +851,7 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Brightness Control */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <div className="bg-white border border-gray-200 rounded-lg p-3 col-span-2 sm:col-span-1">
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
                         <FaSun className="text-gray-600 text-xs" />
@@ -871,7 +871,7 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Contrast Control */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <div className="bg-white border border-gray-200 rounded-lg p-3 col-span-2 sm:col-span-1">
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
                         <FaAdjust className="text-gray-600 text-xs" />
@@ -891,7 +891,7 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Saturation Control */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <div className="bg-white border border-gray-200 rounded-lg p-3 col-span-2 sm:col-span-1">
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
                         <FaAdjust className="text-gray-600 text-xs" />
@@ -913,7 +913,7 @@ export default function ProfilePage() {
                   {/* Reset Button */}
                   <button
                     onClick={resetImageEditor}
-                    className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+                    className="col-span-2 sm:col-span-1 px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
                   >
                     Reset All
                   </button>
@@ -921,8 +921,8 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="px-4 sm:px-6 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-2 sm:gap-3">
+            {/* Footer - Sticky at bottom */}
+            <div className="px-4 sm:px-6 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-2 sm:gap-3 flex-shrink-0">
               <button
                 onClick={closeImageEditor}
                 disabled={uploadingImage}
