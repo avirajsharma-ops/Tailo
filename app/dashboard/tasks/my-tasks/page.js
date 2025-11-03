@@ -331,7 +331,7 @@ export default function MyTasksPage() {
 
   return (
     <RoleBasedAccess allowedRoles={['admin', 'hr', 'manager', 'employee']}>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-24 md:pb-0">
         {/* Header */}
         <div className="bg-white shadow-sm rounded-lg p-3 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4 sm:mb-6">

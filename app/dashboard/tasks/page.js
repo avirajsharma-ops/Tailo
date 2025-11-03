@@ -63,7 +63,7 @@ export default function TasksPage() {
 
   return (
     <RoleBasedAccess allowedRoles={['admin', 'hr', 'manager', 'employee']}>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-24 md:pb-0">
         <div className="bg-white shadow-sm rounded-lg p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-4 sm:space-y-0">
             <div>

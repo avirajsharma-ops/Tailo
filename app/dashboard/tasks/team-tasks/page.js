@@ -160,7 +160,7 @@ export default function TeamTasksPage() {
   }
 
   return (
-    <div className="px-4 py-4 sm:p-6 lg:p-8 pb-14 md:pb-6">
+    <div className="px-4 py-4 sm:p-6 lg:p-8 pb-24 md:pb-6">
       <div className="mb-6">
         <div className="flex items-center mb-2">
           <FaUsers className="text-blue-600 mr-3 text-2xl" />

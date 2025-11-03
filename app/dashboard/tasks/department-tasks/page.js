@@ -99,7 +99,7 @@ export default function DepartmentTasksPage() {
 
   return (
     <RoleBasedAccess allowedRoles={['hr', 'admin']}>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-24 md:pb-0">
         <div className="bg-white shadow-sm rounded-lg p-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6">
             <div className="flex items-center mb-4 sm:mb-0">
