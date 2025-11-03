@@ -10,57 +10,65 @@ export default function BottomNav() {
   const navItems = [
     {
       name: 'Home',
-      icon: FaHome,
+      icon: '/assets/fi-rr-home.svg',
       path: '/dashboard',
       active: pathname === '/dashboard'
     },
     {
-      name: 'Projects',
-      icon: FaTasks,
+      name: 'Tasks',
+      icon: '/assets/fi-rr-chart-pie-alt.svg',
       path: '/dashboard/tasks/my-tasks',
       active: pathname.startsWith('/dashboard/tasks')
     },
     {
       name: 'Chat',
-      icon: FaComments,
+      icon: '/assets/fi-rr-clock.svg',
       path: '/dashboard/chat',
       active: pathname.startsWith('/dashboard/chat')
     },
     {
       name: 'Leave',
-      icon: FaCalendarAlt,
+      icon: '/assets/fi-rr-clock.svg',
       path: '/dashboard/leave',
       active: pathname.startsWith('/dashboard/leave')
     },
     {
       name: 'Ideas',
-      icon: FaLightbulb,
+      icon:'/assets/fi-rr-home.svg',
       path: '/dashboard/sandbox',
       active: pathname.startsWith('/dashboard/sandbox')
     }
   ]
 
   return (
-    <div className="bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-[5] md:hidden" style={{ margin: 0, padding: 0, paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <div className="flex items-center justify-around" style={{ margin: '-0.5rem', padding: '6px 0' }}>
+
+  <div className='bg-[#1A2A5A] w-full h-20 relative z-10 p-2  '  > 
+    <div className=" fixed bottom-0 left-0 right-0    bg-transparent z-[5] 
+    md:hidden" style={{ margin: 0, padding: 0, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="flex items-center justify-around" style={{ margin: '-0.5rem', padding: '1.4rem  1.2rem' }}>
+      
         {navItems.map((item) => {
           const Icon = item.icon
           return (
             <button
               key={item.path}
               onClick={() => router.push(item.path)}
-              className={`p-2 rounded-lg transition-all ${
+              className={`p-0 h-14 w-14    rounded-full transition-all duration-300     ${
                 item.active
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-[#EEF3FF] text-gray-600'
+                  ? 'bg-[#7FBEB0] rounded-full -translate-y-[34px] shadow-[0_0px_0_10px_#F9FAFB] '
+                  : ' text-gray-600'
               }`}
-              style={{ margin: 0 }}
+              style={{ margin: 0,
+                
+               }}
             >
-              <Icon className="w-5 h-5" />
+              <img src={item.icon} width={24} height={24 } className="   transition-transform duration-300" />
+              {/* <Icon  /> */}
             </button>
           )
         })}
       </div>
+    </div>
     </div>
   )
 }
