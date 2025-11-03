@@ -588,7 +588,7 @@ export default function TaskDetailsPage() {
               <div className="min-w-0">
                 <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 flex items-center">
                   <FaTasks className="mr-2 sm:mr-3 text-blue-600 flex-shrink-0" />
-                  <span className="truncate">Task Details</span>
+                  <span className="truncate">Project Details</span>
                 </h1>
                 <p className="text-gray-600 text-xs sm:text-sm">#{task.taskNumber}</p>
               </div>
@@ -624,7 +624,7 @@ export default function TaskDetailsPage() {
                       className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 text-xs sm:text-sm flex items-center"
                     >
                       <FaPlay className="w-3 h-3 mr-2" />
-                      Start Task
+                      Start Project
                     </button>
                   )}
 
@@ -762,8 +762,8 @@ export default function TaskDetailsPage() {
             {/* Progress */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">Progress</span>
-                <span className="text-sm text-gray-600">{task.progress || 0}%</span>
+                <span className="text-sm font-semibold text-gray-800">Progress</span>
+                <span className="text-sm font-bold text-gray-900">{task.progress || 0}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div
@@ -888,45 +888,45 @@ export default function TaskDetailsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="flex items-center text-sm">
-                  <FaCalendarAlt className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">Due Date:</span>
-                  <span className="ml-2 font-medium">{formatDate(task.dueDate)}</span>
+                  <FaCalendarAlt className="w-4 h-4 text-gray-500 mr-3" />
+                  <span className="text-gray-700 font-medium">Due Date:</span>
+                  <span className="ml-2 font-semibold text-gray-900">{formatDate(task.dueDate)}</span>
                 </div>
 
                 <div className="flex items-center text-sm">
-                  <FaUser className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">Assigned By:</span>
-                  <span className="ml-2 font-medium">
+                  <FaUser className="w-4 h-4 text-gray-500 mr-3" />
+                  <span className="text-gray-700 font-medium">Assigned By:</span>
+                  <span className="ml-2 font-semibold text-gray-900">
                     {task.assignedBy?.firstName} {task.assignedBy?.lastName}
                   </span>
                 </div>
 
                 <div className="flex items-center text-sm">
-                  <FaClock className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">Estimated Hours:</span>
-                  <span className="ml-2 font-medium">{task.estimatedHours || 0} hours</span>
+                  <FaClock className="w-4 h-4 text-gray-500 mr-3" />
+                  <span className="text-gray-700 font-medium">Estimated Hours:</span>
+                  <span className="ml-2 font-semibold text-gray-900">{task.estimatedHours || 0} hours</span>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div className="flex items-center text-sm">
-                  <FaTasks className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">Category:</span>
-                  <span className="ml-2 font-medium capitalize">{task.category}</span>
+                  <FaTasks className="w-4 h-4 text-gray-500 mr-3" />
+                  <span className="text-gray-700 font-medium">Category:</span>
+                  <span className="ml-2 font-semibold text-gray-900 capitalize">{task.category}</span>
                 </div>
 
                 {task.project && (
                   <div className="flex items-center text-sm">
-                    <FaTasks className="w-4 h-4 text-gray-400 mr-3" />
-                    <span className="text-gray-600">Project:</span>
-                    <span className="ml-2 font-medium">{task.project.name}</span>
+                    <FaTasks className="w-4 h-4 text-gray-500 mr-3" />
+                    <span className="text-gray-700 font-medium">Project:</span>
+                    <span className="ml-2 font-semibold text-gray-900">{task.project.name}</span>
                   </div>
                 )}
 
                 <div className="flex items-center text-sm">
-                  <FaCalendarAlt className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">Created:</span>
-                  <span className="ml-2 font-medium">{formatDate(task.createdAt)}</span>
+                  <FaCalendarAlt className="w-4 h-4 text-gray-500 mr-3" />
+                  <span className="text-gray-700 font-medium">Created:</span>
+                  <span className="ml-2 font-semibold text-gray-900">{formatDate(task.createdAt)}</span>
                 </div>
               </div>
             </div>

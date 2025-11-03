@@ -4,6 +4,8 @@ import Employee from '@/models/Employee'
 import Leave from '@/models/Leave'
 import Attendance from '@/models/Attendance'
 import Performance from '@/models/Performance'
+import User from '@/models/User'
+import Department from '@/models/Department'
 import { verifyToken } from '@/lib/auth'
 
 // GET - Get Manager dashboard statistics
@@ -21,11 +23,43 @@ export async function GET(request) {
 
     await connectDB()
 
+    // Get user to find employee ID
+    const user = await User.findById(decoded.userId).select('employeeId role').lean()
+    if (!user || !user.employeeId) {
+      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
+    }
+
     // Find the manager's employee record
-    const manager = await Employee.findOne({ _id: decoded.userId })
+    const manager = await Employee.findById(user.employeeId)
     if (!manager) {
       return NextResponse.json({ success: false, message: 'Manager not found' }, { status: 404 })
     }
+
+    // Get team members - either direct reportees OR department members if manager is department head
+    let teamMembers = []
+    let teamMemberIds = []
+
+    // Check if user is a department head
+    const department = await Department.findOne({
+      head: manager._id,
+      isActive: true
+    })
+
+    if (department) {
+      // If department head, get all employees in the department
+      teamMembers = await Employee.find({
+        department: department._id,
+        status: 'active'
+      })
+    } else {
+      // Otherwise, get direct reportees
+      teamMembers = await Employee.find({
+        reportingManager: manager._id,
+        status: 'active'
+      })
+    }
+
+    teamMemberIds = teamMembers.map(member => member._id)
 
     // Date calculations
     const today = new Date()
@@ -33,14 +67,6 @@ export async function GET(request) {
     todayStart.setHours(0, 0, 0, 0)
     const todayEnd = new Date(today)
     todayEnd.setHours(23, 59, 59, 999)
-
-    // Get team members (direct reportees)
-    const teamMembers = await Employee.find({
-      reportingManager: manager._id,
-      status: 'active'
-    })
-
-    const teamMemberIds = teamMembers.map(member => member._id)
 
     // 1. Team Strength
     const teamStrength = teamMembers.length
@@ -181,72 +207,22 @@ export async function GET(request) {
     recentActivities.sort((a, b) => new Date(b.date) - new Date(a.date))
 
     const stats = {
-      teamStrength: {
-        value: teamStrength,
-        active: teamStrength
+      teamStrength: teamStrength,
+      attendanceSummary: attendanceSummary,
+      onLeaveToday: onLeaveToday,
+      absentToday: absentToday,
+      lateToday: lateToday,
+      underperforming: underperforming,
+      pendingLeaveApprovals: pendingLeaveApprovals,
+      performanceStats: {
+        averageRating: performanceStats.averageRating || 0,
+        totalReviews: performanceStats.totalReviews || 0,
+        excellentPerformers: performanceStats.excellentPerformers || 0,
+        underPerformers: performanceStats.underPerformers || 0
       },
-      attendanceToday: {
-        ...attendanceSummary,
-        total: teamStrength,
-        attendanceRate: teamStrength > 0 ? 
-          (((attendanceSummary.present + attendanceSummary.late + attendanceSummary.halfDay) / teamStrength) * 100).toFixed(1) : 0
-      },
-      onLeaveToday: {
-        count: onLeaveToday.length,
-        employees: onLeaveToday.map(leave => ({
-          name: `${leave.employee.firstName} ${leave.employee.lastName}`,
-          employeeCode: leave.employee.employeeCode,
-          leaveType: leave.leaveType?.name || 'N/A',
-          startDate: leave.startDate,
-          endDate: leave.endDate
-        }))
-      },
-      absentToday: {
-        count: absentToday.length,
-        employees: absentToday.map(att => ({
-          name: `${att.employee.firstName} ${att.employee.lastName}`,
-          employeeCode: att.employee.employeeCode
-        }))
-      },
-      lateToday: {
-        count: lateToday.length,
-        employees: lateToday.map(att => ({
-          name: `${att.employee.firstName} ${att.employee.lastName}`,
-          employeeCode: att.employee.employeeCode,
-          checkInTime: att.checkInTime
-        }))
-      },
-      underperforming: {
-        count: underperforming.length,
-        employees: underperforming.map(perf => ({
-          name: `${perf.employee.firstName} ${perf.employee.lastName}`,
-          employeeCode: perf.employee.employeeCode,
-          rating: perf.overallRating,
-          reviewDate: perf.reviewDate
-        }))
-      },
-      pendingApprovals: {
-        leaves: {
-          count: pendingLeaveApprovals.length,
-          requests: pendingLeaveApprovals.map(leave => ({
-            id: leave._id,
-            employeeName: `${leave.employee.firstName} ${leave.employee.lastName}`,
-            employeeCode: leave.employee.employeeCode,
-            leaveType: leave.leaveType?.name || 'N/A',
-            startDate: leave.startDate,
-            endDate: leave.endDate,
-            reason: leave.reason,
-            appliedDate: leave.createdAt
-          }))
-        }
-      },
-      teamPerformance: {
-        averageRating: performanceStats.averageRating ? performanceStats.averageRating.toFixed(1) : 0,
-        totalReviews: performanceStats.totalReviews,
-        excellentPerformers: performanceStats.excellentPerformers,
-        underPerformers: performanceStats.underPerformers
-      },
-      recentActivities: recentActivities.slice(0, 10)
+      recentActivities: recentActivities.slice(0, 10),
+      weeklyAttendance: [],
+      performanceTrend: []
     }
 
     return NextResponse.json({

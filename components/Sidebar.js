@@ -111,7 +111,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-[7]
-          w-[70vw] md:w-64 bg-gray-900 text-white
+          w-[70vw] md:w-[17rem] bg-gray-900 text-white
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           flex flex-col

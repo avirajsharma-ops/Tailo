@@ -13,7 +13,7 @@ export default function LeaveTypesPage() {
   const [formData, setFormData] = useState({
     name: '',
     code: '',
-    defaultDays: 0,
+    maxDaysPerYear: 0,
     description: '',
     isPaid: true,
     requiresApproval: true,
@@ -83,7 +83,7 @@ export default function LeaveTypesPage() {
         setFormData({
           name: '',
           code: '',
-          defaultDays: 0,
+          maxDaysPerYear: 0,
           description: '',
           isPaid: true,
           requiresApproval: true,
@@ -103,7 +103,7 @@ export default function LeaveTypesPage() {
     setFormData({
       name: type.name,
       code: type.code || '',
-      defaultDays: type.defaultDays || 0,
+      maxDaysPerYear: type.maxDaysPerYear || 0,
       description: type.description || '',
       isPaid: type.isPaid !== false,
       requiresApproval: type.requiresApproval !== false,
@@ -141,7 +141,7 @@ export default function LeaveTypesPage() {
     setFormData({
       name: '',
       code: '',
-      defaultDays: 0,
+      maxDaysPerYear: 0,
       description: '',
       isPaid: true,
       requiresApproval: true,
@@ -191,7 +191,7 @@ export default function LeaveTypesPage() {
             <FaUmbrella className="text-blue-500" />
           </div>
           <div className="text-3xl font-bold text-gray-800">
-            {leaveTypes.reduce((sum, t) => sum + (t.defaultDays || 0), 0)}
+            {leaveTypes.reduce((sum, t) => sum + (t.maxDaysPerYear || 0), 0)}
           </div>
         </div>
       </div>
@@ -247,8 +247,8 @@ export default function LeaveTypesPage() {
 
               <div className="space-y-2 pt-4 border-t border-gray-200">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Default Days:</span>
-                  <span className="font-semibold text-gray-800">{type.defaultDays || 0}</span>
+                  <span className="text-gray-600">Max Days Per Year:</span>
+                  <span className="font-semibold text-gray-800">{type.maxDaysPerYear || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Type:</span>
@@ -310,14 +310,14 @@ export default function LeaveTypesPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Default Days *
+                    Max Days Per Year *
                   </label>
                   <input
                     type="number"
                     required
                     min="0"
-                    value={formData.defaultDays}
-                    onChange={(e) => setFormData({ ...formData, defaultDays: parseInt(e.target.value) })}
+                    value={formData.maxDaysPerYear}
+                    onChange={(e) => setFormData({ ...formData, maxDaysPerYear: parseInt(e.target.value) })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="0"
                   />

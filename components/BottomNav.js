@@ -15,7 +15,7 @@ export default function BottomNav() {
       active: pathname === '/dashboard'
     },
     {
-      name: 'Tasks',
+      name: 'Projects',
       icon: FaTasks,
       path: '/dashboard/tasks/my-tasks',
       active: pathname.startsWith('/dashboard/tasks')

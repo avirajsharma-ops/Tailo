@@ -1,46 +1,160 @@
 'use client'
 
-import { 
-  FaUsers, FaClock, FaCalendarAlt, FaChartLine, 
+import { useState, useEffect } from 'react'
+import {
+  FaUsers, FaClock, FaCalendarAlt, FaChartLine,
   FaArrowUp, FaArrowDown, FaTasks, FaAward,
   FaExclamationCircle, FaCheckCircle
 } from 'react-icons/fa'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
-const managerStatsData = [
-  { title: 'Team Members', value: '24', change: '+2', icon: FaUsers, color: 'bg-blue-500', trend: 'up' },
-  { title: 'Team Attendance', value: '92%', change: '+3%', icon: FaClock, color: 'bg-green-500', trend: 'up' },
-  { title: 'Pending Leaves', value: '5', change: '+2', icon: FaCalendarAlt, color: 'bg-yellow-500', trend: 'up' },
-  { title: 'Active Projects', value: '8', change: '+1', icon: FaTasks, color: 'bg-purple-500', trend: 'up' },
-  { title: 'Team Performance', value: '87%', change: '+5%', icon: FaChartLine, color: 'bg-indigo-500', trend: 'up' },
-  { title: 'Completed Goals', value: '12', change: '+4', icon: FaAward, color: 'bg-teal-500', trend: 'up' },
-]
-
-const teamAttendanceData = [
-  { name: 'Mon', present: 22, absent: 2 },
-  { name: 'Tue', present: 23, absent: 1 },
-  { name: 'Wed', present: 21, absent: 3 },
-  { name: 'Thu', present: 24, absent: 0 },
-  { name: 'Fri', present: 22, absent: 2 },
-]
-
-const performanceData = [
-  { month: 'Jul', performance: 82 },
-  { month: 'Aug', performance: 85 },
-  { month: 'Sep', performance: 83 },
-  { month: 'Oct', performance: 87 },
-  { month: 'Nov', performance: 89 },
-  { month: 'Dec', performance: 87 },
-]
-
 export default function ManagerDashboard({ user }) {
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState(null)
+  const [teamMembers, setTeamMembers] = useState([])
+  const [pendingLeaves, setPendingLeaves] = useState([])
+  const [recentActivities, setRecentActivities] = useState([])
+
+  useEffect(() => {
+    fetchManagerStats()
+    fetchTeamMembers()
+    fetchPendingLeaves()
+  }, [])
+
+  const fetchManagerStats = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/dashboard/manager-stats', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const data = await response.json()
+      if (data.success) {
+        setStats(data.data)
+        setRecentActivities(data.data.recentActivities || [])
+      }
+    } catch (error) {
+      console.error('Error fetching manager stats:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchTeamMembers = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/team/members', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const data = await response.json()
+      if (data.success) {
+        setTeamMembers(data.data.slice(0, 5)) // Show first 5 members
+      }
+    } catch (error) {
+      console.error('Error fetching team members:', error)
+    }
+  }
+
+  const fetchPendingLeaves = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/team/leave-approvals', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const data = await response.json()
+      if (data.success) {
+        setPendingLeaves(data.data.slice(0, 3)) // Show first 3 pending leaves
+      }
+    } catch (error) {
+      console.error('Error fetching pending leaves:', error)
+    }
+  }
+
+  const handleApproveLeave = async (leaveId) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/team/leave-approvals', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ leaveId, action: 'approved' })
+      })
+      const data = await response.json()
+      if (data.success) {
+        alert('Leave approved successfully')
+        fetchPendingLeaves()
+        fetchManagerStats()
+      }
+    } catch (error) {
+      console.error('Error approving leave:', error)
+    }
+  }
+
+  const handleRejectLeave = async (leaveId) => {
+    const comments = prompt('Please provide a reason for rejection:')
+    if (!comments) return
+
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/team/leave-approvals', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ leaveId, action: 'rejected', comments })
+      })
+      const data = await response.json()
+      if (data.success) {
+        alert('Leave rejected successfully')
+        fetchPendingLeaves()
+        fetchManagerStats()
+      }
+    } catch (error) {
+      console.error('Error rejecting leave:', error)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="page-container">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!stats) {
+    return (
+      <div className="page-container">
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <p className="text-gray-600">Unable to load manager dashboard data</p>
+        </div>
+      </div>
+    )
+  }
+
+  const managerStatsData = [
+    { title: 'Team Members', value: stats.teamStrength.toString(), change: '', icon: FaUsers, color: 'bg-blue-500', trend: 'neutral' },
+    { title: 'Present Today', value: stats.attendanceSummary.present.toString(), change: '', icon: FaClock, color: 'bg-green-500', trend: 'up' },
+    { title: 'Pending Leaves', value: stats.pendingLeaveApprovals.length.toString(), change: '', icon: FaCalendarAlt, color: 'bg-yellow-500', trend: 'neutral' },
+    { title: 'On Leave Today', value: stats.onLeaveToday.length.toString(), change: '', icon: FaCalendarAlt, color: 'bg-orange-500', trend: 'neutral' },
+    { title: 'Team Performance', value: `${Math.round(stats.performanceStats.averageRating * 20)}%`, change: '', icon: FaChartLine, color: 'bg-indigo-500', trend: 'up' },
+    { title: 'Underperforming', value: stats.underperforming.length.toString(), change: '', icon: FaExclamationCircle, color: 'bg-red-500', trend: 'down' },
+  ]
+
+  // Prepare attendance chart data (last 5 days)
+  const teamAttendanceData = stats.weeklyAttendance || []
+
+  // Prepare performance trend data
+  const performanceData = stats.performanceTrend || []
+
   return (
     <div className="page-container space-y-5 sm:space-y-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg p-3 sm:p-6 text-white">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Manager Dashboard</h1>
-        <p className="text-purple-100 text-sm sm:text-base">Lead your team to success and track performance</p>
-      </div>
+
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -123,24 +237,50 @@ export default function ManagerDashboard({ user }) {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Team Activities</h3>
           <div className="space-y-4">
-            {[
-              { action: 'Project milestone completed', name: 'Sarah - Mobile App Phase 2', time: '2 hours ago', color: 'bg-green-100 text-green-800' },
-              { action: 'Leave request submitted', name: 'Mike - Annual leave Dec 20-24', time: '4 hours ago', color: 'bg-blue-100 text-blue-800' },
-              { action: 'Performance review completed', name: 'Jennifer - Q4 Review', time: '1 day ago', color: 'bg-purple-100 text-purple-800' },
-              { action: 'Training completed', name: 'David - React Advanced Course', time: '2 days ago', color: 'bg-yellow-100 text-yellow-800' },
-              { action: 'Goal achieved', name: 'Team - Sprint 12 Completion', time: '3 days ago', color: 'bg-indigo-100 text-indigo-800' },
-            ].map((activity, index) => (
-              <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-2 h-2 rounded-full ${activity.color.split(' ')[0]}`}></div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                    <p className="text-xs text-gray-500">{activity.name}</p>
+            {recentActivities.length > 0 ? (
+              recentActivities.slice(0, 5).map((activity, index) => {
+                const getActivityColor = (type, status) => {
+                  if (type === 'leave') {
+                    return status === 'approved' ? 'bg-green-100 text-green-800' :
+                           status === 'rejected' ? 'bg-red-100 text-red-800' :
+                           'bg-blue-100 text-blue-800'
+                  }
+                  if (type === 'task') {
+                    return status === 'completed' ? 'bg-green-100 text-green-800' :
+                           'bg-purple-100 text-purple-800'
+                  }
+                  return 'bg-gray-100 text-gray-800'
+                }
+
+                const getTimeAgo = (date) => {
+                  const now = new Date()
+                  const activityDate = new Date(date)
+                  const diffMs = now - activityDate
+                  const diffMins = Math.floor(diffMs / 60000)
+                  const diffHours = Math.floor(diffMs / 3600000)
+                  const diffDays = Math.floor(diffMs / 86400000)
+
+                  if (diffMins < 60) return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`
+                  if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`
+                  return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`
+                }
+
+                return (
+                  <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-2 h-2 rounded-full ${getActivityColor(activity.type, activity.status).split(' ')[0]}`}></div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{activity.message}</p>
+                        <p className="text-xs text-gray-500 capitalize">{activity.status}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-400">{getTimeAgo(activity.date)}</span>
                   </div>
-                </div>
-                <span className="text-xs text-gray-400">{activity.time}</span>
-              </div>
-            ))}
+                )
+              })
+            ) : (
+              <p className="text-sm text-gray-500 text-center py-4">No recent activities</p>
+            )}
           </div>
         </div>
 
@@ -175,30 +315,49 @@ export default function ManagerDashboard({ user }) {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Members</h3>
           <div className="space-y-3">
-            {[
-              { name: 'Sarah Johnson', role: 'Senior Developer', status: 'Present', avatar: 'SJ' },
-              { name: 'Mike Chen', role: 'Frontend Developer', status: 'Present', avatar: 'MC' },
-              { name: 'Jennifer Davis', role: 'UI/UX Designer', status: 'On Leave', avatar: 'JD' },
-              { name: 'David Wilson', role: 'Backend Developer', status: 'Present', avatar: 'DW' },
-              { name: 'Lisa Brown', role: 'QA Engineer', status: 'Present', avatar: 'LB' },
-            ].map((member, index) => (
-              <div key={index} className="flex items-center justify-between py-2">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    {member.avatar}
+            {teamMembers.length > 0 ? (
+              teamMembers.map((member, index) => {
+                const isOnLeave = stats.onLeaveToday.some(leave =>
+                  leave.employee._id === member._id
+                )
+                const isAbsent = stats.absentToday.some(absent =>
+                  absent.employee._id === member._id
+                )
+                const status = isOnLeave ? 'On Leave' : isAbsent ? 'Absent' : 'Present'
+                const initials = `${member.firstName[0]}${member.lastName[0]}`
+
+                return (
+                  <div key={index} className="flex items-center justify-between py-2">
+                    <div className="flex items-center space-x-3">
+                      {member.profilePicture ? (
+                        <img
+                          src={member.profilePicture}
+                          alt={`${member.firstName} ${member.lastName}`}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                          {initials}
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{member.firstName} {member.lastName}</p>
+                        <p className="text-xs text-gray-500">{member.designation?.title || 'Employee'}</p>
+                      </div>
+                    </div>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      status === 'Present' ? 'bg-green-100 text-green-800' :
+                      status === 'On Leave' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {status}
+                    </span>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{member.name}</p>
-                    <p className="text-xs text-gray-500">{member.role}</p>
-                  </div>
-                </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  member.status === 'Present' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {member.status}
-                </span>
-              </div>
-            ))}
+                )
+              })
+            ) : (
+              <p className="text-sm text-gray-500 text-center py-4">No team members found</p>
+            )}
           </div>
         </div>
 
@@ -206,27 +365,46 @@ export default function ManagerDashboard({ user }) {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Pending Leave Approvals</h3>
           <div className="space-y-4">
-            {[
-              { name: 'Mike Chen', type: 'Annual Leave', dates: 'Dec 20-24, 2024', days: '5 days' },
-              { name: 'David Wilson', type: 'Sick Leave', dates: 'Dec 18, 2024', days: '1 day' },
-              { name: 'Lisa Brown', type: 'Personal Leave', dates: 'Dec 22-23, 2024', days: '2 days' },
-            ].map((request, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium text-gray-900">{request.name}</h4>
-                  <span className="text-xs text-gray-500">{request.days}</span>
-                </div>
-                <p className="text-xs text-gray-600 mb-3">{request.type} • {request.dates}</p>
-                <div className="flex space-x-2">
-                  <button className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600">
-                    Approve
-                  </button>
-                  <button className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600">
-                    Reject
-                  </button>
-                </div>
-              </div>
-            ))}
+            {pendingLeaves.length > 0 ? (
+              pendingLeaves.map((leave, index) => {
+                const startDate = new Date(leave.startDate).toLocaleDateString()
+                const endDate = new Date(leave.endDate).toLocaleDateString()
+                const days = Math.ceil((new Date(leave.endDate) - new Date(leave.startDate)) / (1000 * 60 * 60 * 24)) + 1
+
+                return (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-medium text-gray-900">
+                        {leave.employee.firstName} {leave.employee.lastName}
+                      </h4>
+                      <span className="text-xs text-gray-500">{days} day{days !== 1 ? 's' : ''}</span>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-3">
+                      {leave.leaveType?.name || 'Leave'} • {startDate} - {endDate}
+                    </p>
+                    {leave.reason && (
+                      <p className="text-xs text-gray-500 mb-3 italic">"{leave.reason}"</p>
+                    )}
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleApproveLeave(leave._id)}
+                        className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleRejectLeave(leave._id)}
+                        className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                )
+              })
+            ) : (
+              <p className="text-sm text-gray-500 text-center py-4">No pending leave approvals</p>
+            )}
           </div>
         </div>
       </div>

@@ -65,27 +65,16 @@ export const roleBasedMenus = {
       ]
     },
     {
-      name: 'Projects',
-      icon: FaProjectDiagram,
-      path: '/dashboard/projects',
-      submenu: [
-        { name: 'All Projects', path: '/dashboard/projects' },
-        { name: 'Create Project', path: '/dashboard/projects/create' },
-        { name: 'My Projects', path: '/dashboard/projects/my-projects' },
-        { name: 'Department Projects', path: '/dashboard/projects/department' },
-      ]
-    },
-    {
-      name: 'Task Management',
+      name: 'Project Management',
       icon: FaTasks,
       path: '/dashboard/tasks',
       submenu: [
-        { name: 'Task Dashboard', path: '/dashboard/tasks' },
-        { name: 'All Tasks', path: '/dashboard/tasks/all' },
-        { name: 'Create Task', path: '/dashboard/tasks/create' },
-        { name: 'My Tasks', path: '/dashboard/tasks/my-tasks' },
-        { name: 'Team Tasks', path: '/dashboard/tasks/team-tasks' },
-        { name: 'Task Analytics', path: '/dashboard/tasks/analytics' },
+        { name: 'Project Dashboard', path: '/dashboard/tasks' },
+        { name: 'All Projects', path: '/dashboard/tasks/all' },
+        { name: 'Create Project', path: '/dashboard/tasks/create' },
+        { name: 'My Projects', path: '/dashboard/tasks/my-tasks' },
+        { name: 'Team Projects', path: '/dashboard/tasks/team-tasks' },
+        { name: 'Project Analytics', path: '/dashboard/tasks/analytics' },
       ]
     },
     { 
@@ -193,27 +182,16 @@ export const roleBasedMenus = {
       ]
     },
     {
-      name: 'Projects',
-      icon: FaProjectDiagram,
-      path: '/dashboard/projects',
-      submenu: [
-        { name: 'All Projects', path: '/dashboard/projects' },
-        { name: 'Create Project', path: '/dashboard/projects/create' },
-        { name: 'My Projects', path: '/dashboard/projects/my-projects' },
-        { name: 'Department Projects', path: '/dashboard/projects/department' },
-      ]
-    },
-    {
-      name: 'Task Management',
+      name: 'Project Management',
       icon: FaTasks,
       path: '/dashboard/tasks',
       submenu: [
-        { name: 'Task Dashboard', path: '/dashboard/tasks' },
-        { name: 'All Tasks', path: '/dashboard/tasks/all' },
-        { name: 'Create Task', path: '/dashboard/tasks/create' },
-        { name: 'My Tasks', path: '/dashboard/tasks/my-tasks' },
-        { name: 'Team Tasks', path: '/dashboard/tasks/team-tasks' },
-        { name: 'Department Tasks', path: '/dashboard/tasks/department-tasks' },
+        { name: 'Project Dashboard', path: '/dashboard/tasks' },
+        { name: 'All Projects', path: '/dashboard/tasks/all' },
+        { name: 'Create Project', path: '/dashboard/tasks/create' },
+        { name: 'My Projects', path: '/dashboard/tasks/my-tasks' },
+        { name: 'Team Projects', path: '/dashboard/tasks/team-tasks' },
+        { name: 'Department Projects', path: '/dashboard/tasks/department-tasks' },
       ]
     },
     { 
@@ -277,26 +255,15 @@ export const roleBasedMenus = {
       ]
     },
     {
-      name: 'Projects',
-      icon: FaProjectDiagram,
-      path: '/dashboard/projects',
-      submenu: [
-        { name: 'All Projects', path: '/dashboard/projects' },
-        { name: 'Create Project', path: '/dashboard/projects/create' },
-        { name: 'My Projects', path: '/dashboard/projects/my-projects' },
-        { name: 'Team Projects', path: '/dashboard/projects/team' },
-      ]
-    },
-    {
-      name: 'Task Management',
+      name: 'Project Management',
       icon: FaTasks,
       path: '/dashboard/tasks',
       submenu: [
-        { name: 'Task Dashboard', path: '/dashboard/tasks' },
-        { name: 'Create Task', path: '/dashboard/tasks/create' },
-        { name: 'My Tasks', path: '/dashboard/tasks/my-tasks' },
-        { name: 'Team Tasks', path: '/dashboard/tasks/team-tasks' },
-        { name: 'Assign Tasks', path: '/dashboard/tasks/assign' },
+        { name: 'Project Dashboard', path: '/dashboard/tasks' },
+        { name: 'Create Project', path: '/dashboard/tasks/create' },
+        { name: 'My Projects', path: '/dashboard/tasks/my-tasks' },
+        { name: 'Team Projects', path: '/dashboard/tasks/team-tasks' },
+        { name: 'Assign Projects', path: '/dashboard/tasks/assign' },
       ]
     },
     { name: 'My Profile', icon: FaUser, path: '/dashboard/profile' },
@@ -347,24 +314,15 @@ export const roleBasedMenus = {
       ]
     },
     {
-      name: 'Projects',
-      icon: FaProjectDiagram,
-      path: '/dashboard/projects',
-      submenu: [
-        { name: 'All Projects', path: '/dashboard/projects' },
-        { name: 'My Projects', path: '/dashboard/projects/my-projects' },
-      ]
-    },
-    {
-      name: 'Task Management',
+      name: 'Project Management',
       icon: FaTasks,
       path: '/dashboard/tasks',
       submenu: [
-        { name: 'My Tasks', path: '/dashboard/tasks/my-tasks' },
-        { name: 'Team Tasks', path: '/dashboard/tasks/team-tasks' },
-        { name: 'Create Task', path: '/dashboard/tasks/create' },
+        { name: 'My Projects', path: '/dashboard/tasks/my-tasks' },
+        { name: 'Team Projects', path: '/dashboard/tasks/team-tasks' },
+        { name: 'Create Project', path: '/dashboard/tasks/create' },
         { name: 'Assign to Colleague', path: '/dashboard/tasks/assign' },
-        { name: 'Task Dashboard', path: '/dashboard/tasks' },
+        { name: 'Project Dashboard', path: '/dashboard/tasks' },
       ]
     },
     { name: 'Documents', icon: FaFileAlt, path: '/dashboard/documents' },
