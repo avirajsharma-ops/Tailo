@@ -233,15 +233,48 @@ async function checkTaskViewPermission(userId, task, userRole) {
       return true
     }
 
-    // For managers, check if any assignee reports to them
+    // Check if user is a department head
+    const Department = (await import('@/models/Department')).default
+    const isDepartmentHead = await Department.findOne({
+      head: userId,
+      isActive: true
+    })
+
+    if (isDepartmentHead) {
+      // Department heads can view all tasks in their department
+      const assigneeIds = task.assignedTo.map(a => a.employee?._id || a.employee)
+      const departmentMembers = await Employee.find({
+        department: isDepartmentHead._id,
+        _id: { $in: assigneeIds }
+      })
+      if (departmentMembers.length > 0) {
+        return true
+      }
+    }
+
+    // For managers, check if any assignee reports to them or is in same department
     if (userRole === 'manager') {
       const assigneeIds = task.assignedTo.map(a => a.employee?._id || a.employee)
+
+      // Check direct reports
       const teamMembers = await Employee.find({
         reportingManager: userId,
         _id: { $in: assigneeIds }
       })
       if (teamMembers.length > 0) {
         return true
+      }
+
+      // Check same department
+      const currentEmployee = await Employee.findById(userId)
+      if (currentEmployee && currentEmployee.department) {
+        const departmentMembers = await Employee.find({
+          department: currentEmployee.department,
+          _id: { $in: assigneeIds }
+        })
+        if (departmentMembers.length > 0) {
+          return true
+        }
       }
     }
 
@@ -266,6 +299,25 @@ async function checkTaskUpdatePermission(userId, task, userRole) {
       return true
     }
 
+    // Check if user is a department head
+    const Department = (await import('@/models/Department')).default
+    const isDepartmentHead = await Department.findOne({
+      head: userId,
+      isActive: true
+    })
+
+    if (isDepartmentHead) {
+      // Department heads can update all tasks in their department
+      const assigneeIds = task.assignedTo.map(a => a.employee?._id || a.employee)
+      const departmentMembers = await Employee.find({
+        department: isDepartmentHead._id,
+        _id: { $in: assigneeIds }
+      })
+      if (departmentMembers.length > 0) {
+        return true
+      }
+    }
+
     // HR can update tasks in their department
     if (userRole === 'hr') {
       const user = await Employee.findById(userId)
@@ -279,15 +331,29 @@ async function checkTaskUpdatePermission(userId, task, userRole) {
       }
     }
 
-    // Managers can update tasks for their team members
+    // Managers can update tasks for their team members or same department
     if (userRole === 'manager') {
       const assigneeIds = task.assignedTo.map(a => a.employee?._id || a.employee)
+
+      // Check direct reports
       const teamMembers = await Employee.find({
         reportingManager: userId,
         _id: { $in: assigneeIds }
       })
       if (teamMembers.length > 0) {
         return true
+      }
+
+      // Check same department
+      const currentEmployee = await Employee.findById(userId)
+      if (currentEmployee && currentEmployee.department) {
+        const departmentMembers = await Employee.find({
+          department: currentEmployee.department,
+          _id: { $in: assigneeIds }
+        })
+        if (departmentMembers.length > 0) {
+          return true
+        }
       }
     }
 

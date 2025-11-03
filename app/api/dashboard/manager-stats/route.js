@@ -206,6 +206,80 @@ export async function GET(request) {
     // Sort activities by date
     recentActivities.sort((a, b) => new Date(b.date) - new Date(a.date))
 
+    // 9. Weekly attendance data for chart (last 7 days)
+    const weeklyAttendanceData = []
+    const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      const dayStart = new Date(date)
+      dayStart.setHours(0, 0, 0, 0)
+      const dayEnd = new Date(date)
+      dayEnd.setHours(23, 59, 59, 999)
+
+      const dayAttendance = await Attendance.aggregate([
+        {
+          $match: {
+            employee: { $in: teamMemberIds },
+            date: { $gte: dayStart, $lte: dayEnd }
+          }
+        },
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 }
+          }
+        }
+      ])
+
+      const dayData = {
+        name: daysOfWeek[date.getDay() === 0 ? 6 : date.getDay() - 1],
+        present: 0,
+        absent: 0
+      }
+
+      dayAttendance.forEach(item => {
+        if (item._id === 'present') dayData.present = item.count
+        else if (item._id === 'absent') dayData.absent = item.count
+      })
+
+      weeklyAttendanceData.push(dayData)
+    }
+
+    // 10. Performance trend data (last 6 months)
+    const performanceTrendData = []
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+    for (let i = 5; i >= 0; i--) {
+      const monthDate = new Date()
+      monthDate.setMonth(monthDate.getMonth() - i)
+      const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1)
+      const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0, 23, 59, 59, 999)
+
+      const monthPerformance = await Performance.aggregate([
+        {
+          $match: {
+            employee: { $in: teamMemberIds },
+            createdAt: { $gte: monthStart, $lte: monthEnd },
+            isActive: true
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            averageRating: { $avg: '$overallRating' }
+          }
+        }
+      ])
+
+      const avgRating = monthPerformance[0]?.averageRating || 0
+      performanceTrendData.push({
+        month: monthNames[monthDate.getMonth()],
+        performance: Math.round(avgRating * 20) // Convert 0-5 rating to 0-100 percentage
+      })
+    }
+
     const stats = {
       teamStrength: teamStrength,
       attendanceSummary: attendanceSummary,
@@ -221,8 +295,8 @@ export async function GET(request) {
         underPerformers: performanceStats.underPerformers || 0
       },
       recentActivities: recentActivities.slice(0, 10),
-      weeklyAttendance: [],
-      performanceTrend: []
+      weeklyAttendance: weeklyAttendanceData,
+      performanceTrend: performanceTrendData
     }
 
     return NextResponse.json({
