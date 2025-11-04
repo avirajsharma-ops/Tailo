@@ -15,16 +15,41 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6 pb-20 md:pb-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Settings</h1>
-        <p className="text-gray-600 mt-1">Configure your HRMS system</p>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Settings</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Configure your HRMS system</p>
       </div>
 
-      <div className="flex gap-6">
-        {/* Sidebar */}
-        <div className="w-64 bg-white rounded-lg shadow-md p-4">
+      {/* Mobile Tabs */}
+      <div className="md:hidden mb-4">
+        <div className="bg-white rounded-lg shadow-md p-2 overflow-x-auto">
+          <div className="flex space-x-2 min-w-max">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? 'bg-primary-500 text-white'
+                      : 'text-gray-700 bg-gray-100'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="text-sm">{tab.name}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-4 sm:gap-6">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block w-56 lg:w-64 bg-white rounded-lg shadow-md p-4">
           <nav className="space-y-2">
             {tabs.map((tab) => {
               const Icon = tab.icon
@@ -47,7 +72,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 bg-white rounded-lg shadow-md p-6">
+        <div className="flex-1 bg-white rounded-lg shadow-md p-4 sm:p-6">
           {activeTab === 'departments' && <DepartmentsTab />}
           {activeTab === 'designations' && <DesignationsTab />}
           {activeTab === 'holidays' && <HolidaysTab />}
@@ -62,33 +87,33 @@ export default function SettingsPage() {
 function DepartmentsTab() {
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Departments</h2>
-        <button className="btn-primary">Add Department</button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Departments</h2>
+        <button className="btn-primary text-sm sm:text-base w-full sm:w-auto">Add Department</button>
       </div>
       <div className="text-gray-600">
-        <p>Manage organization departments here.</p>
-        <div className="mt-4 space-y-2">
-          <div className="p-4 border border-gray-200 rounded-lg flex justify-between items-center">
+        <p className="text-sm sm:text-base mb-3 sm:mb-4">Manage organization departments here.</p>
+        <div className="space-y-2 sm:space-y-3">
+          <div className="p-3 sm:p-4 border border-gray-200 rounded-lg flex justify-between items-center hover:bg-gray-50 transition-colors">
             <div>
-              <h3 className="font-semibold">Engineering</h3>
-              <p className="text-sm text-gray-500">50 employees</p>
+              <h3 className="font-semibold text-sm sm:text-base">Engineering</h3>
+              <p className="text-xs sm:text-sm text-gray-500">50 employees</p>
             </div>
-            <button className="text-primary-500 hover:text-primary-700">Edit</button>
+            <button className="text-primary-500 hover:text-primary-700 text-sm">Edit</button>
           </div>
-          <div className="p-4 border border-gray-200 rounded-lg flex justify-between items-center">
+          <div className="p-3 sm:p-4 border border-gray-200 rounded-lg flex justify-between items-center hover:bg-gray-50 transition-colors">
             <div>
-              <h3 className="font-semibold">Human Resources</h3>
-              <p className="text-sm text-gray-500">10 employees</p>
+              <h3 className="font-semibold text-sm sm:text-base">Human Resources</h3>
+              <p className="text-xs sm:text-sm text-gray-500">10 employees</p>
             </div>
-            <button className="text-primary-500 hover:text-primary-700">Edit</button>
+            <button className="text-primary-500 hover:text-primary-700 text-sm">Edit</button>
           </div>
-          <div className="p-4 border border-gray-200 rounded-lg flex justify-between items-center">
+          <div className="p-3 sm:p-4 border border-gray-200 rounded-lg flex justify-between items-center hover:bg-gray-50 transition-colors">
             <div>
-              <h3 className="font-semibold">Sales</h3>
-              <p className="text-sm text-gray-500">25 employees</p>
+              <h3 className="font-semibold text-sm sm:text-base">Sales</h3>
+              <p className="text-xs sm:text-sm text-gray-500">25 employees</p>
             </div>
-            <button className="text-primary-500 hover:text-primary-700">Edit</button>
+            <button className="text-primary-500 hover:text-primary-700 text-sm">Edit</button>
           </div>
         </div>
       </div>
@@ -99,26 +124,26 @@ function DepartmentsTab() {
 function DesignationsTab() {
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Designations</h2>
-        <button className="btn-primary">Add Designation</button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Designations</h2>
+        <button className="btn-primary text-sm sm:text-base w-full sm:w-auto">Add Designation</button>
       </div>
       <div className="text-gray-600">
-        <p>Manage job designations and titles here.</p>
-        <div className="mt-4 space-y-2">
-          <div className="p-4 border border-gray-200 rounded-lg flex justify-between items-center">
+        <p className="text-sm sm:text-base mb-3 sm:mb-4">Manage job designations and titles here.</p>
+        <div className="space-y-2 sm:space-y-3">
+          <div className="p-3 sm:p-4 border border-gray-200 rounded-lg flex justify-between items-center hover:bg-gray-50 transition-colors">
             <div>
-              <h3 className="font-semibold">Software Engineer</h3>
-              <p className="text-sm text-gray-500">Engineering Department</p>
+              <h3 className="font-semibold text-sm sm:text-base">Software Engineer</h3>
+              <p className="text-xs sm:text-sm text-gray-500">Engineering Department</p>
             </div>
-            <button className="text-primary-500 hover:text-primary-700">Edit</button>
+            <button className="text-primary-500 hover:text-primary-700 text-sm">Edit</button>
           </div>
-          <div className="p-4 border border-gray-200 rounded-lg flex justify-between items-center">
+          <div className="p-3 sm:p-4 border border-gray-200 rounded-lg flex justify-between items-center hover:bg-gray-50 transition-colors">
             <div>
-              <h3 className="font-semibold">HR Manager</h3>
-              <p className="text-sm text-gray-500">Human Resources Department</p>
+              <h3 className="font-semibold text-sm sm:text-base">HR Manager</h3>
+              <p className="text-xs sm:text-sm text-gray-500">Human Resources Department</p>
             </div>
-            <button className="text-primary-500 hover:text-primary-700">Edit</button>
+            <button className="text-primary-500 hover:text-primary-700 text-sm">Edit</button>
           </div>
         </div>
       </div>
@@ -129,26 +154,26 @@ function DesignationsTab() {
 function HolidaysTab() {
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Holidays</h2>
-        <button className="btn-primary">Add Holiday</button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Holidays</h2>
+        <button className="btn-primary text-sm sm:text-base w-full sm:w-auto">Add Holiday</button>
       </div>
       <div className="text-gray-600">
-        <p>Manage company holidays and observances.</p>
-        <div className="mt-4 space-y-2">
-          <div className="p-4 border border-gray-200 rounded-lg flex justify-between items-center">
+        <p className="text-sm sm:text-base mb-3 sm:mb-4">Manage company holidays and observances.</p>
+        <div className="space-y-2 sm:space-y-3">
+          <div className="p-3 sm:p-4 border border-gray-200 rounded-lg flex justify-between items-center hover:bg-gray-50 transition-colors">
             <div>
-              <h3 className="font-semibold">New Year&apos;s Day</h3>
-              <p className="text-sm text-gray-500">January 1, 2025</p>
+              <h3 className="font-semibold text-sm sm:text-base">New Year&apos;s Day</h3>
+              <p className="text-xs sm:text-sm text-gray-500">January 1, 2025</p>
             </div>
-            <button className="text-primary-500 hover:text-primary-700">Edit</button>
+            <button className="text-primary-500 hover:text-primary-700 text-sm">Edit</button>
           </div>
-          <div className="p-4 border border-gray-200 rounded-lg flex justify-between items-center">
+          <div className="p-3 sm:p-4 border border-gray-200 rounded-lg flex justify-between items-center hover:bg-gray-50 transition-colors">
             <div>
-              <h3 className="font-semibold">Independence Day</h3>
-              <p className="text-sm text-gray-500">July 4, 2025</p>
+              <h3 className="font-semibold text-sm sm:text-base">Independence Day</h3>
+              <p className="text-xs sm:text-sm text-gray-500">July 4, 2025</p>
             </div>
-            <button className="text-primary-500 hover:text-primary-700">Edit</button>
+            <button className="text-primary-500 hover:text-primary-700 text-sm">Edit</button>
           </div>
         </div>
       </div>
@@ -159,33 +184,33 @@ function HolidaysTab() {
 function LeaveTypesTab() {
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Leave Types</h2>
-        <button className="btn-primary">Add Leave Type</button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Leave Types</h2>
+        <button className="btn-primary text-sm sm:text-base w-full sm:w-auto">Add Leave Type</button>
       </div>
       <div className="text-gray-600">
-        <p>Configure different types of leaves available.</p>
-        <div className="mt-4 space-y-2">
-          <div className="p-4 border border-gray-200 rounded-lg flex justify-between items-center">
+        <p className="text-sm sm:text-base mb-3 sm:mb-4">Configure different types of leaves available.</p>
+        <div className="space-y-2 sm:space-y-3">
+          <div className="p-3 sm:p-4 border border-gray-200 rounded-lg flex justify-between items-center hover:bg-gray-50 transition-colors">
             <div>
-              <h3 className="font-semibold">Casual Leave</h3>
-              <p className="text-sm text-gray-500">12 days per year</p>
+              <h3 className="font-semibold text-sm sm:text-base">Casual Leave</h3>
+              <p className="text-xs sm:text-sm text-gray-500">12 days per year</p>
             </div>
-            <button className="text-primary-500 hover:text-primary-700">Edit</button>
+            <button className="text-primary-500 hover:text-primary-700 text-sm">Edit</button>
           </div>
-          <div className="p-4 border border-gray-200 rounded-lg flex justify-between items-center">
+          <div className="p-3 sm:p-4 border border-gray-200 rounded-lg flex justify-between items-center hover:bg-gray-50 transition-colors">
             <div>
-              <h3 className="font-semibold">Sick Leave</h3>
-              <p className="text-sm text-gray-500">10 days per year</p>
+              <h3 className="font-semibold text-sm sm:text-base">Sick Leave</h3>
+              <p className="text-xs sm:text-sm text-gray-500">10 days per year</p>
             </div>
-            <button className="text-primary-500 hover:text-primary-700">Edit</button>
+            <button className="text-primary-500 hover:text-primary-700 text-sm">Edit</button>
           </div>
-          <div className="p-4 border border-gray-200 rounded-lg flex justify-between items-center">
+          <div className="p-3 sm:p-4 border border-gray-200 rounded-lg flex justify-between items-center hover:bg-gray-50 transition-colors">
             <div>
-              <h3 className="font-semibold">Paid Time Off</h3>
-              <p className="text-sm text-gray-500">15 days per year</p>
+              <h3 className="font-semibold text-sm sm:text-base">Paid Time Off</h3>
+              <p className="text-xs sm:text-sm text-gray-500">15 days per year</p>
             </div>
-            <button className="text-primary-500 hover:text-primary-700">Edit</button>
+            <button className="text-primary-500 hover:text-primary-700 text-sm">Edit</button>
           </div>
         </div>
       </div>
@@ -196,35 +221,35 @@ function LeaveTypesTab() {
 function GeneralTab() {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">General Settings</h2>
-      <div className="space-y-6">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">General Settings</h2>
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
             Company Name
           </label>
           <input
             type="text"
             defaultValue="My Company"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
             Company Email
           </label>
           <input
             type="email"
             defaultValue="info@company.com"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
             Time Zone
           </label>
-          <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+          <select className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
             <option>UTC</option>
             <option>America/New_York</option>
             <option>America/Los_Angeles</option>
@@ -234,10 +259,10 @@ function GeneralTab() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
             Currency
           </label>
-          <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+          <select className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
             <option>USD - US Dollar</option>
             <option>EUR - Euro</option>
             <option>GBP - British Pound</option>
@@ -245,8 +270,8 @@ function GeneralTab() {
           </select>
         </div>
 
-        <div className="flex justify-end">
-          <button className="btn-primary">Save Changes</button>
+        <div className="flex justify-end pt-2">
+          <button className="btn-primary text-sm sm:text-base w-full sm:w-auto">Save Changes</button>
         </div>
       </div>
     </div>

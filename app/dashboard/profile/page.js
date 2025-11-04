@@ -15,6 +15,21 @@ export default function ProfilePage() {
   const [uploadingImage, setUploadingImage] = useState(false)
   const fileInputRef = useRef(null)
 
+  // Helper to get level name from level number
+  const getLevelName = (level) => {
+    const levelMap = {
+      1: 'Entry Level',
+      2: 'Junior',
+      3: 'Mid Level',
+      4: 'Senior',
+      5: 'Lead',
+      6: 'Manager',
+      7: 'Director',
+      8: 'Executive'
+    }
+    return levelMap[level] || ''
+  }
+
   // Image editor state
   const [showImageEditor, setShowImageEditor] = useState(false)
   const [selectedImage, setSelectedImage] = useState(null)
@@ -418,7 +433,13 @@ export default function ProfilePage() {
                 {/* Designation & Department */}
                 <div className="text-sm sm:text-base text-gray-300">
                   <p>
-                    {employee.designation?.title || 'N/A'}
+                    {employee.designation ? (
+                      <>
+                        {employee.designation.levelName || getLevelName(employee.designation.level)
+                          ? `(${employee.designation.levelName || getLevelName(employee.designation.level)}) - ${employee.designation.title}`
+                          : employee.designation.title || 'N/A'}
+                      </>
+                    ) : 'N/A'}
                   </p>
                 </div>
               </div>
@@ -646,7 +667,13 @@ export default function ProfilePage() {
               <div className="p-3 rounded-lg bg-gray-50">
                 <p className="text-xs text-gray-500 mb-1">Designation</p>
                 <p className="font-semibold text-gray-800 text-sm">
-                  {employee.designation?.title || 'N/A'}
+                  {employee.designation ? (
+                    <>
+                      {employee.designation.levelName || getLevelName(employee.designation.level)
+                        ? `(${employee.designation.levelName || getLevelName(employee.designation.level)}) - ${employee.designation.title}`
+                        : employee.designation.title || 'N/A'}
+                    </>
+                  ) : 'N/A'}
                 </p>
               </div>
 

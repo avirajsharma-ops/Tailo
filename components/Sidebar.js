@@ -1,17 +1,21 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   FaChevronRight,
   FaTimes,
-  FaUsers
+  FaUsers,
+  FaCog,
+  FaSignOutAlt
 } from 'react-icons/fa'
 import { useState, useEffect, useMemo } from 'react'
 import { getMenuItemsForRole } from '@/utils/roleBasedMenus'
+import toast from 'react-hot-toast'
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [expandedMenus, setExpandedMenus] = useState({})
   const [user, setUser] = useState(null)
   const [mounted, setMounted] = useState(false)
@@ -90,6 +94,13 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   const handleLinkClick = () => {
     // Close mobile sidebar when link is clicked
     setIsOpen(false)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    toast.success('Logged out successfully')
+    router.push('/login')
   }
 
   // Don't render until mounted to avoid hydration mismatch
@@ -213,6 +224,40 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             </div>
           ))}
         </nav>
+
+        {/* Settings and Logout Section - Fixed at bottom */}
+        <div className="border-t flex items-center justify-center border-gray-700 p-3 sm:p-4 space-y-2 flex-shrink-0">
+          {/* Settings Button */}
+          <Link
+            href="/dashboard/settings"
+            onClick={handleLinkClick}
+            className={`w-full flex items-center ml-1 mt-[10px] md:mt-[6px] space-x-3 px-2  py-1 rounded-xl transition-all duration-200 group cursor-pointer ${
+              pathname === '/dashboard/settings'
+                ? 'bg-blue-500 text-white shadow-lg'
+                : 'text-gray-300 hover:bg-gray-800 hover:text-white hover:shadow-md'
+            }`}
+          >
+            <div className={`md:p-2 rounded-lg transition-colors ${
+              pathname === '/dashboard/settings'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-700 text-gray-300 group-hover:bg-blue-500 group-hover:text-white'
+            }`}>
+              <FaCog className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-medium">Settings</span>
+          </Link>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center space-x-3 px-3  sm:px-4 py-1  rounded-xl transition-all duration-200 group text-gray-300 hover:bg-red-600 hover:text-white hover:shadow-md"
+          >
+            <div className="p-2 rounded-lg transition-colors bg-gray-700 text-gray-300 group-hover:bg-red-700 group-hover:text-white">
+              <FaSignOutAlt className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-medium">Logout</span>
+          </button>
+        </div>
       </aside>
     </>
   )

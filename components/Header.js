@@ -56,17 +56,38 @@ export default function Header({ toggleSidebar }) {
     }
   }, [])
 
-  // Helper function to format designation - returns only title
+  // Helper function to format designation with level name
   const formatDesignation = (designation) => {
     if (!designation) return 'N/A'
 
     // Handle if designation is a string
     if (typeof designation === 'string') return designation
 
-    // Handle if designation is an object - return only title
+    // Handle if designation is an object
     const title = designation.title || designation
+    const levelName = designation.levelName || getLevelNameFromNumber(designation.level)
+
+    // Format: (Level Name) - Title
+    if (levelName && title) {
+      return `(${levelName}) - ${title}`
+    }
 
     return title || 'N/A'
+  }
+
+  // Get level name from level number
+  const getLevelNameFromNumber = (level) => {
+    const levelMap = {
+      1: 'Entry Level',
+      2: 'Junior',
+      3: 'Mid Level',
+      4: 'Senior',
+      5: 'Lead',
+      6: 'Manager',
+      7: 'Director',
+      8: 'Executive'
+    }
+    return levelMap[level] || ''
   }
 
   const fetchEmployeeData = async (employeeId) => {
@@ -395,7 +416,7 @@ export default function Header({ toggleSidebar }) {
 
         {/* Center - Page Title */}
         <div className="absolute left-1/2 transform -translate-x-1/2">
-          <h1 className="text-blue-600 text-lg font-semibold">{pageTitle}</h1>
+          <h1 className="md:text-blue-600 text-black text-lg font-semibold">{pageTitle}</h1>
         </div>
 
         {/* Right side */}
@@ -461,7 +482,14 @@ export default function Header({ toggleSidebar }) {
           {/* Profile menu */}
           <div ref={profileRef} className="relative mt-1 md:mt-0">
             <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              onClick={() => {
+                // On mobile, go directly to profile
+                if (window.innerWidth < 768) {
+                  router.push('/dashboard/profile')
+                } else {
+                  setShowProfileMenu(!showProfileMenu)
+                }
+              }}
               className="flex items-center space-x-2 sm:space-x-3 p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <div className="w-[30px] h-[30px] sm:w-8 sm:h-8 bg-primary-500 rounded-full flex items-center justify-center overflow-hidden">
