@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Leave from '@/models/Leave'
 import LeaveBalance from '@/models/LeaveBalance'
+import User from '@/models/User'
+import Employee from '@/models/Employee'
+import { sendLeaveStatusNotification } from '@/lib/pushNotifications'
 
 // PUT - Approve or reject leave request
 export async function PUT(request, { params }) {
@@ -80,6 +83,35 @@ export async function PUT(request, { params }) {
       .populate('employee', 'firstName lastName employeeCode')
       .populate('leaveType', 'name code')
       .populate('approvedBy', 'firstName lastName')
+
+    // Send push notification to employee
+    try {
+      const employeeUser = await User.findOne({ employeeId: leaveRequest.employee }).select('_id')
+      const approver = await Employee.findById(approvedBy).select('firstName lastName')
+
+      if (employeeUser && approver) {
+        const approverName = `${approver.firstName} ${approver.lastName}`
+        const status = action === 'approve' ? 'approved' : 'rejected'
+
+        await sendLeaveStatusNotification(
+          {
+            _id: updatedLeave._id,
+            leaveType: updatedLeave.leaveType?.name || 'Leave',
+            startDate: leaveRequest.startDate,
+            endDate: leaveRequest.endDate,
+            numberOfDays: leaveRequest.numberOfDays,
+            status
+          },
+          [employeeUser._id.toString()],
+          approverName,
+          null // No token needed for system notifications
+        )
+
+        console.log(`Leave ${status} notification sent to employee`)
+      }
+    } catch (notifError) {
+      console.error('Failed to send leave status notification:', notifError)
+    }
 
     return NextResponse.json({
       success: true,

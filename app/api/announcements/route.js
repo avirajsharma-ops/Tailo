@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Announcement from '@/models/Announcement'
+import User from '@/models/User'
+import Employee from '@/models/Employee'
+import { sendAnnouncementNotification } from '@/lib/pushNotifications'
 
 // GET - List announcements
 export async function GET(request) {
@@ -50,6 +53,33 @@ export async function POST(request) {
 
     const populatedAnnouncement = await Announcement.findById(announcement._id)
       .populate('createdBy', 'firstName lastName')
+
+    // Send push notification to all users
+    try {
+      const allUsers = await User.find({ role: { $in: ['employee', 'manager', 'hr', 'admin'] } }).select('_id')
+      const userIds = allUsers.map(u => u._id.toString())
+
+      if (userIds.length > 0) {
+        const creator = await Employee.findById(data.createdBy).select('firstName lastName')
+        const creatorName = creator ? `${creator.firstName} ${creator.lastName}` : 'Admin'
+
+        await sendAnnouncementNotification(
+          {
+            _id: announcement._id,
+            title: announcement.title,
+            content: announcement.content,
+            priority: announcement.priority || 'normal'
+          },
+          userIds,
+          creatorName,
+          null // No token needed for system notifications
+        )
+
+        console.log(`Announcement notification sent to ${userIds.length} user(s)`)
+      }
+    } catch (notifError) {
+      console.error('Failed to send announcement notification:', notifError)
+    }
 
     return NextResponse.json({
       success: true,

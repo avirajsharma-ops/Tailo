@@ -6,6 +6,7 @@ import Project from '@/models/Project'
 import User from '@/models/User'
 import { verifyToken } from '@/lib/auth'
 import { logActivity } from '@/lib/activityLogger'
+import { sendTaskAssignmentNotification } from '@/lib/pushNotifications'
 
 // GET - Fetch tasks with filters and pagination
 export async function GET(request) {
@@ -399,6 +400,34 @@ export async function POST(request) {
       relatedModel: 'Task',
       relatedId: task._id
     })
+
+    // Send push notifications to assigned employees
+    try {
+      const assignedEmployeeIds = taskData.assignedTo.map(a => a.employee)
+      const assignedUsers = await User.find({ employeeId: { $in: assignedEmployeeIds } }).select('_id')
+      const assignedUserIds = assignedUsers.map(u => u._id.toString())
+
+      if (assignedUserIds.length > 0) {
+        const assigner = await Employee.findById(currentEmployeeId).select('firstName lastName')
+        const assignerName = assigner ? `${assigner.firstName} ${assigner.lastName}` : 'Manager'
+
+        await sendTaskAssignmentNotification(
+          {
+            _id: task._id,
+            title: task.title,
+            priority: task.priority,
+            dueDate: task.dueDate
+          },
+          assignedUserIds,
+          assignerName,
+          token
+        )
+
+        console.log(`Task assignment notification sent to ${assignedUserIds.length} user(s)`)
+      }
+    } catch (notifError) {
+      console.error('Failed to send task assignment notification:', notifError)
+    }
 
     return NextResponse.json({
       success: true,

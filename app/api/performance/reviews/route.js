@@ -3,6 +3,8 @@ import { verifyToken } from '@/lib/auth'
 import connectDB from '@/lib/mongodb'
 import Performance from '@/models/Performance'
 import Employee from '@/models/Employee'
+import User from '@/models/User'
+import { sendPerformanceReviewNotification } from '@/lib/pushNotifications'
 
 // GET - Fetch performance reviews
 export async function GET(request) {
@@ -168,6 +170,35 @@ export async function POST(request) {
     // Populate the review
     await newReview.populate('employee', 'firstName lastName employeeCode department')
     await newReview.populate('reviewer', 'firstName lastName')
+
+    // Send push notification to employee
+    try {
+      const employeeUser = await User.findOne({ employeeId: employeeId }).select('_id')
+      const reviewer = await Employee.findById(decoded.employeeId).select('firstName lastName')
+
+      if (employeeUser && reviewer) {
+        const reviewerName = `${reviewer.firstName} ${reviewer.lastName}`
+
+        await sendPerformanceReviewNotification(
+          {
+            _id: newReview._id,
+            reviewType,
+            overallRating: parseFloat(overallRating) || 0,
+            reviewPeriod: {
+              startDate: new Date(reviewPeriodStart),
+              endDate: new Date(reviewPeriodEnd)
+            }
+          },
+          [employeeUser._id.toString()],
+          reviewerName,
+          null // No token needed for system notifications
+        )
+
+        console.log('Performance review notification sent to employee')
+      }
+    } catch (notifError) {
+      console.error('Failed to send performance review notification:', notifError)
+    }
 
     return NextResponse.json({
       success: true,

@@ -3,7 +3,9 @@ import { jwtVerify } from 'jose'
 import dbConnect from '@/lib/mongodb'
 import Task from '@/models/Task'
 import Employee from '@/models/Employee'
+import User from '@/models/User'
 import { logActivity } from '@/lib/activityLogger'
+import { sendTaskStatusNotification } from '@/lib/pushNotifications'
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key')
 
@@ -130,6 +132,35 @@ export async function POST(request, { params }) {
       relatedModel: 'Task',
       relatedId: task._id
     })
+
+    // Send push notification to task assignees
+    try {
+      const assignedEmployeeIds = task.assignedTo.map(a => a.employee)
+      const assignedUsers = await User.find({ employeeId: { $in: assignedEmployeeIds } }).select('_id')
+      const assignedUserIds = assignedUsers.map(u => u._id.toString())
+
+      if (assignedUserIds.length > 0) {
+        const approver = await Employee.findById(employeeId).select('firstName lastName')
+        const approverName = approver ? `${approver.firstName} ${approver.lastName}` : 'Manager'
+        const status = action === 'approve' ? 'approved' : 'rejected'
+
+        await sendTaskStatusNotification(
+          {
+            _id: task._id,
+            title: task.title,
+            status,
+            reason: action === 'reject' ? reason : null
+          },
+          assignedUserIds,
+          approverName,
+          null // No token needed for system notifications
+        )
+
+        console.log(`Task ${status} notification sent to ${assignedUserIds.length} user(s)`)
+      }
+    } catch (notifError) {
+      console.error('Failed to send task status notification:', notifError)
+    }
 
     return NextResponse.json({
       success: true,
