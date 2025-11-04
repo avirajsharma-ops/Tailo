@@ -140,7 +140,7 @@ export default function LeavePage() {
   }
 
   return (
-    <div className="page-container pb-16 md:pb-6">
+    <div className="page-container pb-24 md:pb-6">
       {/* Header */}
       <div className="mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">

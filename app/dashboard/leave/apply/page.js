@@ -185,7 +185,7 @@ export default function ApplyLeavePage() {
   }
 
   return (
-    <div className="page-container space-y-4 sm:space-y-6">
+    <div className="page-container space-y-4 sm:space-y-6 pb-24 md:pb-6">
       {/* Header */}
       <div className="flex items-center space-x-3 sm:space-x-4">
         <button

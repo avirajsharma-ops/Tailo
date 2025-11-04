@@ -120,7 +120,7 @@ export default function LeaveBalancePage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 pb-24 md:pb-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>

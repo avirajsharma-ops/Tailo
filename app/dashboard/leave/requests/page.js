@@ -99,7 +99,7 @@ export default function LeaveRequestsPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 pb-24 md:pb-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -193,7 +193,7 @@ export default function LeaveRequestsPage() {
                   <tr key={leave._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {leave?.leaveType?.name || 'N/A'}
+                        {leave?.leaveType?.name || 'Unknown Leave Type'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -258,12 +258,12 @@ export default function LeaveRequestsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Leave Type</label>
-                  <p className="text-gray-900">{selectedLeave.leaveType?.name || 'N/A'}</p>
+                  <p className="text-gray-900">{selectedLeave?.leaveType?.name || 'Unknown Leave Type'}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                  <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(selectedLeave.status)}`}>
-                    {selectedLeave.status.charAt(0).toUpperCase() + selectedLeave.status.slice(1)}
+                  <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(selectedLeave?.status || 'pending')}`}>
+                    {selectedLeave?.status ? selectedLeave.status.charAt(0).toUpperCase() + selectedLeave.status.slice(1) : 'Pending'}
                   </span>
                 </div>
                 <div>

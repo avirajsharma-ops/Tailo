@@ -35,28 +35,114 @@ export default function PerformancePage() {
   const fetchPerformanceData = async () => {
     try {
       const token = localStorage.getItem('token')
+      const userData = JSON.parse(localStorage.getItem('user'))
 
-      // For now, use mock data since APIs don't exist yet
-      const mockReviews = [
-        {
-          _id: '1',
-          employee: { firstName: 'John', lastName: 'Doe' },
-          reviewPeriod: 'Q4 2024',
-          overallRating: 4,
-          status: 'completed',
-          summary: 'Excellent performance with strong leadership skills'
-        }
-      ]
+      // Fetch data based on user role
+      let mockReviews = []
+      let mockGoals = []
 
-      const mockGoals = [
-        {
-          _id: '1',
-          title: 'Complete Project Alpha',
-          dueDate: '2025-03-31',
-          status: 'in-progress',
-          progress: 75
-        }
-      ]
+      if (userData.role === 'employee') {
+        // Employee sees only their own data
+        mockReviews = [
+          {
+            _id: '1',
+            employee: { firstName: userData.employeeId?.firstName || 'Your', lastName: userData.employeeId?.lastName || 'Name' },
+            reviewPeriod: 'Q4 2024',
+            overallRating: 4,
+            status: 'completed',
+            summary: 'Good performance with room for improvement'
+          }
+        ]
+        mockGoals = [
+          {
+            _id: '1',
+            title: 'Complete assigned tasks on time',
+            dueDate: '2025-03-31',
+            status: 'in-progress',
+            progress: 75
+          }
+        ]
+      } else if (userData.role === 'manager') {
+        // Manager sees team data
+        mockReviews = [
+          {
+            _id: '1',
+            employee: { firstName: 'John', lastName: 'Doe' },
+            reviewPeriod: 'Q4 2024',
+            overallRating: 4,
+            status: 'completed',
+            summary: 'Excellent performance with strong leadership skills'
+          },
+          {
+            _id: '2',
+            employee: { firstName: 'Jane', lastName: 'Smith' },
+            reviewPeriod: 'Q4 2024',
+            overallRating: 3.5,
+            status: 'pending',
+            summary: 'Pending review'
+          }
+        ]
+        mockGoals = [
+          {
+            _id: '1',
+            title: 'Team Project Alpha',
+            dueDate: '2025-03-31',
+            status: 'in-progress',
+            progress: 75
+          },
+          {
+            _id: '2',
+            title: 'Improve team productivity',
+            dueDate: '2025-04-30',
+            status: 'in-progress',
+            progress: 50
+          }
+        ]
+      } else {
+        // HR/Admin sees all organizational data
+        mockReviews = [
+          {
+            _id: '1',
+            employee: { firstName: 'John', lastName: 'Doe' },
+            reviewPeriod: 'Q4 2024',
+            overallRating: 4,
+            status: 'completed',
+            summary: 'Excellent performance with strong leadership skills'
+          },
+          {
+            _id: '2',
+            employee: { firstName: 'Jane', lastName: 'Smith' },
+            reviewPeriod: 'Q4 2024',
+            overallRating: 3.5,
+            status: 'pending',
+            summary: 'Pending review'
+          },
+          {
+            _id: '3',
+            employee: { firstName: 'Bob', lastName: 'Johnson' },
+            reviewPeriod: 'Q3 2024',
+            overallRating: 4.5,
+            status: 'completed',
+            summary: 'Outstanding performance'
+          }
+        ]
+        mockGoals = [
+          {
+            _id: '1',
+            title: 'Organizational Goal 1',
+            dueDate: '2025-03-31',
+            status: 'in-progress',
+            progress: 75
+          },
+          {
+            _id: '2',
+            title: 'Organizational Goal 2',
+            dueDate: '2025-04-30',
+            status: 'completed',
+            progress: 100
+          }
+        ]
+      }
 
       setPerformanceData({
         reviews: mockReviews,
@@ -114,12 +200,16 @@ export default function PerformancePage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 pb-24 md:pb-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Performance Management</h1>
-          <p className="text-gray-600 mt-1">Track and manage employee performance</p>
+          <p className="text-gray-600 mt-1">
+            {user?.role === 'employee' ? 'Track your performance and goals' :
+             user?.role === 'manager' ? 'Manage team performance and reviews' :
+             'Track and manage organizational performance'}
+          </p>
         </div>
         {canManagePerformance() && (
           <div className="flex space-x-3">
