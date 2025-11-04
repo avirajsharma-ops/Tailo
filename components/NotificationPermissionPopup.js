@@ -16,6 +16,8 @@ export default function NotificationPermissionPopup() {
   const [showPrompt, setShowPrompt] = useState(false)
   const [isRequesting, setIsRequesting] = useState(false)
   const [permissionGranted, setPermissionGranted] = useState(false)
+  const [checkInterval, setCheckInterval] = useState(null)
+  const [requestTimeout, setRequestTimeout] = useState(null)
 
   useEffect(() => {
     console.log('NotificationPermissionPopup: Initializing...')
@@ -26,47 +28,96 @@ export default function NotificationPermissionPopup() {
       return
     }
 
-    // Check current permission status
-    const currentPermission = getNotificationPermission()
-    console.log('NotificationPermissionPopup: Current permission:', currentPermission)
+    const checkPermissionStatus = () => {
+      // Check current permission status
+      const currentPermission = getNotificationPermission()
+      console.log('NotificationPermissionPopup: Current permission:', currentPermission)
 
-    // If already granted, don't show prompt
-    if (currentPermission === 'granted') {
-      console.log('NotificationPermissionPopup: Permission already granted')
-      setPermissionGranted(true)
-      return
+      // If already granted, don't show prompt
+      if (currentPermission === 'granted') {
+        console.log('NotificationPermissionPopup: Permission already granted')
+        setPermissionGranted(true)
+        setShowPrompt(false)
+        return true
+      }
+
+      // If permission is 'default' or 'denied', show prompt
+      // We check every session to ensure notifications are enabled
+      if (currentPermission === 'default' || currentPermission === 'denied') {
+        console.log('NotificationPermissionPopup: Permission not granted, showing prompt')
+        setShowPrompt(true)
+        return false
+      }
+
+      return true
     }
 
-    // If already denied, don't show prompt
-    if (currentPermission === 'denied') {
-      console.log('NotificationPermissionPopup: Permission denied by browser')
-      return
+    // Initial check
+    const isGranted = checkPermissionStatus()
+
+    // Set up interval to check permission status every 5 seconds
+    // This ensures we catch if user revokes permission in browser settings
+    if (!isGranted) {
+      const interval = setInterval(() => {
+        checkPermissionStatus()
+      }, 5000)
+      setCheckInterval(interval)
     }
 
-    // Check if user has dismissed the prompt before
-    if (hasUserDismissedNotificationPrompt()) {
-      console.log('NotificationPermissionPopup: User has dismissed prompt before')
-      return
+    return () => {
+      if (checkInterval) {
+        clearInterval(checkInterval)
+      }
+      if (requestTimeout) {
+        clearTimeout(requestTimeout)
+      }
     }
-
-    // If permission is 'default' (not asked yet), show prompt immediately
-    if (currentPermission === 'default') {
-      console.log('NotificationPermissionPopup: Permission not requested yet, showing prompt immediately')
-      setShowPrompt(true)
-      return
-    }
-
-    return () => {}
   }, [])
 
   const handleEnableNotifications = async () => {
     console.log('NotificationPermissionPopup: User clicked enable')
     setIsRequesting(true)
 
+    // Set timeout to reset loading state after 10 seconds
+    const timeout = setTimeout(() => {
+      console.log('NotificationPermissionPopup: Request timeout - resetting state')
+      setIsRequesting(false)
+      toast.error('Request timed out. Please try again.', {
+        duration: 3000
+      })
+    }, 10000)
+    setRequestTimeout(timeout)
+
     try {
       console.log('NotificationPermissionPopup: Requesting permission...')
-      // This will trigger the native browser notification permission prompt
-      const permission = await requestNotificationPermission()
+
+      // Force native browser notification permission prompt
+      // Use direct Notification.requestPermission() to ensure native prompt appears
+      let permission
+
+      if (typeof Notification !== 'undefined') {
+        // Modern browsers
+        if (Notification.permission === 'default') {
+          permission = await Notification.requestPermission()
+        } else if (Notification.permission === 'denied') {
+          // If denied, show instructions to enable in browser settings
+          clearTimeout(timeout)
+          toast.error('Please enable notifications in your browser settings', {
+            duration: 5000,
+            icon: '🔔'
+          })
+          setIsRequesting(false)
+          return
+        } else {
+          permission = Notification.permission
+        }
+      } else {
+        permission = await requestNotificationPermission()
+      }
+
+      // Clear timeout on successful response
+      clearTimeout(timeout)
+
       console.log('NotificationPermissionPopup: Permission result:', permission)
 
       if (permission === 'granted') {
@@ -75,32 +126,47 @@ export default function NotificationPermissionPopup() {
         saveNotificationPreference(true)
         setShowPrompt(false)
 
-        // Show a test notification
+        // Clear any interval checking
+        if (checkInterval) {
+          clearInterval(checkInterval)
+        }
+
+        // Show a test notification with timeout
         setTimeout(async () => {
           console.log('NotificationPermissionPopup: Showing test notification')
-          await showNotification('🎉 Notifications Enabled!', {
-            body: 'You will now receive important updates from Talio HRMS.',
-            icon: '/icons/icon-192x192.png',
-            badge: '/icons/icon-96x96.png',
-            tag: 'notification-success',
-            requireInteraction: false,
-            actions: [
-              {
-                action: 'view',
-                title: 'View Dashboard'
-              }
-            ]
-          })
-        }, 500)
+          try {
+            await showNotification('🎉 Notifications Enabled!', {
+              body: 'You will now receive important updates from Talio HRMS.',
+              icon: '/icons/icon-192x192.png',
+              badge: '/icons/icon-96x96.png',
+              tag: 'notification-success',
+              requireInteraction: false,
+              vibrate: [200, 100, 200]
+            })
+          } catch (notifError) {
+            console.error('Error showing test notification:', notifError)
+          }
+        }, 1000)
       } else {
         console.log('NotificationPermissionPopup: Permission denied by user')
-        setShowPrompt(false)
-        markNotificationPromptDismissed()
+        toast.error('Notifications are required to use this app', {
+          duration: 4000,
+          icon: '⚠️'
+        })
+        // Don't hide prompt if denied - keep showing it
+        setShowPrompt(true)
       }
     } catch (error) {
+      clearTimeout(timeout)
       console.error('NotificationPermissionPopup: Error requesting permission:', error)
+      toast.error('Failed to request notification permission. Please try again.', {
+        duration: 4000
+      })
     } finally {
       setIsRequesting(false)
+      if (requestTimeout) {
+        clearTimeout(requestTimeout)
+      }
     }
   }
 

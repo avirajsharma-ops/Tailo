@@ -34,7 +34,7 @@ export default function DashboardLayout({ children }) {
         </main>
 
         {/* Gradient above bottom nav - Mobile only */}
-        <div className="md:hidden fixed bottom-[72px] left-0  right-0 h-[96px] pointer-events-none z-[39]"
+        <div className="md:hidden fixed bottom-[72px] left-0  right-0 h-[124px] pointer-events-none z-[39]"
              style={{ background: 'linear-gradient(179.13deg, rgba(249, 250, 251, 0) 0%, #F9FAFB 71.18%)' }}>
         </div>
 
