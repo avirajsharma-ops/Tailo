@@ -3,6 +3,8 @@ import { verifyToken } from '@/lib/auth'
 import dbConnect from '@/lib/mongodb'
 import Employee from '@/models/Employee'
 import User from '@/models/User'
+import Designation from '@/models/Designation'
+import Department from '@/models/Department'
 
 // GET - Fetch all employees for chat
 export async function GET(request) {

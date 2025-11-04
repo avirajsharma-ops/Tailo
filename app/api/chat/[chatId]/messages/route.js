@@ -24,8 +24,14 @@ export async function GET(request, context) {
     const params = await context.params
     const { chatId } = params
 
-    // Get user's employee ID
-    const user = await Employee.findOne({ user: decoded.userId })
+    // Get user to find employee ID
+    const userDoc = await User.findById(decoded.userId).select('employeeId')
+    if (!userDoc || !userDoc.employeeId) {
+      return NextResponse.json({ success: false, message: 'Employee not found' }, { status: 404 })
+    }
+
+    // Get employee details
+    const user = await Employee.findById(userDoc.employeeId)
     if (!user) {
       return NextResponse.json({ success: false, message: 'Employee not found' }, { status: 404 })
     }
@@ -74,8 +80,14 @@ export async function POST(request, context) {
     const body = await request.json()
     const { content, fileUrl, fileName, fileType, fileSize } = body
 
-    // Get user's employee ID
-    const user = await Employee.findOne({ user: decoded.userId })
+    // Get user to find employee ID
+    const userDoc = await User.findById(decoded.userId).select('employeeId')
+    if (!userDoc || !userDoc.employeeId) {
+      return NextResponse.json({ success: false, message: 'Employee not found' }, { status: 404 })
+    }
+
+    // Get employee details
+    const user = await Employee.findById(userDoc.employeeId)
     if (!user) {
       return NextResponse.json({ success: false, message: 'Employee not found' }, { status: 404 })
     }

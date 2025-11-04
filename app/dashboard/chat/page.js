@@ -254,8 +254,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="page-container pb-14 md:pb-6">
-      <div className="mb-4 sm:mb-6 flex items-center justify-between">
+    <div className="page-container pb-16 md:pb-6">
+      {/* Header - Hide on mobile when chat is selected */}
+      <div className={`mb-4 sm:mb-6 flex items-center justify-between ${selectedChat ? 'hidden md:flex' : 'flex'}`}>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Chat</h1>
           <p className="text-sm sm:text-base text-gray-600 mt-1">Connect with your team</p>
@@ -263,21 +264,25 @@ export default function ChatPage() {
         <div className="flex gap-2">
           <button
             onClick={() => setShowNewChatModal(true)}
-            className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm"
+            className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm"
           >
             <FaUserPlus /> <span className="hidden sm:inline">New</span>
           </button>
           <button
             onClick={() => setShowGroupModal(true)}
-            className="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 text-sm"
+            className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 text-sm"
           >
             <FaUsers /> <span className="hidden sm:inline">Group</span>
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-md overflow-hidden" style={{ height: 'calc(100vh - 220px)' }}>
+      {/* Chat Container - Full screen on mobile when chat selected */}
+      <div className={`bg-white rounded-2xl shadow-md overflow-hidden ${
+        selectedChat ? 'fixed inset-0 md:relative z-50 md:z-0 rounded-none md:rounded-2xl' : 'relative'
+      }`} style={{ height: selectedChat ? '100vh' : 'calc(100vh - 220px)', maxHeight: selectedChat ? '100vh' : 'calc(100vh - 220px)' }}>
         <div className="grid grid-cols-1 md:grid-cols-3 h-full">
+          {/* Chat List - Hide on mobile when chat is selected */}
           <div className={`border-r border-gray-200 ${selectedChat ? 'hidden md:block' : 'block'}`}>
             <div className="p-4 border-b border-gray-200">
               <div className="relative">
@@ -329,17 +334,19 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className={`md:col-span-2 flex flex-col ${selectedChat ? 'block' : 'hidden md:flex'}`}>
+          {/* Chat Messages - Full screen on mobile */}
+          <div className={`md:col-span-2 flex flex-col ${selectedChat ? 'flex' : 'hidden md:flex'}`}>
             {selectedChat ? (
               <>
-                <div className="p-4 border-b border-gray-200 flex items-center gap-3">
+                {/* Chat Header */}
+                <div className="p-3 md:p-4 border-b border-gray-200 flex items-center gap-3 bg-white">
                   <button
                     onClick={() => setSelectedChat(null)}
-                    className="md:hidden text-gray-600 hover:text-gray-800"
+                    className="md:hidden text-gray-600 hover:text-gray-800 p-2 -ml-2"
                   >
-                    <FaArrowLeft />
+                    <FaArrowLeft className="text-lg" />
                   </button>
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center overflow-hidden">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {getChatAvatar(selectedChat) ? (
                       <img src={getChatAvatar(selectedChat)} alt="" className="w-full h-full object-cover" />
                     ) : selectedChat.isGroup ? (
@@ -348,25 +355,30 @@ export default function ChatPage() {
                       <FaUser className="text-white" />
                     )}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800 text-sm">{getChatName(selectedChat)}</h3>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-800 text-sm md:text-base truncate">{getChatName(selectedChat)}</h3>
                     <p className="text-xs text-gray-500">{selectedChat.isGroup ? `${selectedChat.participants.length} members` : 'Online'}</p>
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ height: 'calc(100% - 130px)' }}>
+                {/* Messages Area */}
+                <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 bg-gray-50" style={{
+                  height: selectedChat ? 'calc(100vh - 140px)' : 'calc(100% - 130px)',
+                  maxHeight: selectedChat ? 'calc(100vh - 140px)' : 'calc(100% - 130px)'
+                }}>
                   {messages.length === 0 ? (
-                    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                      No messages yet. Start the conversation!
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                      <FaComments className="text-5xl mb-3 opacity-50" />
+                      <p className="text-sm">No messages yet. Start the conversation!</p>
                     </div>
                   ) : (
                     messages.map((msg, idx) => {
                       const isMine = msg.sender._id === currentUserId
                       return (
                         <div key={idx} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-xs lg:max-w-md ${isMine ? '' : 'flex items-start gap-2'}`}>
+                          <div className={`max-w-[75%] sm:max-w-xs lg:max-w-md ${isMine ? '' : 'flex items-start gap-2'}`}>
                             {!isMine && (
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
                                 {msg.sender.profilePicture ? (
                                   <img src={msg.sender.profilePicture} alt="" className="w-full h-full object-cover" />
                                 ) : (
@@ -374,16 +386,16 @@ export default function ChatPage() {
                                 )}
                               </div>
                             )}
-                            <div>
+                            <div className="flex-1">
                               {msg.fileUrl ? (
-                                <div className={`px-4 py-3 rounded-lg ${isMine ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}>
+                                <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${isMine ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-white text-gray-800 rounded-bl-sm shadow-sm'}`}>
                                   {msg.fileType?.startsWith('image/') ? (
-                                    <img src={msg.fileUrl} alt={msg.fileName} className="max-w-full rounded mb-2" />
+                                    <img src={msg.fileUrl} alt={msg.fileName} className="max-w-full rounded-lg mb-2" />
                                   ) : (
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2 sm:gap-3">
                                       {getFileIcon(msg.fileType)}
-                                      <div>
-                                        <p className="text-sm font-semibold">{msg.fileName}</p>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-xs sm:text-sm font-semibold truncate">{msg.fileName}</p>
                                         <p className="text-xs opacity-75">{formatFileSize(msg.fileSize)}</p>
                                       </div>
                                     </div>
@@ -391,9 +403,9 @@ export default function ChatPage() {
                                   <p className="text-xs mt-2 opacity-75">{formatTime(msg.createdAt)}</p>
                                 </div>
                               ) : (
-                                <div className={`px-4 py-2 rounded-lg ${isMine ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}>
-                                  {!isMine && <p className="text-xs font-semibold mb-1">{msg.sender.firstName} {msg.sender.lastName}</p>}
-                                  <p className="text-sm">{msg.content}</p>
+                                <div className={`px-3 sm:px-4 py-2 rounded-2xl ${isMine ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-white text-gray-800 rounded-bl-sm shadow-sm'}`}>
+                                  {!isMine && selectedChat.isGroup && <p className="text-xs font-semibold mb-1 opacity-75">{msg.sender.firstName} {msg.sender.lastName}</p>}
+                                  <p className="text-sm break-words">{msg.content}</p>
                                   <p className={`text-xs mt-1 ${isMine ? 'text-blue-100' : 'text-gray-500'}`}>{formatTime(msg.createdAt)}</p>
                                 </div>
                               )}
@@ -406,21 +418,22 @@ export default function ChatPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div className="p-4 border-t border-gray-200">
+                {/* Message Input */}
+                <div className="p-3 md:p-4 border-t border-gray-200 bg-white">
                   {showEmojiPicker && (
-                    <div className="mb-2 p-2 bg-gray-50 rounded-lg flex flex-wrap gap-2">
+                    <div className="mb-2 p-2 bg-gray-50 rounded-lg flex flex-wrap gap-1 sm:gap-2">
                       {emojis.map((emoji, idx) => (
                         <button
                           key={idx}
                           onClick={() => setMessage(message + emoji)}
-                          className="text-2xl hover:bg-gray-200 rounded p-1"
+                          className="text-xl sm:text-2xl hover:bg-gray-200 rounded p-1 transition-colors"
                         >
                           {emoji}
                         </button>
                       ))}
                     </div>
                   )}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -430,30 +443,37 @@ export default function ChatPage() {
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadingFile}
-                      className="text-gray-500 hover:text-gray-700 p-2"
+                      className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                      title="Attach file"
                     >
-                      <FaPaperclip className="text-xl" />
+                      <FaPaperclip className="text-lg sm:text-xl" />
                     </button>
                     <button
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      className="text-gray-500 hover:text-gray-700 p-2"
+                      className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="Add emoji"
                     >
-                      <FaSmile className="text-xl" />
+                      <FaSmile className="text-lg sm:text-xl" />
                     </button>
                     <input
                       type="text"
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                      onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                       placeholder="Type a message..."
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-gray-50"
                     />
                     <button
                       onClick={handleSendMessage}
                       disabled={sending || !message.trim()}
-                      className="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+                      className="bg-blue-600 text-white p-2.5 sm:p-3 rounded-full hover:bg-blue-700 transition-colors disabled:bg-gray-400 flex items-center justify-center min-w-[40px]"
+                      title="Send message"
                     >
-                      <FaPaperPlane />
+                      {sending ? (
+                        <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
+                      ) : (
+                        <FaPaperPlane className="text-sm" />
+                      )}
                     </button>
                   </div>
                 </div>
