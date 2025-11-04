@@ -13,7 +13,6 @@ export default function DesignationsPage() {
   const [formData, setFormData] = useState({
     title: '',
     level: '',
-    levelName: '',
     description: '',
   })
 
@@ -52,13 +51,31 @@ export default function DesignationsPage() {
         : '/api/designations'
       const method = editingDesig ? 'PUT' : 'POST'
 
+      // Map level to levelName (capitalize first letter)
+      const levelNameMap = {
+        'entry': 'Entry Level',
+        'junior': 'Junior',
+        'mid': 'Mid Level',
+        'senior': 'Senior',
+        'lead': 'Lead',
+        'manager': 'Manager',
+        'director': 'Director',
+        'executive': 'Executive'
+      }
+
+      // Prepare data with levelName automatically set from level
+      const submitData = {
+        ...formData,
+        levelName: levelNameMap[formData.level] || formData.level
+      }
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       })
 
       const data = await response.json()
@@ -67,7 +84,7 @@ export default function DesignationsPage() {
         toast.success(data.message)
         setShowModal(false)
         setEditingDesig(null)
-        setFormData({ title: '', level: '', levelName: '', description: '' })
+        setFormData({ title: '', level: '', description: '' })
         fetchDesignations()
       } else {
         toast.error(data.message)
@@ -84,7 +101,6 @@ export default function DesignationsPage() {
     setFormData({
       title: desig.title,
       level: numToKey[desig.level] || '',
-      levelName: desig.levelName || '',
       description: desig.description || '',
     })
     setShowModal(true)
@@ -287,22 +303,6 @@ export default function DesignationsPage() {
                     <option value="director">Director</option>
                     <option value="executive">Executive</option>
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Level Name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.levelName}
-                    onChange={(e) => setFormData({ ...formData, levelName: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="e.g., L1, L2, Junior, Senior, etc."
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    This will be displayed before the designation title (e.g., "L2 - Software Engineer")
-                  </p>
                 </div>
 
                 <div>

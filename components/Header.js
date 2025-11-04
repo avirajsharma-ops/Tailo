@@ -56,20 +56,16 @@ export default function Header({ toggleSidebar }) {
     }
   }, [])
 
-  // Helper function to format designation with level name
+  // Helper function to format designation - returns only title
   const formatDesignation = (designation) => {
     if (!designation) return 'N/A'
 
     // Handle if designation is a string
     if (typeof designation === 'string') return designation
 
-    // Handle if designation is an object
+    // Handle if designation is an object - return only title
     const title = designation.title || designation
-    const levelName = designation.levelName
 
-    if (levelName && title) {
-      return `(${levelName}) - ${title}`
-    }
     return title || 'N/A'
   }
 

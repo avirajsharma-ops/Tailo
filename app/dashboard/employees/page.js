@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { FaPlus, FaSearch, FaEdit, FaTrash, FaEye, FaFilter } from 'react-icons/fa'
-import { formatDesignation } from '@/lib/formatters'
 
 export default function EmployeesPage() {
   const router = useRouter()
@@ -14,6 +13,21 @@ export default function EmployeesPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [user, setUser] = useState(null)
+
+  // Helper to get level name from level number
+  const getLevelName = (level) => {
+    const levelMap = {
+      1: 'Entry Level',
+      2: 'Junior',
+      3: 'Mid Level',
+      4: 'Senior',
+      5: 'Lead',
+      6: 'Manager',
+      7: 'Director',
+      8: 'Executive'
+    }
+    return levelMap[level] || ''
+  }
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -207,7 +221,11 @@ export default function EmployeesPage() {
                         {employee.department?.name || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDesignation(employee.designation)}
+                        {employee.designation ? (
+                          <>
+                            ({employee.designation.levelName || getLevelName(employee.designation.level)}) - {employee.designation.title || 'N/A'}
+                          </>
+                        ) : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

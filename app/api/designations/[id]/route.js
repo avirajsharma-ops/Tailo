@@ -53,6 +53,7 @@ export async function PUT(request, { params }) {
     const update = {}
     if (data.title !== undefined) update.title = data.title
     if (data.level !== undefined) update.level = data.level
+    if (data.levelName !== undefined) update.levelName = data.levelName
     if (data.description !== undefined) update.description = data.description
     if (data.isActive !== undefined) update.isActive = data.isActive
 
