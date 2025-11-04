@@ -192,3 +192,73 @@ export const clearNotificationPromptDismissal = () => {
   localStorage.removeItem('notification-prompt-dismissed')
 }
 
+// Save push subscription to server
+export const savePushSubscriptionToServer = async (subscription) => {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      console.warn('No auth token found, cannot save push subscription')
+      return false
+    }
+
+    // Get device info
+    const deviceInfo = {
+      userAgent: navigator.userAgent,
+      platform: navigator.platform,
+      browser: getBrowserInfo(),
+      os: getOSInfo()
+    }
+
+    const response = await fetch('/api/push-subscriptions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        subscription: subscription.toJSON(),
+        deviceInfo
+      })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to save push subscription')
+    }
+
+    console.log('Push subscription saved to server:', data)
+    return true
+  } catch (error) {
+    console.error('Error saving push subscription to server:', error)
+    return false
+  }
+}
+
+// Helper function to get browser info
+function getBrowserInfo() {
+  const ua = navigator.userAgent
+  let browser = 'Unknown'
+
+  if (ua.includes('Firefox')) browser = 'Firefox'
+  else if (ua.includes('Chrome')) browser = 'Chrome'
+  else if (ua.includes('Safari')) browser = 'Safari'
+  else if (ua.includes('Edge')) browser = 'Edge'
+  else if (ua.includes('Opera')) browser = 'Opera'
+
+  return browser
+}
+
+// Helper function to get OS info
+function getOSInfo() {
+  const ua = navigator.userAgent
+  let os = 'Unknown'
+
+  if (ua.includes('Windows')) os = 'Windows'
+  else if (ua.includes('Mac')) os = 'macOS'
+  else if (ua.includes('Linux')) os = 'Linux'
+  else if (ua.includes('Android')) os = 'Android'
+  else if (ua.includes('iOS') || ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS'
+
+  return os
+}

@@ -10,7 +10,9 @@ import {
   showNotification,
   hasUserDismissedNotificationPrompt,
   markNotificationPromptDismissed,
-  saveNotificationPreference
+  saveNotificationPreference,
+  subscribeToPushNotifications,
+  savePushSubscriptionToServer
 } from '@/utils/notifications'
 
 export default function NotificationPermissionPopup() {
@@ -104,18 +106,6 @@ export default function NotificationPermissionPopup() {
       const currentPermission = Notification.permission
       console.log('NotificationPermissionPopup: Current permission before request:', currentPermission)
 
-      if (currentPermission === 'denied') {
-        // If already denied, show instructions to enable in browser settings
-        clearTimeout(timeout)
-        toast.error('Notifications are blocked. Please enable them in your browser settings and refresh the page.', {
-          duration: 8000,
-          icon: '🔔'
-        })
-        setIsRequesting(false)
-        // Keep popup visible so user knows they need to enable notifications
-        return
-      }
-
       if (currentPermission === 'granted') {
         // Already granted
         clearTimeout(timeout)
@@ -130,7 +120,28 @@ export default function NotificationPermissionPopup() {
         return
       }
 
-      // Request permission - this triggers the native browser prompt
+      // For 'denied' state: browsers won't show native prompt again (security feature)
+      // We must guide users to manually enable in browser settings
+      if (currentPermission === 'denied') {
+        clearTimeout(timeout)
+        setIsRequesting(false)
+
+        // Show detailed instructions
+        toast.error(
+          'To enable notifications:\n1. Click the lock/info icon (🔒/ⓘ) in your browser address bar\n2. Find "Notifications" and change to "Allow"\n3. Refresh this page',
+          {
+            duration: 12000,
+            icon: '🔔',
+            style: {
+              whiteSpace: 'pre-line',
+              maxWidth: '500px'
+            }
+          }
+        )
+        return
+      }
+
+      // Request permission - this triggers the native browser prompt (only for 'default' state)
       console.log('NotificationPermissionPopup: Triggering native permission request...')
       const permission = await Notification.requestPermission()
 
@@ -150,10 +161,20 @@ export default function NotificationPermissionPopup() {
           icon: '🎉'
         })
 
-        // Show a test notification
+        // Subscribe to push notifications
         setTimeout(async () => {
-          console.log('NotificationPermissionPopup: Showing test notification')
           try {
+            console.log('NotificationPermissionPopup: Subscribing to push notifications...')
+            const subscription = await subscribeToPushNotifications()
+
+            if (subscription) {
+              // Save subscription to server
+              await savePushSubscriptionToServer(subscription)
+              console.log('NotificationPermissionPopup: Push subscription saved to server')
+            }
+
+            // Show a test notification
+            console.log('NotificationPermissionPopup: Showing test notification')
             await showNotification('🎉 Notifications Enabled!', {
               body: 'You will now receive important updates from Talio HRMS.',
               icon: '/icons/icon-192x192.png',
@@ -163,15 +184,16 @@ export default function NotificationPermissionPopup() {
               vibrate: [200, 100, 200]
             })
           } catch (notifError) {
-            console.error('Error showing test notification:', notifError)
+            console.error('Error in post-permission setup:', notifError)
           }
         }, 1000)
       } else if (permission === 'denied') {
         console.log('NotificationPermissionPopup: Permission denied by user')
         // Keep popup visible - notifications are required
         setShowPrompt(true)
-        toast.error('Notifications are required for this app. Please enable them in your browser settings.', {
-          duration: 6000,
+        setIsDenied(true)
+        toast.error('Notifications are required for this app. Please try enabling them again.', {
+          duration: 5000,
           icon: '⚠️'
         })
       } else {
@@ -234,18 +256,16 @@ export default function NotificationPermissionPopup() {
               <>
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                   <p className="text-red-800 font-semibold mb-2">⚠️ Notifications are currently blocked</p>
-                  <p className="text-red-700 text-sm">
-                    Notifications are essential for this app to function properly. Please enable them in your browser settings.
+                  <p className="text-red-700 text-sm mb-3">
+                    Notifications are essential for this app. Please enable them manually:
                   </p>
+                  <ol className="text-red-700 text-sm space-y-1.5 list-decimal list-inside">
+                    <li>Click the lock icon (🔒) or info icon (ⓘ) in your browser's address bar</li>
+                    <li>Find "Notifications" in the permissions list</li>
+                    <li>Change the setting from "Block" to "Allow"</li>
+                    <li>Refresh this page</li>
+                  </ol>
                 </div>
-
-                <p className="text-gray-700 font-semibold mb-3">How to enable notifications:</p>
-                <ol className="space-y-2 mb-6 list-decimal list-inside text-sm text-gray-600">
-                  <li>Click the lock icon (🔒) or info icon (ⓘ) in your browser's address bar</li>
-                  <li>Find "Notifications" in the permissions list</li>
-                  <li>Change the setting from "Block" to "Allow"</li>
-                  <li>Refresh this page or click the button below</li>
-                </ol>
               </>
             ) : (
               <>
@@ -319,16 +339,14 @@ export default function NotificationPermissionPopup() {
                 ) : (
                   <>
                     <FaBell className="w-4 h-4" />
-                    <span>{isDenied ? 'Check Notification Settings' : 'Enable Notifications'}</span>
+                    <span>{isDenied ? 'I Have Enabled Notifications' : 'Enable Notifications'}</span>
                   </>
                 )}
               </button>
             </div>
 
             <p className="text-xs text-gray-500 text-center mt-4">
-              {isDenied
-                ? 'After enabling in browser settings, click the button above to verify'
-                : 'Notifications are required to use this app'}
+              Notifications are required to use this app
             </p>
           </div>
         </div>
