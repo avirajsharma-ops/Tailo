@@ -1,7 +1,6 @@
 const { createServer } = require('http')
 const { parse } = require('url')
 const next = require('next')
-const { Server } = require('socket.io')
 
 const dev = process.env.NODE_ENV !== 'production'
 const hostname = process.env.HOSTNAME || '0.0.0.0' // Listen on all interfaces in production
@@ -22,7 +21,10 @@ app.prepare().then(() => {
     }
   })
 
-  // Initialize Socket.IO
+  // Initialize Socket.IO using the centralized module
+  // This allows API routes to access the Socket.IO instance
+  const { Server } = require('socket.io')
+
   const io = new Server(server, {
     path: '/api/socketio',
     addTrailingSlash: false,
@@ -36,6 +38,9 @@ app.prepare().then(() => {
     pingTimeout: 60000,
     pingInterval: 25000
   })
+
+  // Store the io instance globally so API routes can access it
+  global.io = io
 
   // Socket.IO connection handling
   io.on('connection', (socket) => {
@@ -52,7 +57,7 @@ app.prepare().then(() => {
     socket.on('join-chat', (chatId) => {
       socket.join(`chat:${chatId}`)
       console.log(`👤 [Socket.IO] User ${socket.userId || socket.id} joined chat:${chatId}`)
-      
+
       // Notify others in the room
       socket.to(`chat:${chatId}`).emit('user-joined', {
         userId: socket.userId,
@@ -64,7 +69,7 @@ app.prepare().then(() => {
     socket.on('leave-chat', (chatId) => {
       socket.leave(`chat:${chatId}`)
       console.log(`👋 [Socket.IO] User ${socket.userId || socket.id} left chat:${chatId}`)
-      
+
       // Notify others in the room
       socket.to(`chat:${chatId}`).emit('user-left', {
         userId: socket.userId,
@@ -72,34 +77,25 @@ app.prepare().then(() => {
       })
     })
 
-    // Handle new message (broadcast to room)
-    socket.on('send-message', (data) => {
-      const { chatId, message } = data
-      console.log(`💬 [Socket.IO] Broadcasting message to chat:${chatId}`)
-      
-      // Broadcast to all users in the chat room (including sender for confirmation)
-      io.to(`chat:${chatId}`).emit('new-message', {
-        chatId,
-        message
-      })
-    })
+    // REMOVED: 'send-message' handler - messages are now broadcasted by the API route
+    // This eliminates duplicate broadcasts and reduces server load
 
     // Handle typing indicator
     socket.on('typing', (data) => {
       const { chatId, userId, userName } = data
-      socket.to(`chat:${chatId}`).emit('user-typing', { 
-        userId, 
+      socket.to(`chat:${chatId}`).emit('user-typing', {
+        userId,
         userName,
-        chatId 
+        chatId
       })
     })
 
     // Handle stop typing
     socket.on('stop-typing', (data) => {
       const { chatId, userId } = data
-      socket.to(`chat:${chatId}`).emit('user-stop-typing', { 
+      socket.to(`chat:${chatId}`).emit('user-stop-typing', {
         userId,
-        chatId 
+        chatId
       })
     })
 

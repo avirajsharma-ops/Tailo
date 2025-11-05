@@ -133,6 +133,25 @@ export async function POST(request, context) {
 
     const newMessage = updatedChat.messages[updatedChat.messages.length - 1]
 
+    // Broadcast message via WebSocket (server-side)
+    try {
+      // Get the Socket.IO instance from the global scope
+      const io = global.io
+
+      if (io) {
+        // Broadcast to all users in this chat room
+        io.to(`chat:${chatId}`).emit('new-message', {
+          chatId,
+          message: newMessage
+        })
+        console.log(`💬 [WebSocket] Broadcasted message to chat:${chatId}`)
+      } else {
+        console.warn('⚠️ [WebSocket] Socket.IO instance not available')
+      }
+    } catch (socketError) {
+      console.error('[WebSocket] Failed to broadcast message:', socketError)
+    }
+
     // Send push notifications to other participants (not the sender)
     try {
       const otherParticipants = chat.participants.filter(p => p.toString() !== user._id.toString())

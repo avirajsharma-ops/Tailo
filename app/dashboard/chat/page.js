@@ -27,7 +27,8 @@ export default function ChatPage() {
   const typingTimeoutRef = useRef(null)
 
   // Get Socket.IO context
-  const { isConnected, joinChat, leaveChat, sendMessage: sendSocketMessage, onNewMessage, sendTyping, sendStopTyping, onUserTyping, onUserStopTyping } = useSocket()
+  // Note: sendMessage is removed - server now broadcasts messages automatically
+  const { isConnected, joinChat, leaveChat, onNewMessage, sendTyping, sendStopTyping, onUserTyping, onUserStopTyping } = useSocket()
 
   useEffect(() => {
     fetchChats()
@@ -69,6 +70,25 @@ export default function ChatPage() {
           return [...prev, newMessage]
         })
       }
+
+      // Update chat list to show latest message and reorder
+      setChats(prev => {
+        const chatIndex = prev.findIndex(c => c._id === chatId)
+        if (chatIndex === -1) return prev
+
+        const updatedChats = [...prev]
+        const chat = { ...updatedChats[chatIndex] }
+
+        // Update last message info
+        chat.lastMessage = newMessage.content || newMessage.fileName || 'File'
+        chat.lastMessageAt = newMessage.createdAt
+
+        // Move to top
+        updatedChats.splice(chatIndex, 1)
+        updatedChats.unshift(chat)
+
+        return updatedChats
+      })
     })
 
     return unsubscribe
@@ -188,14 +208,14 @@ export default function ChatPage() {
       })
       const result = await response.json()
       if (result.success) {
-        // Broadcast via WebSocket
-        sendSocketMessage(selectedChat._id, result.data)
+        // Server will broadcast via WebSocket automatically
+        // No need to call sendSocketMessage() - reduces duplicate broadcasts
 
-        // Update local state
+        // Update local state immediately for sender
         setMessages(prev => [...prev, result.data])
 
-        // Update chat list
-        fetchChats()
+        // REMOVED: fetchChats() - reduces unnecessary API calls
+        // The chat list will be updated when we receive the WebSocket event
       } else {
         // Restore message if failed
         setMessage(messageContent)

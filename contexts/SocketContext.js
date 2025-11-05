@@ -16,8 +16,11 @@ export function SocketProvider({ children }) {
     let userId = null
     if (userData) {
       const user = JSON.parse(userData)
-      userId = user.employeeId || user._id
+      // Ensure we get a string ID, not an object
+      const rawId = user.employeeId || user._id
+      userId = typeof rawId === 'object' ? rawId._id || rawId.toString() : rawId
       setCurrentUserId(userId)
+      console.log('🔑 [Socket.IO Client] User ID:', userId)
     }
 
     // Initialize Socket.IO connection
