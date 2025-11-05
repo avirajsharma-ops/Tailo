@@ -410,7 +410,7 @@ export default function ChatPage() {
                 </div>
 
                 {/* Messages Area - Clean white background with scroll */}
-                <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 pb-24 md:pb-6 md:px-6 md:py-6 space-y-4 bg-white md:bg-gray-50 min-h-0">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 pb-32 md:pb-6 md:px-6 md:py-6 space-y-4 bg-white md:bg-gray-50 min-h-0">
                   {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-gray-400">
                       <FaComments className="text-5xl mb-3 opacity-30" />
@@ -482,9 +482,9 @@ export default function ChatPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Message Input - Minimal clean design */}
-                <div className="fixed bottom-[72px] left-0 right-0 px-4 py-4 bg-white z-[100] border-t border-gray-100 md:relative md:bottom-auto md:left-auto md:right-auto md:px-6 md:py-4 flex-shrink-0">
-                  <div className="flex items-center gap-3">
+                {/* Message Input - Sleek minimal design */}
+                <div className="fixed bottom-[72px] left-0 right-0 px-4 py-3 bg-white z-[100] md:relative md:bottom-auto md:left-auto md:right-auto md:px-6 md:py-3 flex-shrink-0">
+                  <div className="flex items-center gap-2">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -494,10 +494,10 @@ export default function ChatPage() {
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadingFile}
-                      className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 flex-shrink-0 ml-1"
+                      className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 flex-shrink-0 p-2"
                       title="Attach file"
                     >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
                     </button>
@@ -507,18 +507,18 @@ export default function ChatPage() {
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                       placeholder="Ok, see U in a bar after work"
-                      className="flex-1 px-4 py-2.5 md:py-2 border-0 rounded-lg focus:outline-none text-[15px] bg-gray-50 text-gray-900 placeholder-gray-400"
+                      className="flex-1 px-4 py-2.5 border-0 rounded-full focus:outline-none text-[15px] bg-gray-50 text-gray-900 placeholder-gray-400"
                     />
                     <button
                       onClick={handleSendMessage}
                       disabled={sending || !message.trim()}
-                      className="text-gray-400 hover:text-[#6B7FFF] transition-colors disabled:opacity-30 flex-shrink-0 mr-1"
+                      className="text-white bg-gradient-to-r from-[#6B7FFF] to-[#5A6EEE] hover:from-[#5A6EEE] hover:to-[#4A5EDE] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 p-2 rounded-full"
                       title="Send message"
                     >
                       {sending ? (
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                       ) : (
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
                       )}
