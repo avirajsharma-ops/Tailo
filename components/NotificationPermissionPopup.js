@@ -136,6 +136,194 @@ export default function NotificationPermissionPopup() {
     return () => clearInterval(interval)
   }, [])
 
+  // Handle individual notification permission request
+  const handleEnableNotifications = async () => {
+    console.log('🔔 [Permissions] User clicked enable notifications only')
+    setIsRequesting(true)
+
+    try {
+      if (typeof Notification === 'undefined') {
+        toast.error('Notifications are not supported in this browser', {
+          duration: 5000,
+          icon: '❌'
+        })
+        setIsRequesting(false)
+        return
+      }
+
+      const currentNotifPermission = Notification.permission
+      console.log('🔔 [Permissions] Current notification permission:', currentNotifPermission)
+
+      if (currentNotifPermission === 'granted') {
+        console.log('✅ [Permissions] Notifications already granted')
+        toast.success('Notifications are already enabled!', {
+          duration: 3000,
+          icon: '✅'
+        })
+        setNotificationStatus('granted')
+      } else if (currentNotifPermission === 'denied') {
+        console.log('❌ [Permissions] Notifications are DENIED')
+        setNotificationStatus('denied')
+        toast.error(
+          `Notifications are blocked. To enable:\n1. Click the lock icon (🔒) in the address bar\n2. Change "Notifications" to "Allow"\n3. Refresh the page`,
+          {
+            duration: 15000,
+            icon: '🔔',
+            style: {
+              whiteSpace: 'pre-line',
+              maxWidth: '500px'
+            }
+          }
+        )
+      } else {
+        // Permission is 'default' - trigger native popup
+        console.log('🔔 [Permissions] Triggering NATIVE notification popup...')
+        const permission = await Notification.requestPermission()
+        console.log('🔔 [Permissions] Notification permission result:', permission)
+        setNotificationStatus(permission)
+
+        if (permission === 'granted') {
+          toast.success('Notifications enabled successfully!', {
+            duration: 3000,
+            icon: '✅'
+          })
+
+          // Subscribe to push notifications
+          try {
+            const subscription = await subscribeToPushNotifications()
+            if (subscription) {
+              await savePushSubscriptionToServer(subscription)
+              console.log('✅ [Permissions] Push subscription saved')
+            }
+          } catch (error) {
+            console.error('❌ [Permissions] Error subscribing to push:', error)
+          }
+        } else if (permission === 'denied') {
+          toast.error('Notification permission was denied', {
+            duration: 5000,
+            icon: '❌'
+          })
+        }
+      }
+    } catch (error) {
+      console.error('❌ [Permissions] Error requesting notification permission:', error)
+      toast.error('Failed to request notification permission', {
+        duration: 4000
+      })
+    } finally {
+      setIsRequesting(false)
+    }
+  }
+
+  // Handle individual location permission request
+  const handleEnableLocation = async () => {
+    console.log('📍 [Permissions] User clicked enable location only')
+    setIsRequesting(true)
+
+    try {
+      if (!navigator.geolocation) {
+        toast.error('Location services are not supported in this browser', {
+          duration: 5000,
+          icon: '❌'
+        })
+        setIsRequesting(false)
+        return
+      }
+
+      // Check current location permission status
+      let currentLocPermission = 'prompt'
+      if (navigator.permissions) {
+        try {
+          const result = await navigator.permissions.query({ name: 'geolocation' })
+          currentLocPermission = result.state
+          console.log('📍 [Permissions] Current location permission:', currentLocPermission)
+        } catch (error) {
+          console.warn('⚠️ [Permissions] Could not query location permission')
+        }
+      }
+
+      if (currentLocPermission === 'granted') {
+        console.log('✅ [Permissions] Location already granted')
+        toast.success('Location is already enabled!', {
+          duration: 3000,
+          icon: '✅'
+        })
+        setLocationStatus('granted')
+        setIsRequesting(false)
+        return
+      }
+
+      if (currentLocPermission === 'denied') {
+        console.log('❌ [Permissions] Location is DENIED')
+        setLocationStatus('denied')
+        toast.error(
+          `Location is blocked. To enable:\n1. Click the lock icon (🔒) in the address bar\n2. Change "Location" to "Allow"\n3. Refresh the page`,
+          {
+            duration: 15000,
+            icon: '📍',
+            style: {
+              whiteSpace: 'pre-line',
+              maxWidth: '500px'
+            }
+          }
+        )
+        setIsRequesting(false)
+        return
+      }
+
+      // Trigger native location popup
+      console.log('📍 [Permissions] Triggering NATIVE location popup...')
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log('✅ [Permissions] Location permission granted:', position)
+          setLocationStatus('granted')
+          setLocationServiceOff(false)
+          toast.success('Location enabled successfully!', {
+            duration: 3000,
+            icon: '✅'
+          })
+          setIsRequesting(false)
+        },
+        (error) => {
+          console.error('❌ [Permissions] Location error:', error)
+
+          if (error.code === error.PERMISSION_DENIED) {
+            setLocationStatus('denied')
+            toast.error('Location permission was denied', {
+              duration: 5000,
+              icon: '❌'
+            })
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            setLocationServiceOff(true)
+            toast.error(
+              'Location service is turned off. Please enable location services in your device settings.',
+              {
+                duration: 8000,
+                icon: '📍'
+              }
+            )
+          } else if (error.code === error.TIMEOUT) {
+            toast.error('Location request timed out. Please try again.', {
+              duration: 4000
+            })
+          }
+          setIsRequesting(false)
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
+      )
+    } catch (error) {
+      console.error('❌ [Permissions] Error requesting location permission:', error)
+      toast.error('Failed to request location permission', {
+        duration: 4000
+      })
+      setIsRequesting(false)
+    }
+  }
+
   const handleEnablePermissions = async () => {
     console.log('🔘 [Permissions] User clicked enable button')
     setIsRequesting(true)
@@ -562,36 +750,121 @@ export default function NotificationPermissionPopup() {
               </div>
             )}
 
-            {/* Button */}
-            <button
-              onClick={handleEnablePermissions}
-              disabled={isRequesting || isBlocked}
-              className="w-full font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center space-x-3 shadow-xl text-white text-lg"
-              style={{
-                background: isBlocked
-                  ? 'linear-gradient(135deg, #9CA3AF 0%, #6B7280 100%)'
-                  : theme.accent.gradient,
-                cursor: isBlocked ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {isRequesting ? (
-                <>
-                  <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>Requesting...</span>
-                </>
-              ) : isBlocked ? (
+            {/* Individual Permission Buttons */}
+            {!isBlocked ? (
+              <div className="space-y-3">
+                {/* Notification Button */}
+                <button
+                  onClick={handleEnableNotifications}
+                  disabled={isRequesting || notificationStatus === 'granted'}
+                  className="w-full font-bold py-3.5 px-6 rounded-xl transition-all transform hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center space-x-3 shadow-lg text-white"
+                  style={{
+                    background: notificationStatus === 'granted'
+                      ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
+                      : theme.accent.gradient,
+                    cursor: notificationStatus === 'granted' ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {notificationStatus === 'granted' ? (
+                    <>
+                      <FaCheck className="w-5 h-5" />
+                      <span>Notifications Enabled</span>
+                    </>
+                  ) : isRequesting ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Requesting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaBell className="w-5 h-5" />
+                      <span>Enable Notifications</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Location Button */}
+                <button
+                  onClick={handleEnableLocation}
+                  disabled={isRequesting || locationStatus === 'granted'}
+                  className="w-full font-bold py-3.5 px-6 rounded-xl transition-all transform hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center space-x-3 shadow-lg text-white"
+                  style={{
+                    background: locationStatus === 'granted'
+                      ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
+                      : theme.accent.gradient,
+                    cursor: locationStatus === 'granted' ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {locationStatus === 'granted' ? (
+                    <>
+                      <FaCheck className="w-5 h-5" />
+                      <span>Location Enabled</span>
+                    </>
+                  ) : isRequesting ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Requesting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaMapMarkerAlt className="w-5 h-5" />
+                      <span>Enable Location</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Enable Both Button */}
+                <button
+                  onClick={handleEnablePermissions}
+                  disabled={isRequesting || (notificationStatus === 'granted' && locationStatus === 'granted')}
+                  className="w-full font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center space-x-3 shadow-xl text-white text-lg border-2"
+                  style={{
+                    background: (notificationStatus === 'granted' && locationStatus === 'granted')
+                      ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
+                      : theme.accent.gradient,
+                    borderColor: theme.primary[400],
+                    cursor: (notificationStatus === 'granted' && locationStatus === 'granted') ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {(notificationStatus === 'granted' && locationStatus === 'granted') ? (
+                    <>
+                      <FaCheck className="w-6 h-6" />
+                      <span>All Permissions Enabled</span>
+                    </>
+                  ) : isRequesting ? (
+                    <>
+                      <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Requesting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaBell className="w-5 h-5" />
+                      <FaMapMarkerAlt className="w-5 h-5" />
+                      <span>Enable Both Permissions</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <button
+                disabled
+                className="w-full font-bold py-4 px-6 rounded-xl flex items-center justify-center space-x-3 shadow-xl text-white text-lg opacity-60 cursor-not-allowed"
+                style={{
+                  background: 'linear-gradient(135deg, #9CA3AF 0%, #6B7280 100%)'
+                }}
+              >
                 <span>Follow Instructions Above</span>
-              ) : (
-                <>
-                  <FaBell className="w-5 h-5" />
-                  <FaMapMarkerAlt className="w-5 h-5" />
-                  <span>Enable Permissions</span>
-                </>
-              )}
-            </button>
+              </button>
+            )}
           </div>
         </div>
       </div>
