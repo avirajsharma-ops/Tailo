@@ -254,7 +254,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className={`${selectedChat ? 'fixed inset-0 z-50 md:relative md:inset-auto md:z-0' : ''} md:page-container md:pb-6`}>
+    <div className={`${selectedChat ? 'fixed inset-0 z-50 md:relative md:inset-auto md:z-0 pb-20 md:pb-0' : 'pb-20 md:pb-0'} md:page-container md:pb-6`}>
       {/* Header - Hide on mobile when chat is selected */}
       <div className={`px-4 pt-4 pb-3 md:px-0 md:pt-0 md:pb-0 md:mb-4 flex items-center justify-between ${selectedChat ? 'hidden md:flex' : 'flex'}`}>
         <div>
@@ -277,14 +277,14 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Chat Container - Fixed height, no scrolling */}
+      {/* Chat Container - Fixed height with bottom bar buffer */}
       <div className={`bg-white overflow-hidden ${
         selectedChat
-          ? 'h-screen md:h-auto md:rounded-2xl md:shadow-md'
+          ? 'md:rounded-2xl md:shadow-md'
           : 'mx-4 md:mx-0 rounded-2xl shadow-md'
       }`} style={{
-        height: selectedChat ? '100vh' : 'calc(100vh - 180px)',
-        maxHeight: selectedChat ? '100vh' : 'calc(100vh - 180px)'
+        height: selectedChat ? 'calc(100vh - 140px)' : 'calc(100vh - 240px)',
+        maxHeight: selectedChat ? 'calc(100vh - 140px)' : 'calc(100vh - 240px)'
       }}>
         <div className="grid grid-cols-1 md:grid-cols-3 h-full">
           {/* Chat List - Hide on mobile when chat is selected */}
@@ -301,40 +301,44 @@ export default function ChatPage() {
                 />
               </div>
             </div>
-            <div className="overflow-y-auto flex-1">
+            <div className="overflow-y-auto flex-1 pb-4">
               {filteredChats.length === 0 ? (
                 <div className="p-4 text-center text-gray-500 text-sm">
                   No chats yet. Start a new conversation!
                 </div>
               ) : (
-                filteredChats.map((chat) => (
-                  <div
-                    key={chat._id}
-                    onClick={() => setSelectedChat(chat)}
-                    className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      selectedChat?._id === chat._id ? 'bg-blue-50' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        {getChatAvatar(chat) ? (
-                          <img src={getChatAvatar(chat)} alt="" className="w-full h-full object-cover" />
-                        ) : chat.isGroup ? (
-                          <FaUsers className="text-white text-lg" />
-                        ) : (
-                          <FaUser className="text-white text-lg" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-semibold text-gray-800 truncate text-sm">{getChatName(chat)}</h3>
-                          <span className="text-xs text-gray-500">{chat.lastMessageAt ? formatTime(chat.lastMessageAt) : ''}</span>
+                <>
+                  {filteredChats.map((chat) => (
+                    <div
+                      key={chat._id}
+                      onClick={() => setSelectedChat(chat)}
+                      className={`p-3 md:p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
+                        selectedChat?._id === chat._id ? 'bg-blue-50' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          {getChatAvatar(chat) ? (
+                            <img src={getChatAvatar(chat)} alt="" className="w-full h-full object-cover" />
+                          ) : chat.isGroup ? (
+                            <FaUsers className="text-white text-base md:text-lg" />
+                          ) : (
+                            <FaUser className="text-white text-base md:text-lg" />
+                          )}
                         </div>
-                        <p className="text-xs text-gray-600 truncate">{chat.lastMessage || 'No messages yet'}</p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="font-semibold text-gray-800 truncate text-sm">{getChatName(chat)}</h3>
+                            <span className="text-xs text-gray-500">{chat.lastMessageAt ? formatTime(chat.lastMessageAt) : ''}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 truncate">{chat.lastMessage || 'No messages yet'}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                  {/* Bottom spacer for better visibility */}
+                  <div className="h-4"></div>
+                </>
               )}
             </div>
           </div>
@@ -366,8 +370,8 @@ export default function ChatPage() {
                   </div>
                 </div>
 
-                {/* Messages Area - Flexible height */}
-                <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 bg-gray-50">
+                {/* Messages Area - Flexible height with bottom padding */}
+                <div className="flex-1 overflow-y-auto p-3 md:p-4 pb-6 md:pb-4 space-y-3 bg-gray-50">
                   {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-gray-400">
                       <FaComments className="text-5xl mb-3 opacity-50" />
@@ -420,8 +424,8 @@ export default function ChatPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Message Input - Fixed at bottom */}
-                <div className="p-3 md:p-4 border-t border-gray-200 bg-white flex-shrink-0">
+                {/* Message Input - Fixed at bottom with safe area */}
+                <div className="p-3 md:p-4 pb-4 md:pb-4 border-t border-gray-200 bg-white flex-shrink-0">
                   {showEmojiPicker && (
                     <div className="mb-2 p-2 bg-gray-50 rounded-lg flex flex-wrap gap-1 sm:gap-2 max-h-32 overflow-y-auto">
                       {emojis.map((emoji, idx) => (
