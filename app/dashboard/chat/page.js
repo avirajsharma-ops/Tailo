@@ -1,14 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { FaSearch, FaUserPlus, FaUsers, FaPaperPlane, FaPaperclip, FaTimes, FaFile, FaImage, FaFilePdf, FaUser, FaComments, FaArrowLeft } from 'react-icons/fa'
+import { FaUserPlus, FaUsers, FaTimes, FaFile, FaImage, FaFilePdf, FaUser, FaComments, FaArrowLeft } from 'react-icons/fa'
 
 export default function ChatPage() {
   const [chats, setChats] = useState([])
   const [selectedChat, setSelectedChat] = useState(null)
   const [messages, setMessages] = useState([])
   const [message, setMessage] = useState('')
-  const [chatSearchQuery, setChatSearchQuery] = useState('')
+  const [chatSearchQuery] = useState('')
   const [employeeSearchQuery, setEmployeeSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
@@ -254,7 +254,7 @@ export default function ChatPage() {
     <>
       {/* Hide header when chat is selected on mobile */}
       {!selectedChat && (
-        <div className="px-4 pt-4 pb-3 md:px-0 md:pt-0 md:pb-0 md:mb-4 flex items-center justify-between bg-white md:bg-transparent md:page-container">
+        <div className="fixed top-[72px] left-0 right-0 z-[45] bg-white md:relative md:top-auto md:left-auto md:right-auto md:z-auto md:px-0 md:pt-0 md:pb-0 md:mb-4 flex items-center justify-between md:bg-transparent md:page-container shadow-sm md:shadow-none">
           <div>
             <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">Chat</h1>
             <p className="text-xs md:text-sm lg:text-base text-gray-600 mt-1">Connect with your team</p>
@@ -262,15 +262,17 @@ export default function ChatPage() {
           <div className="flex gap-2">
             <button
               onClick={() => setShowNewChatModal(true)}
-              className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm"
+              className="bg-[#6B7FFF] text-white w-14 h-14 rounded-full hover:bg-[#5A6EEE] transition-colors flex items-center justify-center shadow-md"
+              title="New Chat"
             >
-              <FaUserPlus /> <span className="hidden sm:inline">New</span>
+              <FaUserPlus className="text-base" />
             </button>
             <button
               onClick={() => setShowGroupModal(true)}
-              className="bg-green-600 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 text-sm"
+              className="bg-[#00D9A5] text-white w-14 h-14 rounded-full hover:bg-[#00C794] transition-colors flex items-center justify-center shadow-md"
+              title="New Group"
             >
-              <FaUsers /> <span className="hidden sm:inline">Group</span>
+              <FaUsers className="text-base" />
             </button>
           </div>
         </div>
@@ -279,28 +281,21 @@ export default function ChatPage() {
       {/* Chat Container - Full screen edge-to-edge when chat selected */}
       <div className={`overflow-hidden ${
         selectedChat
-          ? 'fixed top-[60px] left-0 right-0 bottom-0 z-[60] bg-white md:relative md:top-auto md:left-auto md:right-auto md:bottom-auto md:rounded-2xl md:shadow-md'
-          : 'mx-4 md:mx-0 md:rounded-2xl md:shadow-md bg-white'
+          ? 'fixed top-[60px] left-0 right-0 bottom-[70px] z-[60] bg-white md:relative md:top-auto md:left-auto md:right-auto md:bottom-auto md:rounded-2xl md:shadow-md'
+          : '-m-2 mt-[3em] p-0 md:mt-0 md:mx-0 md:rounded-2xl md:shadow-md bg-white'
       }`} style={{
-        height: selectedChat ? 'calc(100vh - 60px)' : 'calc(100vh - 160px)',
-        maxHeight: selectedChat ? 'calc(100vh - 60px)' : 'calc(100vh - 160px)'
+        height: selectedChat ? 'calc(100vh - 130px)' : 'calc(100vh - 232px)',
+        maxHeight: selectedChat ? 'calc(100vh - 130px)' : 'calc(100vh - 160px)'
       }}>
-        <div className="grid grid-cols-1 md:grid-cols-3 h-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 h-full -ml-4 -mr-4 md:ml-0 md:mr-0">
           {/* Chat List - Hide on mobile when chat is selected */}
-          <div className={`border-r border-gray-200 flex flex-col h-full ${selectedChat ? 'hidden md:flex' : 'flex'}`}>
-            <div className="p-3 md:p-4 border-b border-gray-200 flex-shrink-0">
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
-                <input
-                  type="text"
-                  value={chatSearchQuery}
-                  onChange={(e) => setChatSearchQuery(e.target.value)}
-                  placeholder="Search chats..."
-                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                />
-              </div>
+          <div className={`border-r border-gray-100 flex flex-col h-full bg-white ${selectedChat ? 'hidden md:flex' : 'flex'}`}>
+            {/* Chat list header - no search, clean design */}
+            <div className="flex-shrink-0 px-4 py-4 md:px-6 md:py-5 border-b border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900">Chats</h2>
             </div>
-            <div className="overflow-y-auto flex-1 pb-4">
+
+            <div className="overflow-y-auto flex-1">
               {filteredChats.length === 0 ? (
                 <div className="p-4 text-center text-gray-500 text-sm">
                   No chats yet. Start a new conversation!
@@ -311,32 +306,30 @@ export default function ChatPage() {
                     <div
                       key={chat._id}
                       onClick={() => setSelectedChat(chat)}
-                      className={`p-3 md:p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                        selectedChat?._id === chat._id ? 'bg-blue-50' : ''
+                      className={`px-4 md:px-6 py-3.5 md:py-4 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
+                        selectedChat?._id === chat._id ? 'bg-gray-50' : ''
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        <div className="w-12 h-12 md:w-11 md:h-11 rounded-full bg-gradient-to-br from-[#6B7FFF] to-[#5A6EEE] flex items-center justify-center flex-shrink-0 overflow-hidden">
                           {getChatAvatar(chat) ? (
                             <img src={getChatAvatar(chat)} alt="" className="w-full h-full object-cover" />
                           ) : chat.isGroup ? (
-                            <FaUsers className="text-white text-base md:text-lg" />
+                            <FaUsers className="text-white text-lg" />
                           ) : (
-                            <FaUser className="text-white text-base md:text-lg" />
+                            <FaUser className="text-white text-lg" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <h3 className="font-semibold text-gray-800 truncate text-sm">{getChatName(chat)}</h3>
-                            <span className="text-xs text-gray-500">{chat.lastMessageAt ? formatTime(chat.lastMessageAt) : ''}</span>
+                            <h3 className="font-semibold text-gray-900 truncate text-[15px]">{getChatName(chat)}</h3>
+                            <span className="text-xs text-gray-400 ml-2 flex-shrink-0">{chat.lastMessageAt ? formatTime(chat.lastMessageAt) : ''}</span>
                           </div>
-                          <p className="text-xs text-gray-600 truncate">{chat.lastMessage || 'No messages yet'}</p>
+                          <p className="text-sm text-gray-500 truncate">{chat.lastMessage || 'No messages yet'}</p>
                         </div>
                       </div>
                     </div>
                   ))}
-                  {/* Bottom spacer for better visibility */}
-                  <div className="h-4"></div>
                 </>
               )}
             </div>
@@ -346,61 +339,66 @@ export default function ChatPage() {
           <div className={`md:col-span-2 flex flex-col h-full ${selectedChat ? 'flex' : 'hidden md:flex'}`}>
             {selectedChat ? (
               <>
-                {/* Chat Header */}
-                <div className="p-3 md:p-4 border-b border-gray-200 flex items-center gap-3 bg-white flex-shrink-0">
+                {/* Chat Header - Clean minimal design */}
+                <div className="px-4 py-4 md:px-6 md:py-5 bg-white flex items-center gap-3 flex-shrink-0 border-b border-gray-100">
                   <button
                     onClick={() => setSelectedChat(null)}
-                    className="md:hidden text-gray-600 hover:text-gray-800 p-2 -ml-2"
+                    className="text-gray-600 hover:text-gray-900 -ml-1 md:hidden"
+                    title="Back to chats"
                   >
-                    <FaArrowLeft className="text-lg" />
+                    <FaArrowLeft className="text-xl" />
                   </button>
-                  <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="w-11 h-11 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-[#6B7FFF] to-[#5A6EEE] flex items-center justify-center overflow-hidden flex-shrink-0">
                     {getChatAvatar(selectedChat) ? (
                       <img src={getChatAvatar(selectedChat)} alt="" className="w-full h-full object-cover" />
                     ) : selectedChat.isGroup ? (
-                      <FaUsers className="text-white text-sm" />
+                      <FaUsers className="text-white text-base" />
                     ) : (
-                      <FaUser className="text-white text-sm" />
+                      <FaUser className="text-white text-lg" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-800 text-sm md:text-base truncate">{getChatName(selectedChat)}</h3>
-                    <p className="text-xs text-gray-500">{selectedChat.isGroup ? `${selectedChat.participants.length} members` : 'Online'}</p>
+                    <h3 className="font-semibold text-gray-900 text-lg md:text-base truncate">{getChatName(selectedChat)}</h3>
                   </div>
                 </div>
 
-                {/* Messages Area - Full width, edge-to-edge */}
-                <div className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-4 space-y-3 bg-[#E5DDD5] md:bg-gray-50">
+                {/* Messages Area - Clean white background */}
+                <div className="flex-1 overflow-y-auto px-4 py-6 pb-24 md:pb-6 md:px-6 md:py-6 space-y-4 bg-white md:bg-gray-50">
+                  {/* Date separator */}
+                  <div className="flex justify-center mb-4">
+                    <span className="text-xs text-gray-400 bg-gray-100 md:bg-white px-3 py-1 rounded-full">Today</span>
+                  </div>
+
                   {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                      <FaComments className="text-5xl mb-3 opacity-50" />
-                      <p className="text-sm">No messages yet. Start the conversation!</p>
+                      <FaComments className="text-5xl mb-3 opacity-30" />
+                      <p className="text-sm text-gray-400">No messages yet. Start the conversation!</p>
                     </div>
                   ) : (
                     messages.map((msg, idx) => {
                       const isMine = msg.sender._id === currentUserId
                       return (
-                        <div key={idx} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[75%] sm:max-w-xs lg:max-w-md ${isMine ? '' : 'flex items-start gap-2'}`}>
+                        <div key={idx} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-3`}>
+                          <div className={`max-w-[80%] sm:max-w-sm ${isMine ? '' : 'flex items-start gap-2.5'}`}>
                             {!isMine && (
-                              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#6B7FFF] to-[#5A6EEE] flex items-center justify-center flex-shrink-0 overflow-hidden">
                                 {msg.sender.profilePicture ? (
                                   <img src={msg.sender.profilePicture} alt="" className="w-full h-full object-cover" />
                                 ) : (
-                                  <span className="text-white text-xs font-bold">{msg.sender.firstName?.[0]}</span>
+                                  <FaUser className="text-white text-sm" />
                                 )}
                               </div>
                             )}
                             <div className="flex-1">
                               {msg.fileUrl ? (
-                                <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${isMine ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-white text-gray-800 rounded-bl-sm shadow-sm'}`}>
+                                <div className={`px-4 py-3 rounded-2xl ${isMine ? 'bg-gradient-to-r from-[#6B7FFF] to-[#5A6EEE] text-white rounded-br-md' : 'bg-gray-100 text-gray-900 rounded-bl-md'}`}>
                                   {msg.fileType?.startsWith('image/') ? (
                                     <img src={msg.fileUrl} alt={msg.fileName} className="max-w-full rounded-lg mb-2" />
                                   ) : (
-                                    <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className="flex items-center gap-3">
                                       {getFileIcon(msg.fileType)}
                                       <div className="flex-1 min-w-0">
-                                        <p className="text-xs sm:text-sm font-semibold truncate">{msg.fileName}</p>
+                                        <p className="text-sm font-semibold truncate">{msg.fileName}</p>
                                         <p className="text-xs opacity-75">{formatFileSize(msg.fileSize)}</p>
                                       </div>
                                     </div>
@@ -408,10 +406,9 @@ export default function ChatPage() {
                                   <p className="text-xs mt-2 opacity-75">{formatTime(msg.createdAt)}</p>
                                 </div>
                               ) : (
-                                <div className={`px-3 sm:px-4 py-2 rounded-2xl ${isMine ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-white text-gray-800 rounded-bl-sm shadow-sm'}`}>
-                                  {!isMine && selectedChat.isGroup && <p className="text-xs font-semibold mb-1 opacity-75">{msg.sender.firstName} {msg.sender.lastName}</p>}
-                                  <p className="text-sm break-words">{msg.content}</p>
-                                  <p className={`text-xs mt-1 ${isMine ? 'text-blue-100' : 'text-gray-500'}`}>{formatTime(msg.createdAt)}</p>
+                                <div className={`px-4 py-3 rounded-2xl ${isMine ? 'bg-gradient-to-r from-[#6B7FFF] to-[#5A6EEE] text-white rounded-br-md' : 'bg-gray-100 text-gray-900 rounded-bl-md'}`}>
+                                  {!isMine && selectedChat.isGroup && <p className="text-xs font-semibold mb-1 opacity-90">{msg.sender.firstName} {msg.sender.lastName}</p>}
+                                  <p className="text-[15px] leading-relaxed">{msg.content}</p>
                                 </div>
                               )}
                             </div>
@@ -423,9 +420,9 @@ export default function ChatPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Message Input - Above bottom bar with high z-index */}
-                <div className="px-3 py-3 md:p-4 border-t border-gray-200 bg-white flex-shrink-0 relative z-[100]">
-                  <div className="flex items-center gap-2">
+                {/* Message Input - Minimal clean design */}
+                <div className="fixed bottom-[72px] left-0 right-0 px-4 py-4 bg-white z-[100] border-t border-gray-100 md:relative md:bottom-auto md:left-auto md:right-auto md:px-6 md:py-4 flex-shrink-0">
+                  <div className="flex items-center gap-3">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -435,39 +432,43 @@ export default function ChatPage() {
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadingFile}
-                      className="text-gray-500 hover:text-gray-700 p-2.5 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50 flex-shrink-0"
+                      className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 flex-shrink-0"
                       title="Attach file"
                     >
-                      <FaPaperclip className="text-xl" />
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
                     </button>
                     <input
                       type="text"
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                      placeholder="Type a message..."
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-[#7FBEB0] focus:border-transparent text-sm bg-white"
+                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                      placeholder="Ok, see U in a bar after work"
+                      className="flex-1 px-4 py-2.5 md:py-2 border-0 rounded-lg focus:outline-none text-[15px] bg-gray-50 text-gray-900 placeholder-gray-400"
                     />
                     <button
                       onClick={handleSendMessage}
                       disabled={sending || !message.trim()}
-                      className="bg-[#7FBEB0] text-white p-3 rounded-full hover:bg-[#6EADA0] transition-colors disabled:bg-gray-400 flex items-center justify-center min-w-[44px] flex-shrink-0"
+                      className="text-gray-400 hover:text-[#6B7FFF] transition-colors disabled:opacity-30 flex-shrink-0"
                       title="Send message"
                     >
                       {sending ? (
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400"></div>
                       ) : (
-                        <FaPaperPlane className="text-base" />
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
                       )}
                     </button>
                   </div>
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-gray-400">
+              <div className="flex-1 flex items-center justify-center text-gray-400 bg-gray-50">
                 <div className="text-center">
-                  <FaComments className="text-6xl mx-auto mb-4" />
-                  <p className="text-lg">Select a chat to start messaging</p>
+                  <FaComments className="text-6xl mx-auto mb-4 opacity-30" />
+                  <p className="text-base text-gray-400">Select a chat to start messaging</p>
                 </div>
               </div>
             )}
@@ -615,6 +616,6 @@ export default function ChatPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }

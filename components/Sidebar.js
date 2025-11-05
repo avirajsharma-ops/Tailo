@@ -146,7 +146,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         </div>
 
         {/* Scrollable Menu Section */}
-        <nav className="px-3 sm:px-4 py-4 space-y-2 flex-1 overflow-y-auto scrollbar-hide" style={{
+        <nav className="px-3 sm:px-4 pt-4 pb-0 space-y-2 flex-1 overflow-y-auto scrollbar-hide" style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none'
         }}>
