@@ -167,7 +167,7 @@ export default function HRDashboard({ user }) {
       value: stats.totalEmployees.value.toString(),
       change: `${stats.totalEmployees.changePercent}%`,
       icon: FaUsers,
-      color: 'bg-blue-500',
+      color: 'stat-icon-blue',
       trend: stats.totalEmployees.trend
     },
     {
@@ -175,7 +175,7 @@ export default function HRDashboard({ user }) {
       value: `${stats.activeToday.value}/${stats.activeToday.total}`,
       change: `${stats.activeToday.percentage}%`,
       icon: FaUserClock,
-      color: 'bg-green-500',
+      color: 'stat-icon-green',
       trend: 'up'
     },
     {
@@ -183,7 +183,7 @@ export default function HRDashboard({ user }) {
       value: stats.onLeaveToday.value.toString(),
       change: `${stats.onLeaveToday.percentage}%`,
       icon: FaCalendarAlt,
-      color: 'bg-yellow-500',
+      color: 'stat-icon-yellow',
       trend: 'neutral'
     },
     {
@@ -191,7 +191,7 @@ export default function HRDashboard({ user }) {
       value: stats.lateToday.value.toString(),
       change: `${stats.lateToday.percentage}%`,
       icon: FaUserTimes,
-      color: 'bg-red-500',
+      color: 'stat-icon-red',
       trend: 'down'
     },
     {
@@ -199,7 +199,7 @@ export default function HRDashboard({ user }) {
       value: stats.pendingApprovals.leaves.toString(),
       change: 'Leaves',
       icon: FaExclamationCircle,
-      color: 'bg-orange-500',
+      color: 'stat-icon-orange',
       trend: 'neutral'
     },
     {
@@ -207,7 +207,7 @@ export default function HRDashboard({ user }) {
       value: stats.openPositions.value.toString(),
       change: 'Active',
       icon: FaBriefcase,
-      color: 'bg-purple-500',
+      color: 'stat-icon-purple',
       trend: 'up'
     },
     {
@@ -215,7 +215,7 @@ export default function HRDashboard({ user }) {
       value: stats.pipCases.value.toString(),
       change: 'Active',
       icon: FaExclamationTriangle,
-      color: 'bg-red-600',
+      color: 'stat-icon-red',
       trend: 'neutral'
     },
     {
@@ -223,7 +223,7 @@ export default function HRDashboard({ user }) {
       value: `${stats.attritionRate.value}%`,
       change: `${stats.attritionRate.leftThisMonth} left`,
       icon: FaChartLine,
-      color: 'bg-indigo-500',
+      color: 'stat-icon-purple',
       trend: stats.attritionRate.value > 5 ? 'up' : 'down'
     }
   ] : []
@@ -231,7 +231,7 @@ export default function HRDashboard({ user }) {
   return (
     <div className="page-container space-y-5 sm:space-y-8">
       {/* Check-In/Check-Out Section */}
-      <div style={{ backgroundColor: '#1A295A' }} className="rounded-2xl shadow-md p-4 sm:p-6 text-white">
+      <div style={{ background: 'var(--color-accent-gradient)' }} className="rounded-2xl shadow-md p-4 sm:p-6 text-white">
         {/* User Profile Section */}
         <div className="flex items-center gap-3 mb-4">
           {/* Profile Picture */}
@@ -271,7 +271,7 @@ export default function HRDashboard({ user }) {
           <button
             onClick={handleClockIn}
             disabled={attendanceLoading || (todayAttendance && todayAttendance.checkIn)}
-            className="bg-white text-gray-800 hover:bg-gray-100 disabled:bg-gray-400 disabled:text-gray-600 disabled:cursor-not-allowed px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center flex-1"
+            className="btn-theme-primary disabled:opacity-50 disabled:cursor-not-allowed px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center flex-1"
           >
             <span>Check In</span>
           </button>
@@ -279,7 +279,7 @@ export default function HRDashboard({ user }) {
           <button
             onClick={handleClockOut}
             disabled={attendanceLoading || !todayAttendance || !todayAttendance.checkIn || todayAttendance.checkOut}
-            className="bg-transparent border-2 border-white text-white hover:bg-white hover:bg-opacity-10 disabled:border-gray-500 disabled:text-gray-500 disabled:cursor-not-allowed px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center flex-1"
+            className="btn-theme-secondary disabled:opacity-50 disabled:cursor-not-allowed px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center flex-1"
           >
             <span>Check Out</span>
           </button>
@@ -287,19 +287,19 @@ export default function HRDashboard({ user }) {
       </div>
 
       {/* Quick Glance Section */}
-      <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-2xl p-4 sm:p-6">
+      <div style={{ backgroundColor: 'var(--color-bg-card)' }} className="rounded-2xl p-4 sm:p-6">
         <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4">Quick Glance</h3>
 
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {/* Check In Time */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
-                <FaSignInAlt className="w-2.5 h-2.5 text-gray-600" />
+              <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-primary-100)' }}>
+                <FaSignInAlt className="w-2.5 h-2.5" style={{ color: 'var(--color-primary-600)' }} />
               </div>
               <p className="text-xs font-medium text-gray-600">Check In Time</p>
             </div>
-            <div className="bg-green-100 rounded-lg p-3">
+            <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-primary-50)' }}>
               <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
                 {todayAttendance?.checkIn
                   ? new Date(todayAttendance.checkIn).toLocaleTimeString('en-IN', {
@@ -315,12 +315,12 @@ export default function HRDashboard({ user }) {
           {/* Check Out Time */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
-                <FaSignOutAlt className="w-2.5 h-2.5 text-gray-600" />
+              <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-primary-100)' }}>
+                <FaSignOutAlt className="w-2.5 h-2.5" style={{ color: 'var(--color-primary-600)' }} />
               </div>
               <p className="text-xs font-medium text-gray-600">Check Out Time</p>
             </div>
-            <div className="bg-red-100 rounded-lg p-3">
+            <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-primary-50)' }}>
               <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
                 {todayAttendance?.checkOut
                   ? new Date(todayAttendance.checkOut).toLocaleTimeString('en-IN', {
@@ -336,12 +336,12 @@ export default function HRDashboard({ user }) {
           {/* Work Hours */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
-                <FaClock className="w-2.5 h-2.5 text-gray-600" />
+              <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-primary-100)' }}>
+                <FaClock className="w-2.5 h-2.5" style={{ color: 'var(--color-primary-600)' }} />
               </div>
               <p className="text-xs font-medium text-gray-600">Work Hours</p>
             </div>
-            <div className="bg-yellow-100 rounded-lg p-3">
+            <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-primary-50)' }}>
               <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
                 {todayAttendance?.workHours
                   ? `${todayAttendance.workHours}h`
@@ -353,19 +353,12 @@ export default function HRDashboard({ user }) {
           {/* Work Status */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
-                <FaCheckCircle className="w-2.5 h-2.5 text-gray-600" />
+              <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-primary-100)' }}>
+                <FaCheckCircle className="w-2.5 h-2.5" style={{ color: 'var(--color-primary-600)' }} />
               </div>
               <p className="text-xs font-medium text-gray-600">Work Status</p>
             </div>
-            <div className={`rounded-lg p-3 ${
-              todayAttendance?.status === 'present' ? 'bg-green-100' :
-              todayAttendance?.status === 'half-day' ? 'bg-yellow-100' :
-              todayAttendance?.status === 'in-progress' ? 'bg-blue-100' :
-              todayAttendance?.workFromHome ? 'bg-purple-100' :
-              todayAttendance?.status === 'on-leave' ? 'bg-orange-100' :
-              'bg-red-100'
-            }`}>
+            <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-primary-50)' }}>
               <p className="text-sm sm:text-base md:text-lg font-bold text-gray-800 capitalize">
                 {todayAttendance?.workFromHome ? 'WFH' :
                  todayAttendance?.status === 'present' ? 'Present' :
@@ -380,9 +373,9 @@ export default function HRDashboard({ user }) {
       </div>
 
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-green-500 to-teal-600 rounded-lg p-3 sm:p-6 text-white">
+      <div style={{ background: 'var(--color-accent-gradient)' }} className="rounded-lg p-3 sm:p-6 text-white">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">HR Dashboard 👥</h1>
-        <p className="text-green-100 text-sm sm:text-base">Manage people, processes, and organizational growth</p>
+        <p className="opacity-90 text-sm sm:text-base">Manage people, processes, and organizational growth</p>
         {stats && (
           <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
@@ -408,7 +401,7 @@ export default function HRDashboard({ user }) {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {hrStatsData.map((stat, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-md p-3 sm:p-6 hover:shadow-lg transition-shadow">
+          <div key={index} className="rounded-lg shadow-md p-3 sm:p-6 hover:shadow-lg transition-shadow" style={{ backgroundColor: 'var(--color-bg-card)' }}>
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-gray-500 text-xs sm:text-sm font-medium truncate">{stat.title}</p>
@@ -439,7 +432,7 @@ export default function HRDashboard({ user }) {
       {stats && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8">
           {/* Department Distribution */}
-          <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+          <div style={{ backgroundColor: 'var(--color-bg-card)' }} className="rounded-lg overflow-hidden">
             <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
               <h3 className="text-sm sm:text-base font-bold text-gray-800">Department Distribution</h3>
             </div>
@@ -453,14 +446,14 @@ export default function HRDashboard({ user }) {
                     labelStyle={{ fontSize: '11px', color: '#374151' }}
                     contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
                   />
-                  <Bar dataKey="count" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="count" fill="var(--color-primary-500)" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Gender Ratio */}
-          <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+          <div style={{ backgroundColor: 'var(--color-bg-card)' }} className="rounded-lg overflow-hidden">
             <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
               <h3 className="text-sm sm:text-base font-bold text-gray-800">Gender Distribution</h3>
             </div>
@@ -502,7 +495,7 @@ export default function HRDashboard({ user }) {
       {stats && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Today's Attendance Summary */}
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="rounded-lg shadow-md p-6" style={{ backgroundColor: 'var(--color-bg-card)' }}>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Today&apos;s Attendance</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
@@ -520,14 +513,14 @@ export default function HRDashboard({ user }) {
               <div className="pt-2 border-t">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-900">Attendance Rate</span>
-                  <span className="font-bold text-blue-600">{stats.attendanceRate.value}%</span>
+                  <span className="font-bold" style={{ color: 'var(--color-primary-600)' }}>{stats.attendanceRate.value}%</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* System Health */}
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="rounded-lg shadow-md p-6" style={{ backgroundColor: 'var(--color-bg-card)' }}>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">System Health</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
@@ -544,7 +537,7 @@ export default function HRDashboard({ user }) {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Open Positions</span>
-                <span className="font-semibold text-blue-600">{stats.openPositions.value}</span>
+                <span className="font-semibold" style={{ color: 'var(--color-primary-600)' }}>{stats.openPositions.value}</span>
               </div>
               <div className="pt-2 border-t">
                 <div className="flex justify-between items-center">
@@ -558,38 +551,38 @@ export default function HRDashboard({ user }) {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="rounded-lg shadow-md p-6" style={{ backgroundColor: 'var(--color-bg-card)' }}>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="space-y-3">
               <a
                 href="/dashboard/employees/add"
-                className="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                className="flex items-center p-3 quick-action-blue rounded-lg transition-all duration-200"
               >
-                <FaUserPlus className="w-5 h-5 text-blue-600 mr-3" />
-                <span className="text-sm font-medium text-blue-900">Add Employee</span>
+                <FaUserPlus className="w-5 h-5 mr-3 icon" />
+                <span className="text-sm font-medium text">Add Employee</span>
               </a>
               <a
                 href="/dashboard/leave/approvals"
-                className="flex items-center p-3 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors"
+                className="flex items-center p-3 quick-action-blue rounded-lg transition-all duration-200"
               >
-                <FaCalendarAlt className="w-5 h-5 text-yellow-600 mr-3" />
-                <span className="text-sm font-medium text-yellow-900">
+                <FaCalendarAlt className="w-5 h-5 mr-3 icon" />
+                <span className="text-sm font-medium text">
                   Review Leaves ({stats.pendingApprovals.leaves})
                 </span>
               </a>
               <a
                 href="/dashboard/recruitment"
-                className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+                className="flex items-center p-3 quick-action-blue rounded-lg transition-all duration-200"
               >
-                <FaBriefcase className="w-5 h-5 text-purple-600 mr-3" />
-                <span className="text-sm font-medium text-purple-900">Manage Jobs</span>
+                <FaBriefcase className="w-5 h-5 mr-3 icon" />
+                <span className="text-sm font-medium text">Manage Jobs</span>
               </a>
               <a
                 href="/dashboard/reports"
-                className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                className="flex items-center p-3 quick-action-blue rounded-lg transition-all duration-200"
               >
-                <FaFileAlt className="w-5 h-5 text-green-600 mr-3" />
-                <span className="text-sm font-medium text-green-900">Generate Reports</span>
+                <FaFileAlt className="w-5 h-5 mr-3 icon" />
+                <span className="text-sm font-medium text">Generate Reports</span>
               </a>
             </div>
           </div>
@@ -598,7 +591,7 @@ export default function HRDashboard({ user }) {
 
       {/* Alerts & Notifications */}
       {stats && (
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="rounded-lg shadow-md p-6" style={{ backgroundColor: 'var(--color-bg-card)' }}>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">System Alerts</h3>
           <div className="space-y-3">
             {stats.pipCases.value > 0 && (

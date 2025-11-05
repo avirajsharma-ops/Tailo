@@ -195,10 +195,10 @@ export default function AttendanceReportPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         {[
-          { title: 'Total Days', value: summary.totalDays, color: 'bg-blue-500', icon: FaCalendarAlt },
-          { title: 'Present Days', value: summary.presentDays, color: 'bg-green-500', icon: FaClock },
-          { title: 'Total Hours', value: `${summary.totalHours}h`, color: 'bg-purple-500', icon: FaChartLine },
-          { title: 'Attendance %', value: `${summary.attendancePercentage}%`, color: 'bg-indigo-500', icon: FaChartLine },
+          { title: 'Total Days', value: summary.totalDays, color: 'stat-icon-blue', icon: FaCalendarAlt },
+          { title: 'Present Days', value: summary.presentDays, color: 'stat-icon-green', icon: FaClock },
+          { title: 'Total Hours', value: `${summary.totalHours}h`, color: 'stat-icon-purple', icon: FaChartLine },
+          { title: 'Attendance %', value: `${summary.attendancePercentage}%`, color: 'stat-icon-indigo', icon: FaChartLine },
         ].map((stat, index) => (
           <div key={index} className="stats-card p-4 bg-white rounded-lg shadow-md">
             <div className="flex items-center justify-between">

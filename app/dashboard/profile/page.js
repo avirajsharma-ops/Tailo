@@ -372,9 +372,9 @@ export default function ProfilePage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Profile Card - Navy Blue Background */}
+        {/* Profile Card - Theme Accent Background */}
         <div className="lg:col-span-1">
-          <div style={{ backgroundColor: '#1A295A' }} className="rounded-2xl shadow-md p-6 sm:p-8 text-white">
+          <div style={{ backgroundColor: 'var(--color-accent-profile)' }} className="rounded-2xl shadow-md p-6 sm:p-8 text-white">
             {/* Profile Picture + Info Row */}
             <div className="flex items-start gap-4 sm:gap-6 mb-8">
               {/* Profile Picture */}

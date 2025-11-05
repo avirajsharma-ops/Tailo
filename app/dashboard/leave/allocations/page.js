@@ -215,14 +215,14 @@ export default function LeaveAllocationsPage() {
           </select>
           <button
             onClick={exportBalances}
-            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center space-x-2"
+            className="px-4 py-2 btn-theme-secondary rounded-lg transition-all duration-200 flex items-center space-x-2 font-semibold shadow-md hover:shadow-lg"
           >
             <FaDownload className="w-4 h-4" />
             <span>Export</span>
           </button>
           <button
             onClick={handleBulkAllocation}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+            className="px-4 py-2 btn-theme-primary rounded-lg transition-all duration-200 flex items-center space-x-2 font-semibold shadow-md hover:shadow-lg"
           >
             <FaUsers className="w-4 h-4" />
             <span>Bulk Allocate</span>
@@ -232,7 +232,7 @@ export default function LeaveAllocationsPage() {
               resetForm()
               setShowModal(true)
             }}
-            className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center space-x-2"
+            className="px-4 py-2 btn-theme-primary rounded-lg transition-all duration-200 flex items-center space-x-2 font-semibold shadow-md hover:shadow-lg"
           >
             <FaPlus className="w-4 h-4" />
             <span>Add Allocation</span>

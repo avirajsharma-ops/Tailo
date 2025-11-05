@@ -30,6 +30,10 @@ export const themes = {
       primary: '#FFFFFF',    // White text for dark sidebar
       secondary: '#9CA3AF',  // Gray text for dark sidebar
     },
+    accent: {
+      profile: '#1A295A',    // Profile card background (dark blue)
+      gradient: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)', // Gradient for special cards
+    },
     sidebarDark: true,       // Flag to indicate dark sidebar
   },
   purple: {
@@ -55,6 +59,10 @@ export const themes = {
     text: {
       primary: '#FFFFFF',    // White text for dark sidebar
       secondary: '#E9D5FF',  // Light purple text
+    },
+    accent: {
+      profile: '#581C87',    // Profile card background (dark purple)
+      gradient: 'linear-gradient(135deg, #6B21A8 0%, #A855F7 100%)', // Purple gradient
     },
     sidebarDark: true,
   },
@@ -82,6 +90,10 @@ export const themes = {
       primary: '#FFFFFF',    // White text for dark sidebar
       secondary: '#BBF7D0',  // Light green text
     },
+    accent: {
+      profile: '#14532D',    // Profile card background (dark green)
+      gradient: 'linear-gradient(135deg, #166534 0%, #22C55E 100%)', // Green gradient
+    },
     sidebarDark: true,
   },
   orange: {
@@ -108,6 +120,10 @@ export const themes = {
       primary: '#FFFFFF',    // White text for dark sidebar
       secondary: '#FED7AA',  // Light orange text
     },
+    accent: {
+      profile: '#7C2D12',    // Profile card background (dark orange)
+      gradient: 'linear-gradient(135deg, #9A3412 0%, #F97316 100%)', // Orange gradient
+    },
     sidebarDark: true,
   },
   teal: {
@@ -133,6 +149,10 @@ export const themes = {
     text: {
       primary: '#FFFFFF',    // White text for dark sidebar
       secondary: '#99F6E4',  // Light teal text
+    },
+    accent: {
+      profile: '#134E4A',    // Profile card background (dark teal)
+      gradient: 'linear-gradient(135deg, #115E59 0%, #14B8A6 100%)', // Teal gradient
     },
     sidebarDark: true,
   }
@@ -172,6 +192,10 @@ export function ThemeProvider({ children }) {
     // Apply text colors
     root.style.setProperty('--color-text-primary', theme.text.primary)
     root.style.setProperty('--color-text-secondary', theme.text.secondary)
+
+    // Apply accent colors
+    root.style.setProperty('--color-accent-profile', theme.accent.profile)
+    root.style.setProperty('--color-accent-gradient', theme.accent.gradient)
   }
 
   const changeTheme = (themeName) => {

@@ -210,11 +210,11 @@ export default function AdminDashboard({ user }) {
     const totalDepartments = departments.length
 
     return [
-      { title: 'Total Employees', value: totalEmployees, icon: FaUsers, color: 'bg-blue-500', href: '/dashboard/employees' },
-      { title: 'Active Employees', value: activeEmployees, icon: FaClock, color: 'bg-green-500', href: '/dashboard/employees' },
-      { title: 'On Leave Today', value: onLeaveToday, icon: FaCalendarAlt, color: 'bg-yellow-500', href: '/dashboard/leave/requests' },
-      { title: 'Pending Approvals', value: pendingApprovalsCount, icon: FaChartLine, color: 'bg-purple-500', href: '/dashboard/leave/approvals' },
-      { title: 'Departments', value: totalDepartments, icon: FaBuilding, color: 'bg-teal-500', href: '/dashboard/departments' },
+      { title: 'Total Employees', value: totalEmployees, icon: FaUsers, color: 'stat-icon-blue', href: '/dashboard/employees' },
+      { title: 'Active Employees', value: activeEmployees, icon: FaClock, color: 'stat-icon-green', href: '/dashboard/employees' },
+      { title: 'On Leave Today', value: onLeaveToday, icon: FaCalendarAlt, color: 'stat-icon-yellow', href: '/dashboard/leave/requests' },
+      { title: 'Pending Approvals', value: pendingApprovalsCount, icon: FaChartLine, color: 'stat-icon-purple', href: '/dashboard/leave/approvals' },
+      { title: 'Departments', value: totalDepartments, icon: FaBuilding, color: 'stat-icon-teal', href: '/dashboard/departments' },
       { title: 'System Health', value: 'Good', icon: FaExclamationTriangle, color: 'bg-green-500', href: '/dashboard/settings' },
     ]
   }
@@ -414,26 +414,7 @@ export default function AdminDashboard({ user }) {
       </div>
 
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
-        <h1 className="text-3xl font-bold mb-2">Admin Dashboard </h1>
-        <p className="text-blue-100">Complete system overview and management controls</p>
-        <div className="mt-4 flex space-x-4">
-          <button
-            onClick={() => router.push('/dashboard/employees/add')}
-            className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-          >
-            <FaUserPlus className="w-4 h-4" />
-            <span>Add Employee</span>
-          </button>
-          <button
-            onClick={() => router.push('/dashboard/leave/approvals')}
-            className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-          >
-            <FaCheck className="w-4 h-4" />
-            <span>Approve Leaves ({Array.isArray(dashboardData.pendingApprovals) ? dashboardData.pendingApprovals.length : 0})</span>
-          </button>
-        </div>
-      </div>
+     
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -659,20 +640,20 @@ export default function AdminDashboard({ user }) {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Admin Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { name: 'Add Employee', icon: FaUserPlus, href: '/dashboard/employees/add', color: 'bg-green-500' },
-            { name: 'Manage Departments', icon: FaBuilding, href: '/dashboard/departments', color: 'bg-blue-500' },
-            { name: 'Leave Types', icon: FaCalendarAlt, href: '/dashboard/leave-types', color: 'bg-purple-500' },
-            { name: 'Leave Allocations', icon: FaMoneyBillWave, href: '/dashboard/leave/allocations', color: 'bg-red-500' },
+            { name: 'Add Employee', icon: FaUserPlus, href: '/dashboard/employees/add', color: 'stat-icon-green' },
+            { name: 'Manage Departments', icon: FaBuilding, href: '/dashboard/departments', color: 'stat-icon-blue' },
+            { name: 'Leave Types', icon: FaCalendarAlt, href: '/dashboard/leave-types', color: 'stat-icon-purple' },
+            { name: 'Leave Allocations', icon: FaMoneyBillWave, href: '/dashboard/leave/allocations', color: 'stat-icon-red' },
           ].map((action, index) => (
             <button
               key={index}
               onClick={() => router.push(action.href)}
-              className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+              className="flex flex-col items-center justify-center p-6 rounded-lg transition-all duration-200 cursor-pointer quick-action-blue"
             >
               <div className={`${action.color} p-3 rounded-lg mb-3`}>
                 <action.icon className="w-6 h-6 text-white" />
               </div>
-              <span className="text-sm font-medium text-gray-900 text-center">{action.name}</span>
+              <span className="text-sm font-medium text-center text">{action.name}</span>
             </button>
           ))}
         </div>

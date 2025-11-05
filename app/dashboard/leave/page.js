@@ -151,7 +151,7 @@ export default function LeavePage() {
           <div className="flex gap-2 sm:gap-3">
             <button
               onClick={() => window.location.href = '/dashboard/leave/apply'}
-              className="flex-1 sm:flex-none bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
+              className="flex-1 sm:flex-none btn-theme-primary px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base font-semibold shadow-md hover:shadow-lg"
             >
               <FaPlus className="text-sm" />
               <span>Apply Leave</span>

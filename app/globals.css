@@ -25,11 +25,61 @@
   /* Text Colors - For Dark Sidebar */
   --color-text-primary: #FFFFFF;
   --color-text-secondary: #9CA3AF;
+
+  /* Accent Colors - For Special Cards */
+  --color-accent-profile: #1A295A;
+  --color-accent-gradient: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
 }
 
 /* Apply theme colors to body and common elements */
 body {
   background-color: var(--color-bg-main) !important;
+}
+
+/* Theme-aware stat card icon backgrounds */
+.stat-icon-blue { background-color: var(--color-primary-500) !important; }
+.stat-icon-green { background-color: var(--color-primary-600) !important; }
+.stat-icon-yellow { background-color: var(--color-primary-400) !important; }
+.stat-icon-purple { background-color: var(--color-primary-700) !important; }
+.stat-icon-teal { background-color: var(--color-primary-600) !important; }
+.stat-icon-indigo { background-color: var(--color-primary-800) !important; }
+.stat-icon-red { background-color: var(--color-primary-700) !important; }
+.stat-icon-orange { background-color: var(--color-primary-500) !important; }
+
+/* Theme-aware button backgrounds */
+.btn-theme-primary {
+  background-color: var(--color-primary-500) !important;
+  color: white !important;
+}
+.btn-theme-primary:hover {
+  background-color: var(--color-primary-600) !important;
+}
+.btn-theme-primary:disabled {
+  background-color: var(--color-primary-300) !important;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-theme-secondary {
+  background-color: var(--color-primary-100) !important;
+  color: var(--color-primary-700) !important;
+}
+.btn-theme-secondary:hover {
+  background-color: var(--color-primary-200) !important;
+}
+
+/* Theme-aware quick action cards */
+.quick-action-blue {
+  background-color: var(--color-primary-50) !important;
+}
+.quick-action-blue:hover {
+  background-color: var(--color-primary-100) !important;
+}
+.quick-action-blue .icon {
+  color: var(--color-primary-600) !important;
+}
+.quick-action-blue .text {
+  color: var(--color-primary-900) !important;
 }
 
 /* PWA Safe Area Support */
@@ -40,6 +90,7 @@ html {
   overscroll-behavior-y: contain;
   height: 100%;
   overflow: hidden;
+  background-color: var(--color-bg-main);
 }
 
 body {
@@ -52,6 +103,17 @@ body {
   overflow: hidden;
   position: fixed;
   width: 100%;
+  background-color: var(--color-bg-main);
+}
+
+/* Main content area background */
+main {
+  background-color: var(--color-bg-main);
+}
+
+/* Page container background */
+.page-container {
+  background-color: transparent;
 }
 
 /* Hide scrollbar utility */

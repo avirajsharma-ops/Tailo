@@ -232,7 +232,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         </nav>
 
         {/* Settings and Logout Section - Fixed at bottom */}
-        <div className="flex items-center justify-center p-3 sm:p-4 space-y-2 flex-shrink-0" style={{ borderTop: '1px solid var(--color-primary-200)' }}>
+        <div className="flex items-center justify-center p-[8px] sm:p-4 space-y-2 flex-shrink-0" style={{ borderTop: '1px solid var(--color-primary-200)' }}>
           {/* Settings Button */}
           <Link
             href="/dashboard/settings"

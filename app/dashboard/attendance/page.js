@@ -186,7 +186,7 @@ export default function AttendancePage() {
             <button
               onClick={handleClockIn}
               disabled={loading || (todayAttendance && todayAttendance.checkIn)}
-              className="btn-primary flex items-center p-8 space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-theme-primary flex items-center p-8 space-x-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200"
             >
               <FaSignInAlt />
               <span>Clock In</span>
@@ -194,7 +194,7 @@ export default function AttendancePage() {
             <button
               onClick={handleClockOut}
               disabled={loading || !todayAttendance || !todayAttendance.checkIn || todayAttendance.checkOut}
-              className="btn-secondary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-theme-secondary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed p-8 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200"
             >
               <FaSignOutAlt />
               <span>Clock Out</span>

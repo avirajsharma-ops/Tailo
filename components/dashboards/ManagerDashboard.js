@@ -248,10 +248,10 @@ export default function ManagerDashboard({ user }) {
   }
 
   const managerStatsData = [
-    { title: 'Team Members', value: stats.teamStrength.toString(), change: '', icon: FaUsers, color: 'bg-blue-500', trend: 'neutral' },
-    { title: 'Present Today', value: stats.attendanceSummary.present.toString(), change: '', icon: FaClock, color: 'bg-green-500', trend: 'up' },
-    { title: 'Pending Leaves', value: stats.pendingLeaveApprovals.length.toString(), change: '', icon: FaCalendarAlt, color: 'bg-yellow-500', trend: 'neutral' },
-    { title: 'On Leave Today', value: stats.onLeaveToday.length.toString(), change: '', icon: FaCalendarAlt, color: 'bg-orange-500', trend: 'neutral' },
+    { title: 'Team Members', value: stats.teamStrength.toString(), change: '', icon: FaUsers, color: 'stat-icon-blue', trend: 'neutral' },
+    { title: 'Present Today', value: stats.attendanceSummary.present.toString(), change: '', icon: FaClock, color: 'stat-icon-green', trend: 'up' },
+    { title: 'Pending Leaves', value: stats.pendingLeaveApprovals.length.toString(), change: '', icon: FaCalendarAlt, color: 'stat-icon-yellow', trend: 'neutral' },
+    { title: 'On Leave Today', value: stats.onLeaveToday.length.toString(), change: '', icon: FaCalendarAlt, color: 'stat-icon-orange', trend: 'neutral' },
     { title: 'Team Performance', value: `${Math.round(stats.performanceStats.averageRating * 20)}%`, change: '', icon: FaChartLine, color: 'bg-indigo-500', trend: 'up' },
     { title: 'Underperforming', value: stats.underperforming.length.toString(), change: '', icon: FaExclamationCircle, color: 'bg-red-500', trend: 'down' },
   ]

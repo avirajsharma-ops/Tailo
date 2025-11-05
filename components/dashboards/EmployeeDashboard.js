@@ -312,8 +312,8 @@ export default function EmployeeDashboard({ user }) {
 
   return (
     <div className="page-container space-y-5 sm:space-y-8">
-      {/* Check-In/Check-Out Section - Compact Design */}
-      <div style={{ backgroundColor: '#1A295A' }} className="rounded-2xl shadow-md p-4 sm:p-6 text-white">
+      {/* Check-In/Check-Out Section - Theme Accent */}
+      <div style={{ backgroundColor: 'var(--color-accent-profile)' }} className="rounded-2xl shadow-md p-4 sm:p-6 text-white">
         {/* User Profile Section */}
         <div className="flex items-center gap-3 mb-4">
           {/* Profile Picture */}
@@ -353,7 +353,7 @@ export default function EmployeeDashboard({ user }) {
           <button
             onClick={handleClockIn}
             disabled={attendanceLoading || (todayAttendance && todayAttendance.checkIn)}
-            className="bg-white text-gray-800 hover:bg-gray-100 disabled:bg-gray-400 disabled:text-gray-600 disabled:cursor-not-allowed px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center flex-1"
+            className="btn-theme-primary disabled:opacity-50 disabled:cursor-not-allowed px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center flex-1"
           >
             <span>Check In</span>
           </button>
@@ -361,7 +361,7 @@ export default function EmployeeDashboard({ user }) {
           <button
             onClick={handleClockOut}
             disabled={attendanceLoading || !todayAttendance || !todayAttendance.checkIn || todayAttendance.checkOut}
-            className="bg-transparent border-2 border-white text-white hover:bg-white hover:bg-opacity-10 disabled:border-gray-500 disabled:text-gray-500 disabled:cursor-not-allowed px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center flex-1"
+            className="btn-theme-secondary disabled:opacity-50 disabled:cursor-not-allowed px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center flex-1"
           >
             <span>Check Out</span>
           </button>
@@ -369,7 +369,7 @@ export default function EmployeeDashboard({ user }) {
       </div>
 
       {/* Quick Glance Section - Separate Card */}
-      <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-2xl p-4 sm:p-6">
+      <div style={{ backgroundColor: 'var(--color-bg-card)' }} className="rounded-2xl p-4 sm:p-6">
         <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4">Quick Glance</h3>
 
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -463,7 +463,7 @@ export default function EmployeeDashboard({ user }) {
 
       {/* Announcements Section */}
       {announcements.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-3 sm:p-6">
+        <div className="rounded-lg shadow-md p-3 sm:p-6" style={{ backgroundColor: 'var(--color-bg-card)' }}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 space-y-2 sm:space-y-0">
             <div className="flex items-center space-x-3">
               <FaBullhorn className="w-5 h-5 sm:w-6 sm:h-6 text-primary-500" />
@@ -507,7 +507,7 @@ export default function EmployeeDashboard({ user }) {
 
       {/* Upcoming Holidays */}
       {holidays.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-3 sm:p-6">
+        <div className="rounded-lg shadow-md p-3 sm:p-6" style={{ backgroundColor: 'var(--color-bg-card)' }}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 space-y-2 sm:space-y-0">
             <div className="flex items-center space-x-3">
               <FaGift className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
@@ -544,7 +544,7 @@ export default function EmployeeDashboard({ user }) {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {employeeStatsData.map((stat, index) => (
-          <div key={index} style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg p-3 sm:p-6 transition-all">
+          <div key={index} style={{ backgroundColor: 'var(--color-bg-card)' }} className="rounded-lg p-3 sm:p-6 transition-all">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-gray-500 text-xs sm:text-sm font-medium truncate">{stat.title}</p>
@@ -575,7 +575,7 @@ export default function EmployeeDashboard({ user }) {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8">
         {/* Daily Hours */}
-        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+        <div style={{ backgroundColor: 'var(--color-bg-card)' }} className="rounded-lg overflow-hidden">
           <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
             <h3 className="text-sm sm:text-base font-bold text-gray-800">Daily Working Hours (Last 7 Days)</h3>
           </div>
@@ -618,7 +618,7 @@ export default function EmployeeDashboard({ user }) {
         </div>
 
         {/* Leave Balance */}
-        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg overflow-hidden">
+        <div style={{ backgroundColor: 'var(--color-bg-card)' }} className="rounded-lg overflow-hidden">
           <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
             <h3 className="text-sm sm:text-base font-bold text-gray-800">Leave Balance Trend</h3>
           </div>
@@ -656,7 +656,7 @@ export default function EmployeeDashboard({ user }) {
       {/* Personal Activities & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
         {/* Recent Activities */}
-        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg p-3 sm:p-6">
+        <div style={{ backgroundColor: 'var(--color-bg-card)' }} className="rounded-lg p-3 sm:p-6">
           <h3 className="text-sm sm:text-base font-bold text-gray-800 mb-4">My Recent Activities</h3>
           <div className="space-y-3 sm:space-y-4">
             {recentActivities.length > 0 ? (
@@ -679,24 +679,24 @@ export default function EmployeeDashboard({ user }) {
         </div>
 
         {/* Employee Quick Actions */}
-        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg p-3 sm:p-6">
+        <div style={{ backgroundColor: 'var(--color-bg-card)' }} className="rounded-lg p-3 sm:p-6">
           <h3 className="text-sm sm:text-base font-bold text-gray-800 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             {[
-              { name: 'Mark Attendance', icon: FaClock, href: '/dashboard/attendance', color: 'bg-green-500' },
-              { name: 'Apply Leave', icon: FaCalendarAlt, href: '/dashboard/leave/apply', color: 'bg-blue-500' },
-              { name: 'View Payslip', icon: FaMoneyBillWave, href: '/dashboard/payroll/payslips', color: 'bg-purple-500' },
-              { name: 'My Profile', icon: FaUser, href: '/dashboard/profile', color: 'bg-red-500' },
+              { name: 'Mark Attendance', icon: FaClock, href: '/dashboard/attendance', color: 'stat-icon-green' },
+              { name: 'Apply Leave', icon: FaCalendarAlt, href: '/dashboard/leave/apply', color: 'stat-icon-blue' },
+              { name: 'View Payslip', icon: FaMoneyBillWave, href: '/dashboard/payroll/payslips', color: 'stat-icon-purple' },
+              { name: 'My Profile', icon: FaUser, href: '/dashboard/profile', color: 'stat-icon-red' },
             ].map((action, index) => (
               <a
                 key={index}
                 href={action.href}
-                className="flex flex-col items-center justify-center p-3 sm:p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                className="flex flex-col items-center justify-center p-3 sm:p-6 quick-action-blue rounded-lg transition-all duration-200 cursor-pointer"
               >
                 <div className={`${action.color} p-2 sm:p-3 rounded-lg mb-2 sm:mb-3`}>
                   <action.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <span className="text-xs sm:text-sm font-medium text-gray-900 text-center leading-tight">{action.name}</span>
+                <span className="text-xs sm:text-sm font-medium text-center leading-tight text">{action.name}</span>
               </a>
             ))}
           </div>
@@ -706,7 +706,7 @@ export default function EmployeeDashboard({ user }) {
       {/* Personal Information & Goals */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
         {/* Today's Schedule */}
-        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg p-3 sm:p-6">
+        <div style={{ backgroundColor: 'var(--color-bg-card)' }} className="rounded-lg p-3 sm:p-6">
           <h3 className="text-sm sm:text-base font-bold text-gray-800 mb-4">Today&apos;s Tasks</h3>
           <div className="space-y-3">
             {todayTasks.length > 0 ? (
@@ -751,7 +751,7 @@ export default function EmployeeDashboard({ user }) {
         </div>
 
         {/* Learning Progress */}
-        <div style={{ backgroundColor: '#EEF3FF' }} className="rounded-lg p-3 sm:p-6">
+        <div style={{ backgroundColor: 'var(--color-bg-card)' }} className="rounded-lg p-3 sm:p-6">
           <h3 className="text-sm sm:text-base font-bold text-gray-800 mb-4">Learning Progress</h3>
           <div className="space-y-4">
             {[

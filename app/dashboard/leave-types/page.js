@@ -158,7 +158,7 @@ export default function LeaveTypesPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="btn-primary flex items-center justify-center space-x-2 w-full sm:w-auto"
+          className="btn-theme-primary flex items-center justify-center space-x-2 w-full sm:w-auto rounded-lg px-4 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-200"
         >
           <FaPlus className="w-4 h-4" />
           <span>Add Leave Type</span>

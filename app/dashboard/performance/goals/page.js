@@ -182,11 +182,11 @@ export default function PerformanceGoalsPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
         {[
-          { title: 'Total Goals', value: goals.length, color: 'bg-blue-500' },
-          { title: 'Total Projects', value: projects.length, color: 'bg-purple-500' },
-          { title: 'Completed', value: allItems.filter(g => g.status === 'completed').length, color: 'bg-green-500' },
-          { title: 'In Progress', value: allItems.filter(g => g.status === 'in_progress' || g.status === 'in-progress').length, color: 'bg-yellow-500' },
-          { title: 'Overdue', value: allItems.filter(g => isOverdue(g.dueDate, g.status)).length, color: 'bg-red-500' },
+          { title: 'Total Goals', value: goals.length, color: 'stat-icon-blue' },
+          { title: 'Total Projects', value: projects.length, color: 'stat-icon-purple' },
+          { title: 'Completed', value: allItems.filter(g => g.status === 'completed').length, color: 'stat-icon-green' },
+          { title: 'In Progress', value: allItems.filter(g => g.status === 'in_progress' || g.status === 'in-progress').length, color: 'stat-icon-yellow' },
+          { title: 'Overdue', value: allItems.filter(g => isOverdue(g.dueDate, g.status)).length, color: 'stat-icon-red' },
         ].map((stat, index) => (
           <div key={index} className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between">
