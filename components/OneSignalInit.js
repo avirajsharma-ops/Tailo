@@ -47,13 +47,29 @@ export default function OneSignalInit() {
               disable: true
             },
             
-            // Prompt options
+            // Prompt options - Enable native slidedown with auto-prompt
             promptOptions: {
               slidedown: {
-                enabled: false, // We'll use custom prompt
-                actionMessage: "We'd like to show you notifications for important updates",
+                enabled: true,
+                autoPrompt: true, // Automatically show when not subscribed
+                actionMessage: "Enable notifications to stay updated with tasks, messages, and important updates",
                 acceptButtonText: "Allow",
-                cancelButtonText: "No Thanks",
+                cancelButtonText: "Not Now",
+                prompts: [
+                  {
+                    type: "push", // For push notifications
+                    autoPrompt: true,
+                    text: {
+                      actionMessage: "Enable notifications to receive important updates about tasks, messages, and announcements",
+                      acceptButton: "Allow",
+                      cancelButton: "Not Now"
+                    },
+                    delay: {
+                      pageViews: 1, // Show on first page view
+                      timeDelay: 3 // Show after 3 seconds
+                    }
+                  }
+                ],
                 categories: {
                   tags: [
                     {
@@ -75,6 +91,15 @@ export default function OneSignalInit() {
                   ]
                 }
               }
+            },
+
+            // Show native prompt immediately if not subscribed
+            showNativePrompt: true,
+
+            // Persistent prompt - shows banner if notifications are disabled
+            persistentPrompt: {
+              enabled: true,
+              autoPrompt: true
             }
           })
 
@@ -139,16 +164,41 @@ export default function OneSignalInit() {
           // Check current permission status
           const permission = await OneSignal.Notifications.permission
           console.log('[OneSignal] Current permission:', permission)
-          
+
           // If permission is granted, ensure we're subscribed
           if (permission) {
             const isPushSupported = await OneSignal.Notifications.isPushSupported()
             console.log('[OneSignal] Push supported:', isPushSupported)
-            
+
             if (isPushSupported) {
               const isOptedIn = await OneSignal.User.PushSubscription.optedIn
               console.log('[OneSignal] Opted in:', isOptedIn)
+
+              // If not opted in, subscribe
+              if (!isOptedIn) {
+                console.log('[OneSignal] Subscribing user...')
+                await OneSignal.User.PushSubscription.optIn()
+              }
             }
+          } else {
+            // Permission not granted - show slidedown immediately
+            console.log('[OneSignal] Permission not granted, showing slidedown...')
+
+            // Wait a bit for the page to load
+            setTimeout(async () => {
+              try {
+                // Check if slidedown is available
+                if (OneSignal.Slidedown) {
+                  console.log('[OneSignal] Triggering slidedown prompt...')
+                  await OneSignal.Slidedown.promptPush()
+                } else {
+                  console.log('[OneSignal] Slidedown not available, using direct prompt...')
+                  await OneSignal.Notifications.requestPermission()
+                }
+              } catch (error) {
+                console.error('[OneSignal] Error showing prompt:', error)
+              }
+            }, 3000) // Show after 3 seconds
           }
         })
       } catch (error) {

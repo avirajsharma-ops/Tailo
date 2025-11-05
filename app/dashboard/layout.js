@@ -6,8 +6,9 @@ import Sidebar from '@/components/Sidebar'
 import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
 import PWAInstaller, { OfflineIndicator } from '@/components/PWAInstaller'
-import NotificationPermissionPopup from '@/components/NotificationPermissionPopup'
 import OutOfPremisesPopup from '@/components/OutOfPremisesPopup'
+import NotificationBanner from '@/components/NotificationBanner'
+import LocationBanner from '@/components/LocationBanner'
 import ThemeMetaTags from '@/components/ThemeMetaTags'
 import { useNotificationInit } from '@/hooks/useNotifications'
 import useGeofencing from '@/hooks/useGeofencing'
@@ -36,6 +37,12 @@ export default function DashboardLayout({ children }) {
         {/* Dynamic theme meta tags for mobile browser bars */}
         <ThemeMetaTags />
 
+        {/* Notification Banner - Shows when notifications are disabled */}
+        <NotificationBanner />
+
+        {/* Location Banner - Shows when location is disabled */}
+        <LocationBanner />
+
         <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
         <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -62,9 +69,6 @@ export default function DashboardLayout({ children }) {
 
         {/* PWA Install Prompt */}
         <PWAInstaller />
-
-        {/* Notification Permission Popup */}
-        <NotificationPermissionPopup />
 
         {/* Out of Premises Popup */}
         <OutOfPremisesPopup />
