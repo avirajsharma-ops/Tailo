@@ -22,9 +22,26 @@ export default function NotificationPermissionPopup() {
   const [isDenied, setIsDenied] = useState(false)
   const [locationPermission, setLocationPermission] = useState('prompt')
   const [locationDenied, setLocationDenied] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
+  const [browserInfo, setBrowserInfo] = useState({ name: 'Unknown', isMobile: false })
 
   useEffect(() => {
     console.log('PermissionPopup: Initializing...')
+
+    // Detect browser
+    const detectBrowser = () => {
+      const ua = navigator.userAgent
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
+
+      let name = 'Unknown'
+      if (ua.indexOf('Chrome') > -1 && ua.indexOf('Edg') === -1) name = 'Chrome'
+      else if (ua.indexOf('Safari') > -1 && ua.indexOf('Chrome') === -1) name = 'Safari'
+      else if (ua.indexOf('Firefox') > -1) name = 'Firefox'
+      else if (ua.indexOf('Edg') > -1) name = 'Edge'
+
+      setBrowserInfo({ name, isMobile })
+    }
+    detectBrowser()
 
     // Check if notifications are supported
     if (!isNotificationSupported()) {
@@ -356,9 +373,9 @@ export default function NotificationPermissionPopup() {
               <button
                 onClick={handleEnablePermissions}
                 disabled={isRequesting}
-                className={`w-full font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 ${
+                className={`w-full font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center space-x-2 shadow-lg ${
                   isDenied || locationDenied
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                    ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse'
                     : 'bg-blue-600 hover:bg-blue-700 text-white'
                 }`}
               >
@@ -378,10 +395,98 @@ export default function NotificationPermissionPopup() {
                   </>
                 )}
               </button>
+
+              {(isDenied || locationDenied) && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <p className="text-yellow-800 text-xs font-medium text-center">
+                    ⚠️ This app cannot function without these permissions. Please enable them to continue.
+                  </p>
+                </div>
+              )}
+
+              {/* Help Button */}
+              <button
+                onClick={() => setShowHelp(!showHelp)}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium underline"
+              >
+                {showHelp ? '▲ Hide Instructions' : '▼ Need Help? Click Here'}
+              </button>
+
+              {/* Browser-Specific Help */}
+              {showHelp && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
+                  <h4 className="font-semibold text-blue-900 mb-2">
+                    📱 Instructions for {browserInfo.name} {browserInfo.isMobile ? '(Mobile)' : '(Desktop)'}
+                  </h4>
+
+                  {browserInfo.name === 'Chrome' && !browserInfo.isMobile && (
+                    <ol className="list-decimal list-inside space-y-1 text-blue-800">
+                      <li>Click the <strong>lock icon (🔒)</strong> in the address bar</li>
+                      <li>Find <strong>"Notifications"</strong> and <strong>"Location"</strong></li>
+                      <li>Change both to <strong>"Allow"</strong></li>
+                      <li>Refresh this page</li>
+                    </ol>
+                  )}
+
+                  {browserInfo.name === 'Chrome' && browserInfo.isMobile && (
+                    <ol className="list-decimal list-inside space-y-1 text-blue-800">
+                      <li>Tap the <strong>three dots (⋮)</strong> menu</li>
+                      <li>Go to <strong>Settings → Site settings</strong></li>
+                      <li>Enable <strong>Notifications</strong> and <strong>Location</strong></li>
+                      <li>Refresh this page</li>
+                    </ol>
+                  )}
+
+                  {browserInfo.name === 'Safari' && !browserInfo.isMobile && (
+                    <ol className="list-decimal list-inside space-y-1 text-blue-800">
+                      <li>Click <strong>Safari → Settings</strong> in menu bar</li>
+                      <li>Go to <strong>Websites</strong> tab</li>
+                      <li>Enable <strong>Notifications</strong> and <strong>Location</strong> for this site</li>
+                      <li>Refresh this page</li>
+                    </ol>
+                  )}
+
+                  {browserInfo.name === 'Safari' && browserInfo.isMobile && (
+                    <ol className="list-decimal list-inside space-y-1 text-blue-800">
+                      <li>Go to <strong>iOS Settings → Safari</strong></li>
+                      <li>Enable <strong>Location Services</strong></li>
+                      <li>Go to <strong>Settings → Notifications → Safari</strong></li>
+                      <li>Enable notifications</li>
+                      <li>Refresh this page</li>
+                    </ol>
+                  )}
+
+                  {browserInfo.name === 'Firefox' && (
+                    <ol className="list-decimal list-inside space-y-1 text-blue-800">
+                      <li>Click the <strong>lock icon (🔒)</strong> in address bar</li>
+                      <li>Click <strong>"More information"</strong></li>
+                      <li>Go to <strong>Permissions</strong> tab</li>
+                      <li>Allow <strong>Notifications</strong> and <strong>Location</strong></li>
+                      <li>Refresh this page</li>
+                    </ol>
+                  )}
+
+                  {browserInfo.name === 'Edge' && (
+                    <ol className="list-decimal list-inside space-y-1 text-blue-800">
+                      <li>Click the <strong>lock icon (🔒)</strong> in address bar</li>
+                      <li>Find <strong>"Notifications"</strong> and <strong>"Location"</strong></li>
+                      <li>Change both to <strong>"Allow"</strong></li>
+                      <li>Refresh this page</li>
+                    </ol>
+                  )}
+
+                  {browserInfo.name === 'Unknown' && (
+                    <p className="text-blue-800">
+                      Look for the <strong>lock icon (🔒)</strong> or <strong>info icon (ⓘ)</strong> in your browser's address bar,
+                      then enable Notifications and Location permissions for this site.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
-            <p className="text-xs text-gray-500 text-center mt-4">
-              Both Notifications and Location permissions are required to use this app
+            <p className="text-xs text-gray-500 text-center mt-4 font-semibold">
+              🔒 Both Notifications and Location permissions are REQUIRED to use this app
             </p>
           </div>
         </div>

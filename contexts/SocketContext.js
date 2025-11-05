@@ -21,12 +21,15 @@ export function SocketProvider({ children }) {
     }
 
     // Initialize Socket.IO connection
-    const socketInstance = io({
+    // Use window.location.origin to connect to the same server
+    const socketInstance = io(window.location.origin, {
       path: '/api/socketio',
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'], // Try polling first, then upgrade to websocket
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5
+      reconnectionAttempts: 10,
+      timeout: 20000,
+      autoConnect: true
     })
 
     // Connection event handlers

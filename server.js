@@ -4,10 +4,10 @@ const next = require('next')
 const { Server } = require('socket.io')
 
 const dev = process.env.NODE_ENV !== 'production'
-const hostname = 'localhost'
+const hostname = process.env.HOSTNAME || '0.0.0.0' // Listen on all interfaces in production
 const port = parseInt(process.env.PORT || '3000', 10)
 
-const app = next({ dev, hostname, port })
+const app = next({ dev })
 const handle = app.getRequestHandler()
 
 app.prepare().then(() => {
@@ -27,10 +27,14 @@ app.prepare().then(() => {
     path: '/api/socketio',
     addTrailingSlash: false,
     cors: {
-      origin: process.env.NEXT_PUBLIC_APP_URL || '*',
+      origin: dev ? 'http://localhost:3000' : ['https://zenova.sbs', 'https://www.zenova.sbs'],
       methods: ['GET', 'POST'],
       credentials: true
-    }
+    },
+    transports: ['polling', 'websocket'], // Allow both transports
+    allowEIO3: true, // Allow Engine.IO v3 clients
+    pingTimeout: 60000,
+    pingInterval: 25000
   })
 
   // Socket.IO connection handling
