@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
@@ -10,6 +11,7 @@ import { useNotificationInit } from '@/hooks/useNotifications'
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const pathname = usePathname()
 
   // Initialize notifications
   useNotificationInit()
@@ -17,6 +19,9 @@ export default function DashboardLayout({ children }) {
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen)
   }
+
+  // Check if current page is chat
+  const isChatPage = pathname?.startsWith('/dashboard/chat')
 
   return (
     <div className="flex h-screen bg-gray-50 relative">
@@ -33,10 +38,12 @@ export default function DashboardLayout({ children }) {
           {children}
         </main>
 
-        {/* Gradient above bottom nav - Mobile only */}
-        <div className="md:hidden fixed bottom-[72px] left-0  right-0 h-[124px] pointer-events-none z-[39]"
-             style={{ background: 'linear-gradient(179.13deg, rgba(249, 250, 251, 0) 0%, #F9FAFB 71.18%)' }}>
-        </div>
+        {/* Gradient above bottom nav - Mobile only - Hide on chat page */}
+        {!isChatPage && (
+          <div className="md:hidden fixed bottom-[72px] left-0  right-0 h-[124px] pointer-events-none z-[39]"
+               style={{ background: 'linear-gradient(179.13deg, rgba(249, 250, 251, 0) 0%, #F9FAFB 71.18%)' }}>
+          </div>
+        )}
 
         {/* Bottom Navigation for Mobile */}
         <BottomNav />
