@@ -25,11 +25,33 @@ export async function POST(request) {
 
     // Get current user's employee data to check if they're a department head
     const currentUser = await User.findById(decoded.userId)
-    const currentEmployee = await Employee.findOne({ userId: decoded.userId })
+
+    console.log('[Notifications] Current user:', {
+      userId: decoded.userId,
+      role: decoded.role,
+      hasEmployeeId: !!currentUser?.employeeId
+    })
+
+    // Find employee by reverse lookup (User has employeeId field)
+    let currentEmployee = null
+    if (currentUser && currentUser.employeeId) {
+      currentEmployee = await Employee.findById(currentUser.employeeId)
+      console.log('[Notifications] Current employee:', {
+        employeeId: currentEmployee?._id,
+        isDepartmentHead: currentEmployee?.isDepartmentHead,
+        department: currentEmployee?.department
+      })
+    }
 
     // Check if user has permission (admin, hr, department_head role, or isDepartmentHead flag)
     const hasPermission = ['admin', 'hr', 'department_head'].includes(decoded.role) ||
                          (currentEmployee && currentEmployee.isDepartmentHead)
+
+    console.log('[Notifications] Permission check:', {
+      role: decoded.role,
+      hasPermission,
+      isDepartmentHead: currentEmployee?.isDepartmentHead
+    })
 
     if (!hasPermission) {
       return NextResponse.json(
@@ -51,6 +73,14 @@ export async function POST(request) {
 
     // Determine if user is department head (by role or flag)
     const isDeptHead = decoded.role === 'department_head' || (currentEmployee && currentEmployee.isDepartmentHead)
+
+    // Department heads need an employee record to send notifications
+    if (isDeptHead && !['admin', 'hr'].includes(decoded.role) && !currentEmployee) {
+      return NextResponse.json(
+        { success: false, message: 'Employee record not found. Please contact administrator.' },
+        { status: 403 }
+      )
+    }
 
     // Department heads (non-admin/hr) cannot use 'department' or 'role' target types
     if (isDeptHead && !['admin', 'hr'].includes(decoded.role)) {
@@ -163,17 +193,17 @@ export async function POST(request) {
     // If scheduled for later, create scheduled notification
     if (scheduleType === 'scheduled' && scheduledFor) {
       const ScheduledNotification = (await import('@/models/ScheduledNotification')).default
-      
+
       const scheduledNotif = await ScheduledNotification.create({
         title,
         message,
         url: url || '/dashboard',
         targetType,
-        targetDepartment: targetType === 'department' ? (isDeptHead ? currentEmployee.department : targetDepartment) : null,
+        targetDepartment: targetType === 'department' ? (isDeptHead && currentEmployee ? currentEmployee.department : targetDepartment) : null,
         targetUsers: targetType === 'specific' ? userIds : [],
         targetRoles: targetType === 'role' ? targetRoles : [],
         scheduledFor: new Date(scheduledFor),
-        createdBy: currentEmployee._id,
+        createdBy: currentEmployee ? currentEmployee._id : decoded.userId,
         createdByRole: decoded.role,
         recipientCount: userIds.length
       })
@@ -193,7 +223,7 @@ export async function POST(request) {
       url: url || '/dashboard',
       data: {
         type: 'custom',
-        sentBy: currentEmployee._id.toString()
+        sentBy: currentEmployee ? currentEmployee._id.toString() : decoded.userId
       }
     })
 

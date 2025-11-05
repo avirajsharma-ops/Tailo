@@ -13,7 +13,7 @@ export default function PermissionHandler() {
   const [locationRequested, setLocationRequested] = useState(false)
 
   useEffect(() => {
-    // Check location permission immediately
+    // Automatically request location permission using native browser prompt
     // OneSignal will handle notification permission with its native slidedown
     const handlePermissions = async () => {
       try {
@@ -26,6 +26,9 @@ export default function PermissionHandler() {
           return
         }
 
+        // Wait a bit for the page to load and OneSignal to initialize
+        await new Promise(resolve => setTimeout(resolve, 5000))
+
         // Check location permission via Permissions API
         let shouldRequestLocation = false
 
@@ -34,7 +37,7 @@ export default function PermissionHandler() {
             const result = await navigator.permissions.query({ name: 'geolocation' })
             console.log('[Permissions] Location permission state:', result.state)
 
-            // If not granted, the banner will show and handle the request
+            // If not granted, request it
             if (result.state !== 'granted') {
               shouldRequestLocation = true
             }
@@ -55,8 +58,10 @@ export default function PermissionHandler() {
 
         console.log('[Permissions] Should request location:', shouldRequestLocation)
 
-        // The LocationBanner component will handle showing the prompt
-        // We don't need to request it here anymore
+        // Request location permission automatically using native prompt
+        if (shouldRequestLocation) {
+          await requestLocationPermission()
+        }
 
         setPermissionsChecked(true)
 

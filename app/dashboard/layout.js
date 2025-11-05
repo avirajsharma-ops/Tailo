@@ -8,7 +8,6 @@ import BottomNav from '@/components/BottomNav'
 import PWAInstaller, { OfflineIndicator } from '@/components/PWAInstaller'
 import OutOfPremisesPopup from '@/components/OutOfPremisesPopup'
 import NotificationBanner from '@/components/NotificationBanner'
-import LocationBanner from '@/components/LocationBanner'
 import ThemeMetaTags from '@/components/ThemeMetaTags'
 import { useNotificationInit } from '@/hooks/useNotifications'
 import useGeofencing from '@/hooks/useGeofencing'
@@ -39,9 +38,6 @@ export default function DashboardLayout({ children }) {
 
         {/* Notification Banner - Shows when notifications are disabled */}
         <NotificationBanner />
-
-        {/* Location Banner - Shows when location is disabled */}
-        <LocationBanner />
 
         <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 

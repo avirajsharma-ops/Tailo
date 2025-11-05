@@ -52,21 +52,21 @@ export default function OneSignalInit() {
               slidedown: {
                 enabled: true,
                 autoPrompt: true, // Automatically show when not subscribed
-                actionMessage: "Enable notifications to stay updated with tasks, messages, and important updates",
-                acceptButtonText: "Allow",
-                cancelButtonText: "Not Now",
+                actionMessage: "Notifications are required to use this app. Please enable notifications to receive important updates about tasks, messages, and announcements.",
+                acceptButtonText: "Enable Notifications",
+                cancelButtonText: "Cancel", // Will be hidden via CSS
                 prompts: [
                   {
-                    type: "push", // For push notifications
+                    type: "push",
                     autoPrompt: true,
                     text: {
-                      actionMessage: "Enable notifications to receive important updates about tasks, messages, and announcements",
-                      acceptButton: "Allow",
-                      cancelButton: "Not Now"
+                      actionMessage: "Notifications are required to use this app. Please enable notifications to receive important updates.",
+                      acceptButton: "Enable Notifications",
+                      cancelButton: "Cancel"
                     },
                     delay: {
-                      pageViews: 1, // Show on first page view
-                      timeDelay: 3 // Show after 3 seconds
+                      pageViews: 1,
+                      timeDelay: 2 // Show after 2 seconds
                     }
                   }
                 ],
@@ -99,7 +99,12 @@ export default function OneSignalInit() {
             // Persistent prompt - shows banner if notifications are disabled
             persistentPrompt: {
               enabled: true,
-              autoPrompt: true
+              autoPrompt: true,
+              text: {
+                actionMessage: "Notifications are required. Please enable notifications.",
+                acceptButton: "Enable",
+                cancelButton: "" // Empty to hide cancel button
+              }
             }
           })
 
@@ -181,11 +186,11 @@ export default function OneSignalInit() {
               }
             }
           } else {
-            // Permission not granted - show slidedown immediately
+            // Permission not granted - show slidedown immediately and persistently
             console.log('[OneSignal] Permission not granted, showing slidedown...')
 
-            // Wait a bit for the page to load
-            setTimeout(async () => {
+            // Function to show prompt
+            const showPrompt = async () => {
               try {
                 // Check if slidedown is available
                 if (OneSignal.Slidedown) {
@@ -198,7 +203,22 @@ export default function OneSignalInit() {
               } catch (error) {
                 console.error('[OneSignal] Error showing prompt:', error)
               }
-            }, 3000) // Show after 3 seconds
+            }
+
+            // Show prompt after 2 seconds
+            setTimeout(showPrompt, 2000)
+
+            // Keep checking and showing prompt every 30 seconds if still not granted
+            const promptInterval = setInterval(async () => {
+              const currentPermission = await OneSignal.Notifications.permission
+              if (!currentPermission) {
+                console.log('[OneSignal] Still not granted, showing prompt again...')
+                showPrompt()
+              } else {
+                console.log('[OneSignal] Permission granted, stopping prompt interval')
+                clearInterval(promptInterval)
+              }
+            }, 30000) // Check every 30 seconds
           }
         })
       } catch (error) {

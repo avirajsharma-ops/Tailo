@@ -24,7 +24,13 @@ export async function GET(request) {
     const { payload: decoded } = await jwtVerify(token, secret)
 
     const currentUser = await User.findById(decoded.userId).populate('employeeId')
-    const currentEmployee = await Employee.findById(currentUser.employeeId)
+
+    // Find employee by reverse lookup
+    let currentEmployee = null
+    if (currentUser && currentUser.employeeId) {
+      currentEmployee = await Employee.findById(currentUser.employeeId)
+    }
+
     const isDeptHead = decoded.role === 'department_head' || currentEmployee?.isDepartmentHead
 
     // Check if user has permission
@@ -38,10 +44,10 @@ export async function GET(request) {
     // Build query based on role
     let query = {}
 
-    if (isDeptHead && !['admin', 'hr'].includes(decoded.role)) {
+    if (isDeptHead && !['admin', 'hr'].includes(decoded.role) && currentEmployee) {
       // Department heads can only see their own recurring notifications
       query.createdBy = currentEmployee._id
-    } else if (decoded.role === 'hr') {
+    } else if (decoded.role === 'hr' && currentEmployee) {
       // HR can see their own and department-specific notifications
       query.$or = [
         { createdBy: currentEmployee._id },
@@ -88,7 +94,13 @@ export async function POST(request) {
 
     const data = await request.json()
     const currentUser = await User.findById(decoded.userId).populate('employeeId')
-    const currentEmployee = await Employee.findById(currentUser.employeeId)
+
+    // Find employee by reverse lookup
+    let currentEmployee = null
+    if (currentUser && currentUser.employeeId) {
+      currentEmployee = await Employee.findById(currentUser.employeeId)
+    }
+
     const isDeptHead = decoded.role === 'department_head' || currentEmployee?.isDepartmentHead
 
     // Check if user has permission
@@ -115,16 +127,26 @@ export async function POST(request) {
       }
 
       // For 'all' and 'users' target types, restrict to department members
-      if (data.targetType === 'all') {
+      if (data.targetType === 'all' && currentEmployee) {
         data.targetType = 'department'
         data.targetDepartment = currentEmployee.department
       }
     }
 
+    // Clean up empty strings to null for ObjectId fields
+    if (data.targetDepartment === '' || data.targetDepartment === undefined) {
+      data.targetDepartment = null
+    }
+
+    // Set default startDate if not provided (start immediately)
+    if (!data.startDate) {
+      data.startDate = new Date()
+    }
+
     // Create recurring notification
     const recurringNotif = await RecurringNotification.create({
       ...data,
-      createdBy: currentEmployee._id,
+      createdBy: currentEmployee ? currentEmployee._id : decoded.userId,
       createdByRole: decoded.role
     })
 
@@ -190,10 +212,16 @@ export async function PUT(request) {
 
     // Check permission
     const currentUser = await User.findById(decoded.userId).populate('employeeId')
-    const currentEmployee = await Employee.findById(currentUser.employeeId)
+
+    // Find employee by reverse lookup
+    let currentEmployee = null
+    if (currentUser && currentUser.employeeId) {
+      currentEmployee = await Employee.findById(currentUser.employeeId)
+    }
+
     const isDeptHead = decoded.role === 'department_head' || currentEmployee?.isDepartmentHead
 
-    if (isDeptHead && !['admin', 'hr'].includes(decoded.role) && notification.createdBy.toString() !== currentEmployee._id.toString()) {
+    if (isDeptHead && !['admin', 'hr'].includes(decoded.role) && currentEmployee && notification.createdBy.toString() !== currentEmployee._id.toString()) {
       return NextResponse.json(
         { success: false, message: 'You can only update your own recurring notifications' },
         { status: 403 }
@@ -267,10 +295,16 @@ export async function DELETE(request) {
 
     // Check permission
     const currentUser = await User.findById(decoded.userId).populate('employeeId')
-    const currentEmployee = await Employee.findById(currentUser.employeeId)
+
+    // Find employee by reverse lookup
+    let currentEmployee = null
+    if (currentUser && currentUser.employeeId) {
+      currentEmployee = await Employee.findById(currentUser.employeeId)
+    }
+
     const isDeptHead = decoded.role === 'department_head' || currentEmployee?.isDepartmentHead
 
-    if (isDeptHead && !['admin', 'hr'].includes(decoded.role) && notification.createdBy.toString() !== currentEmployee._id.toString()) {
+    if (isDeptHead && !['admin', 'hr'].includes(decoded.role) && currentEmployee && notification.createdBy.toString() !== currentEmployee._id.toString()) {
       return NextResponse.json(
         { success: false, message: 'You can only delete your own recurring notifications' },
         { status: 403 }
