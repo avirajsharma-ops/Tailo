@@ -43,15 +43,19 @@ export default function BottomNav() {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-[#1A2A5A] z-[40] md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-around py-2 px-4">
-      
+
         {navItems.map((item) => {
+          // Don't elevate chat button when active
+          const isChat = item.name === 'Chat'
           return (
             <button
               key={item.path}
               onClick={() => router.push(item.path)}
               className={`p-0 h-14 w-14 rounded-full transition-all duration-300 ${
-                item.active
+                item.active && !isChat
                   ? 'bg-[#7FBEB0] -translate-y-[34px] shadow-[0_0px_0_10px_#F9FAFB]'
+                  : item.active && isChat
+                  ? 'bg-[#7FBEB0]'
                   : 'text-gray-600'
               }`}
               style={{ margin: 0 }}

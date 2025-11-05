@@ -254,9 +254,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className={`${selectedChat ? 'fixed inset-0 z-50 md:relative md:inset-auto md:z-0 pb-20 md:pb-0' : 'pb-20 md:pb-0'} md:page-container md:pb-6`}>
+    <div className={`${selectedChat ? 'fixed inset-0 z-[60] md:relative md:inset-auto md:z-0' : ''} md:page-container md:pb-6`}>
       {/* Header - Hide on mobile when chat is selected */}
-      <div className={`px-4 pt-4 pb-3 md:px-0 md:pt-0 md:pb-0 md:mb-4 flex items-center justify-between ${selectedChat ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`px-4 pt-4 pb-3 md:px-0 md:pt-0 md:pb-0 md:mb-4 flex items-center justify-between bg-white md:bg-transparent ${selectedChat ? 'hidden md:flex' : 'flex'}`}>
         <div>
           <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">Chat</h1>
           <p className="text-xs md:text-sm lg:text-base text-gray-600 mt-1">Connect with your team</p>
@@ -277,14 +277,14 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Chat Container - Fixed height with bottom bar buffer */}
+      {/* Chat Container - Full screen, no padding/boxes */}
       <div className={`bg-white overflow-hidden ${
         selectedChat
-          ? 'md:rounded-2xl md:shadow-md'
-          : 'mx-4 md:mx-0 rounded-2xl shadow-md'
+          ? ''
+          : 'md:rounded-2xl md:shadow-md'
       }`} style={{
-        height: selectedChat ? 'calc(100vh - 140px)' : 'calc(100vh - 240px)',
-        maxHeight: selectedChat ? 'calc(100vh - 140px)' : 'calc(100vh - 240px)'
+        height: selectedChat ? 'calc(100vh - 60px)' : 'calc(100vh - 160px)',
+        maxHeight: selectedChat ? 'calc(100vh - 60px)' : 'calc(100vh - 160px)'
       }}>
         <div className="grid grid-cols-1 md:grid-cols-3 h-full">
           {/* Chat List - Hide on mobile when chat is selected */}
@@ -370,8 +370,8 @@ export default function ChatPage() {
                   </div>
                 </div>
 
-                {/* Messages Area - Flexible height with bottom padding */}
-                <div className="flex-1 overflow-y-auto p-3 md:p-4 pb-6 md:pb-4 space-y-3 bg-gray-50">
+                {/* Messages Area - Full width, edge-to-edge */}
+                <div className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-4 space-y-3 bg-[#E5DDD5] md:bg-gray-50">
                   {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-gray-400">
                       <FaComments className="text-5xl mb-3 opacity-50" />
@@ -424,8 +424,8 @@ export default function ChatPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Message Input - Fixed at bottom with safe area */}
-                <div className="p-3 md:p-4 pb-4 md:pb-4 border-t border-gray-200 bg-white flex-shrink-0">
+                {/* Message Input - Edge-to-edge, above bottom bar */}
+                <div className="px-3 py-2 md:p-4 border-t border-gray-200 bg-white flex-shrink-0 relative z-[50]">
                   {showEmojiPicker && (
                     <div className="mb-2 p-2 bg-gray-50 rounded-lg flex flex-wrap gap-1 sm:gap-2 max-h-32 overflow-y-auto">
                       {emojis.map((emoji, idx) => (
@@ -439,7 +439,7 @@ export default function ChatPage() {
                       ))}
                     </div>
                   )}
-                  <div className="flex items-center gap-1 sm:gap-2">
+                  <div className="flex items-center gap-2">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -449,17 +449,17 @@ export default function ChatPage() {
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadingFile}
-                      className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
+                      className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50 flex-shrink-0"
                       title="Attach file"
                     >
-                      <FaPaperclip className="text-base md:text-lg" />
+                      <FaPaperclip className="text-lg" />
                     </button>
                     <button
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+                      className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
                       title="Add emoji"
                     >
-                      <FaSmile className="text-base md:text-lg" />
+                      <FaSmile className="text-lg" />
                     </button>
                     <input
                       type="text"
@@ -467,16 +467,16 @@ export default function ChatPage() {
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                       placeholder="Type a message..."
-                      className="flex-1 px-3 md:px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-gray-50"
+                      className="flex-1 px-4 py-2.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
                     />
                     <button
                       onClick={handleSendMessage}
                       disabled={sending || !message.trim()}
-                      className="bg-blue-600 text-white p-2.5 md:p-3 rounded-full hover:bg-blue-700 transition-colors disabled:bg-gray-400 flex items-center justify-center min-w-[40px] flex-shrink-0"
+                      className="bg-[#7FBEB0] text-white p-2.5 rounded-full hover:bg-[#6EADA0] transition-colors disabled:bg-gray-400 flex items-center justify-center min-w-[40px] flex-shrink-0"
                       title="Send message"
                     >
                       {sending ? (
-                        <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                       ) : (
                         <FaPaperPlane className="text-sm" />
                       )}
