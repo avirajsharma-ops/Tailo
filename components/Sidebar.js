@@ -122,14 +122,15 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-[60] lg:z-[7]
-          w-[70vw] md:w-[17rem] bg-gray-900 text-white
+          w-[70vw] md:w-[17rem] text-gray-800
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           flex flex-col h-screen
         `}
+        style={{ backgroundColor: 'var(--color-bg-sidebar)' }}
       >
         {/* Sticky Logo Section */}
-        <div className="p-4 border-b border-gray-700 flex-shrink-0">
+        <div className="p-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--color-primary-200)' }}>
           <div className="flex items-center justify-between">
             <img
               src="/assets/logo.png"
@@ -138,7 +139,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             />
             <button
               onClick={() => setIsOpen(false)}
-              className="lg:hidden text-white hover:text-gray-300 focus:outline-none"
+              className="lg:hidden hover:opacity-70 focus:outline-none"
+              style={{ color: 'var(--color-text-primary)' }}
             >
               <FaTimes className="w-4 h-4" strokeWidth="0.5" />
             </button>
@@ -157,18 +159,20 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                   <button
                     type="button"
                     onClick={() => toggleSubmenu(item.name)}
-                    className={`w-full flex items-center justify-between px-3 sm:px-4 py-3 rounded-xl transition-all duration-200 group ${
-                      expandedMenus[item.name]
-                        ? 'bg-gray-800 text-white shadow-lg'
-                        : 'text-gray-300 hover:bg-gray-800 hover:text-white hover:shadow-md'
-                    }`}
+                    className="w-full flex items-center justify-between px-3 sm:px-4 py-3 rounded-xl transition-all duration-200 group"
+                    style={{
+                      backgroundColor: expandedMenus[item.name] ? 'var(--color-bg-hover)' : 'transparent',
+                      color: 'var(--color-text-primary)'
+                    }}
                   >
                     <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg transition-colors ${
-                        expandedMenus[item.name]
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-700 text-gray-300 group-hover:bg-blue-500 group-hover:text-white'
-                      }`}>
+                      <div
+                        className="p-2 rounded-lg transition-colors"
+                        style={{
+                          backgroundColor: expandedMenus[item.name] ? 'var(--color-primary-500)' : 'var(--color-primary-100)',
+                          color: expandedMenus[item.name] ? 'white' : 'var(--color-primary-700)'
+                        }}
+                      >
                         <item.icon className="w-4 h-4" />
                       </div>
                       <span className="text-sm font-medium">{item.name}</span>
@@ -180,17 +184,17 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     </div>
                   </button>
                   {expandedMenus[item.name] && (
-                    <div className="ml-4 mt-2 space-y-1 border-l-2 border-gray-700 pl-4">
+                    <div className="ml-4 mt-2 space-y-1 pl-4" style={{ borderLeft: '2px solid var(--color-primary-200)' }}>
                       {item.submenu.map((subItem) => (
                         <Link
                           key={subItem.path}
                           href={subItem.path}
                           onClick={handleLinkClick}
-                          className={`w-full text-left block px-3 py-2 text-sm rounded-lg transition-all duration-200 cursor-pointer ${
-                            pathname === subItem.path
-                              ? 'bg-blue-500 text-white shadow-md transform scale-105'
-                              : 'text-gray-400 hover:bg-gray-800 hover:text-white hover:translate-x-1'
-                          }`}
+                          className="w-full text-left block px-3 py-2 text-sm rounded-lg transition-all duration-200 cursor-pointer"
+                          style={{
+                            backgroundColor: pathname === subItem.path ? 'var(--color-primary-500)' : 'transparent',
+                            color: pathname === subItem.path ? 'white' : 'var(--color-text-secondary)'
+                          }}
                         >
                           <span className="flex items-center">
                             <span className="w-2 h-2 bg-current rounded-full mr-3 opacity-60"></span>
@@ -205,17 +209,19 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 <Link
                   href={item.path}
                   onClick={handleLinkClick}
-                  className={`w-full flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-xl transition-all duration-200 group cursor-pointer ${
-                    pathname === item.path
-                      ? 'bg-blue-500 text-white shadow-lg transform scale-105'
-                      : 'text-gray-300 hover:bg-gray-800 hover:text-white hover:shadow-md'
-                  }`}
+                  className="w-full flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-xl transition-all duration-200 group cursor-pointer"
+                  style={{
+                    backgroundColor: pathname === item.path ? 'var(--color-primary-500)' : 'transparent',
+                    color: pathname === item.path ? 'white' : 'var(--color-text-primary)'
+                  }}
                 >
-                  <div className={`p-2 rounded-lg transition-colors ${
-                    pathname === item.path
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-300 group-hover:bg-blue-500 group-hover:text-white'
-                  }`}>
+                  <div
+                    className="p-2 rounded-lg transition-colors"
+                    style={{
+                      backgroundColor: pathname === item.path ? 'var(--color-primary-600)' : 'var(--color-primary-100)',
+                      color: pathname === item.path ? 'white' : 'var(--color-primary-700)'
+                    }}
+                  >
                     <item.icon className="w-4 h-4" />
                   </div>
                   <span className="text-sm font-medium">{item.name}</span>
@@ -226,22 +232,24 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         </nav>
 
         {/* Settings and Logout Section - Fixed at bottom */}
-        <div className="border-t flex items-center justify-center border-gray-700 p-3 sm:p-4 space-y-2 flex-shrink-0">
+        <div className="flex items-center justify-center p-3 sm:p-4 space-y-2 flex-shrink-0" style={{ borderTop: '1px solid var(--color-primary-200)' }}>
           {/* Settings Button */}
           <Link
             href="/dashboard/settings"
             onClick={handleLinkClick}
-            className={`w-full flex items-center ml-1 mt-[10px] md:mt-[6px] space-x-3 px-2  py-1 rounded-xl transition-all duration-200 group cursor-pointer ${
-              pathname === '/dashboard/settings'
-                ? 'bg-blue-500 text-white shadow-lg'
-                : 'text-gray-300 hover:bg-gray-800 hover:text-white hover:shadow-md'
-            }`}
+            className="w-full flex items-center ml-1 mt-[10px] md:mt-[6px] space-x-3 px-2 py-1 rounded-xl transition-all duration-200 group cursor-pointer"
+            style={{
+              backgroundColor: pathname === '/dashboard/settings' ? 'var(--color-primary-500)' : 'transparent',
+              color: pathname === '/dashboard/settings' ? 'white' : 'var(--color-text-primary)'
+            }}
           >
-            <div className={`md:p-2 rounded-lg transition-colors ${
-              pathname === '/dashboard/settings'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-700 text-gray-300 group-hover:bg-blue-500 group-hover:text-white'
-            }`}>
+            <div
+              className="md:p-2 rounded-lg transition-colors"
+              style={{
+                backgroundColor: pathname === '/dashboard/settings' ? 'var(--color-primary-600)' : 'var(--color-primary-100)',
+                color: pathname === '/dashboard/settings' ? 'white' : 'var(--color-primary-700)'
+              }}
+            >
               <FaCog className="w-4 h-4" />
             </div>
             <span className="text-sm font-medium">Settings</span>
@@ -250,9 +258,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-3  sm:px-4 py-1  rounded-xl transition-all duration-200 group text-gray-300 hover:bg-red-600 hover:text-white hover:shadow-md"
+            className="w-full flex items-center space-x-3 px-3 sm:px-4 py-1 rounded-xl transition-all duration-200 group hover:bg-red-600 hover:text-white hover:shadow-md"
+            style={{ color: 'var(--color-text-primary)' }}
           >
-            <div className="p-2 rounded-lg transition-colors bg-gray-700 text-gray-300 group-hover:bg-red-700 group-hover:text-white">
+            <div className="p-2 rounded-lg transition-colors group-hover:bg-red-700 group-hover:text-white" style={{ backgroundColor: 'var(--color-primary-100)', color: 'var(--color-primary-700)' }}>
               <FaSignOutAlt className="w-4 h-4" />
             </div>
             <span className="text-sm font-medium">Logout</span>

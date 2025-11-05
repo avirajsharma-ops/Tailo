@@ -3,7 +3,7 @@ import {
   FaChartLine, FaBriefcase, FaUserPlus, FaSignOutAlt, FaFileAlt,
   FaBox, FaReceipt, FaPlane, FaHeadset, FaBook, FaGraduationCap,
   FaBullhorn, FaCog, FaUser, FaTrophy, FaBullseye, FaStar, FaAward,
-  FaTasks, FaProjectDiagram, FaClipboardList
+  FaTasks, FaProjectDiagram, FaClipboardList, FaMapMarkerAlt, FaUserFriends
 } from 'react-icons/fa'
 
 // Define menu items for each role
@@ -117,6 +117,17 @@ export const roleBasedMenus = {
     { name: 'Holidays', icon: FaCalendarAlt, path: '/dashboard/holidays' },
     { name: 'Users Management', icon: FaUser, path: '/dashboard/users' },
     {
+      name: 'Team',
+      icon: FaUserFriends,
+      path: '/dashboard/team',
+      submenu: [
+        { name: 'Team Members', path: '/dashboard/team/members' },
+        { name: 'Leave Approvals', path: '/dashboard/team/leave-approvals' },
+        { name: 'Task Approvals', path: '/dashboard/team/task-approvals' },
+        { name: 'Geofencing', path: '/dashboard/team/geofencing' },
+      ]
+    },
+    {
       name: 'Settings',
       icon: FaCog,
       path: '/dashboard/settings',
@@ -210,6 +221,17 @@ export const roleBasedMenus = {
     { name: 'Policies', icon: FaBook, path: '/dashboard/policies' },
     { name: 'Announcements', icon: FaBullhorn, path: '/dashboard/announcements' },
     { name: 'Holidays', icon: FaCalendarAlt, path: '/dashboard/holidays' },
+    {
+      name: 'Team',
+      icon: FaUserFriends,
+      path: '/dashboard/team',
+      submenu: [
+        { name: 'Team Members', path: '/dashboard/team/members' },
+        { name: 'Leave Approvals', path: '/dashboard/team/leave-approvals' },
+        { name: 'Task Approvals', path: '/dashboard/team/task-approvals' },
+        { name: 'Geofencing', path: '/dashboard/team/geofencing' },
+      ]
+    },
   ],
 
   // MANAGER - Team management focused
@@ -262,9 +284,9 @@ export const roleBasedMenus = {
     { name: 'Documents', icon: FaFileAlt, path: '/dashboard/documents' },
     { name: 'Expenses', icon: FaReceipt, path: '/dashboard/expenses' },
     { name: 'Travel', icon: FaPlane, path: '/dashboard/travel' },
-    { 
-      name: 'Learning', 
-      icon: FaGraduationCap, 
+    {
+      name: 'Learning',
+      icon: FaGraduationCap,
       path: '/dashboard/learning',
       submenu: [
         { name: 'My Trainings', path: '/dashboard/learning/trainings' },
@@ -272,6 +294,17 @@ export const roleBasedMenus = {
       ]
     },
     { name: 'Announcements', icon: FaBullhorn, path: '/dashboard/announcements' },
+    {
+      name: 'Team',
+      icon: FaUserFriends,
+      path: '/dashboard/team',
+      submenu: [
+        { name: 'Team Members', path: '/dashboard/team/members' },
+        { name: 'Leave Approvals', path: '/dashboard/team/leave-approvals' },
+        { name: 'Task Approvals', path: '/dashboard/team/task-approvals' },
+        { name: 'Geofencing', path: '/dashboard/team/geofencing' },
+      ]
+    },
   ],
 
   // EMPLOYEE - Personal focused

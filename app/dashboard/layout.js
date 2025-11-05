@@ -7,7 +7,9 @@ import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
 import PWAInstaller, { OfflineIndicator } from '@/components/PWAInstaller'
 import NotificationPermissionPopup from '@/components/NotificationPermissionPopup'
+import OutOfPremisesPopup from '@/components/OutOfPremisesPopup'
 import { useNotificationInit } from '@/hooks/useNotifications'
+import useGeofencing from '@/hooks/useGeofencing'
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -15,6 +17,9 @@ export default function DashboardLayout({ children }) {
 
   // Initialize notifications
   useNotificationInit()
+
+  // Initialize geofencing
+  useGeofencing()
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen)
@@ -24,7 +29,7 @@ export default function DashboardLayout({ children }) {
   const isChatPage = pathname?.startsWith('/dashboard/chat')
 
   return (
-    <div className="flex h-screen bg-gray-50 relative">
+    <div className="flex h-screen relative" style={{ backgroundColor: 'var(--color-bg-main)' }}>
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -41,7 +46,7 @@ export default function DashboardLayout({ children }) {
         {/* Gradient above bottom nav - Mobile only - Hide on chat page */}
         {!isChatPage && (
           <div className="md:hidden fixed bottom-[72px] left-0  right-0 h-[124px] pointer-events-none z-[39]"
-               style={{ background: 'linear-gradient(179.13deg, rgba(249, 250, 251, 0) 0%, #F9FAFB 71.18%)' }}>
+               style={{ background: `linear-gradient(179.13deg, rgba(249, 250, 251, 0) 0%, var(--color-bg-main) 71.18%)` }}>
           </div>
         )}
 
@@ -54,6 +59,9 @@ export default function DashboardLayout({ children }) {
 
       {/* Notification Permission Popup */}
       <NotificationPermissionPopup />
+
+      {/* Out of Premises Popup */}
+      <OutOfPremisesPopup />
     </div>
   )
 }

@@ -2,6 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme CSS Variables */
+:root {
+  /* Default Blue Theme - Primary Colors */
+  --color-primary-50: #EFF6FF;
+  --color-primary-100: #DBEAFE;
+  --color-primary-200: #BFDBFE;
+  --color-primary-300: #93C5FD;
+  --color-primary-400: #60A5FA;
+  --color-primary-500: #3B82F6;
+  --color-primary-600: #2563EB;
+  --color-primary-700: #1D4ED8;
+  --color-primary-800: #1E40AF;
+  --color-primary-900: #1E3A8A;
+
+  /* Background Colors - Original Default Theme */
+  --color-bg-main: #F9FAFB;
+  --color-bg-card: #EEF3FF;
+  --color-bg-sidebar: #111827;
+  --color-bg-hover: #1F2937;
+
+  /* Text Colors - For Dark Sidebar */
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #9CA3AF;
+}
+
+/* Apply theme colors to body and common elements */
+body {
+  background-color: var(--color-bg-main) !important;
+}
+
 /* PWA Safe Area Support */
 html {
   padding: 0 !important;

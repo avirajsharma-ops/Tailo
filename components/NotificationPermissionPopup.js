@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FaBell, FaTimes, FaCheck } from 'react-icons/fa'
+import { FaBell, FaTimes, FaCheck, FaMapMarkerAlt } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import {
   isNotificationSupported,
@@ -20,41 +20,56 @@ export default function NotificationPermissionPopup() {
   const [isRequesting, setIsRequesting] = useState(false)
   const [permissionGranted, setPermissionGranted] = useState(false)
   const [isDenied, setIsDenied] = useState(false)
+  const [locationPermission, setLocationPermission] = useState('prompt')
+  const [locationDenied, setLocationDenied] = useState(false)
 
   useEffect(() => {
-    console.log('NotificationPermissionPopup: Initializing...')
+    console.log('PermissionPopup: Initializing...')
 
     // Check if notifications are supported
     if (!isNotificationSupported()) {
-      console.log('NotificationPermissionPopup: Notifications not supported')
+      console.log('PermissionPopup: Notifications not supported')
       return
     }
 
-    const checkPermissionStatus = () => {
-      // Check current permission status
+    const checkPermissionStatus = async () => {
+      // Check notification permission
       const currentPermission = getNotificationPermission()
-      console.log('NotificationPermissionPopup: Current permission:', currentPermission)
+      console.log('PermissionPopup: Notification permission:', currentPermission)
 
-      // Only hide prompt if permission is granted
-      if (currentPermission === 'granted') {
-        console.log('NotificationPermissionPopup: Permission already granted')
+      // Check location permission
+      let locationStatus = 'prompt'
+      if (navigator.permissions) {
+        try {
+          const result = await navigator.permissions.query({ name: 'geolocation' })
+          locationStatus = result.state
+          console.log('PermissionPopup: Location permission:', locationStatus)
+          setLocationPermission(locationStatus)
+          setLocationDenied(locationStatus === 'denied')
+        } catch (error) {
+          console.log('PermissionPopup: Could not query location permission:', error)
+        }
+      }
+
+      // Hide prompt only if BOTH permissions are granted
+      if (currentPermission === 'granted' && locationStatus === 'granted') {
+        console.log('PermissionPopup: All permissions granted')
         setPermissionGranted(true)
         setShowPrompt(false)
         setIsDenied(false)
         return
       }
 
-      // Show prompt for both 'default' and 'denied' states
-      // Notifications are critical for app functionality
-      if (currentPermission === 'denied') {
-        console.log('NotificationPermissionPopup: Permission denied - prompting user to enable in browser settings')
+      // Show prompt if any permission is missing
+      if (currentPermission === 'denied' || locationStatus === 'denied') {
+        console.log('PermissionPopup: Some permissions denied')
         setShowPrompt(true)
-        setIsDenied(true)
+        setIsDenied(currentPermission === 'denied')
         return
       }
 
-      if (currentPermission === 'default') {
-        console.log('NotificationPermissionPopup: Permission not requested yet, showing prompt')
+      if (currentPermission === 'default' || locationStatus === 'prompt') {
+        console.log('PermissionPopup: Permissions not requested yet, showing prompt')
         setShowPrompt(true)
         setIsDenied(false)
         return
@@ -65,7 +80,6 @@ export default function NotificationPermissionPopup() {
     checkPermissionStatus()
 
     // Set up interval to check permission status every 3 seconds
-    // This ensures we update UI if permission changes
     const interval = setInterval(() => {
       checkPermissionStatus()
     }, 3000)
@@ -75,13 +89,13 @@ export default function NotificationPermissionPopup() {
     }
   }, [])
 
-  const handleEnableNotifications = async () => {
-    console.log('NotificationPermissionPopup: User clicked enable')
+  const handleEnablePermissions = async () => {
+    console.log('PermissionPopup: User clicked enable')
     setIsRequesting(true)
 
     // Set timeout to reset loading state after 15 seconds
     const timeout = setTimeout(() => {
-      console.log('NotificationPermissionPopup: Request timeout - resetting state')
+      console.log('PermissionPopup: Request timeout - resetting state')
       setIsRequesting(false)
       toast.error('Request timed out. Please try again.', {
         duration: 3000
@@ -89,7 +103,47 @@ export default function NotificationPermissionPopup() {
     }, 15000)
 
     try {
-      console.log('NotificationPermissionPopup: Requesting permission...')
+      console.log('PermissionPopup: Requesting permissions...')
+
+      // Step 1: Request Location Permission
+      let locationGranted = false
+      if (navigator.geolocation) {
+        try {
+          await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                console.log('PermissionPopup: Location permission granted')
+                locationGranted = true
+                setLocationPermission('granted')
+                setLocationDenied(false)
+                resolve(position)
+              },
+              (error) => {
+                console.log('PermissionPopup: Location permission denied:', error)
+                if (error.code === error.PERMISSION_DENIED) {
+                  setLocationPermission('denied')
+                  setLocationDenied(true)
+                  toast.error('Location permission is required for geofencing features', {
+                    duration: 5000,
+                    icon: '📍'
+                  })
+                }
+                reject(error)
+              },
+              {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+              }
+            )
+          })
+        } catch (locError) {
+          console.error('Location permission error:', locError)
+        }
+      }
+
+      // Step 2: Request Notification Permission
+      console.log('PermissionPopup: Requesting notification permission...')
 
       // Check if Notification API is available
       if (typeof Notification === 'undefined') {
@@ -104,28 +158,15 @@ export default function NotificationPermissionPopup() {
 
       // Check current permission state
       const currentPermission = Notification.permission
-      console.log('NotificationPermissionPopup: Current permission before request:', currentPermission)
+      console.log('PermissionPopup: Current notification permission before request:', currentPermission)
+
+      let notificationGranted = false
 
       if (currentPermission === 'granted') {
         // Already granted
-        clearTimeout(timeout)
-        setPermissionGranted(true)
-        saveNotificationPreference(true)
-        setShowPrompt(false)
-        setIsRequesting(false)
-        toast.success('Notifications are already enabled!', {
-          duration: 2000,
-          icon: '✅'
-        })
-        return
-      }
-
-      // For 'denied' state: browsers won't show native prompt again (security feature)
-      // We must guide users to manually enable in browser settings
-      if (currentPermission === 'denied') {
-        clearTimeout(timeout)
-        setIsRequesting(false)
-
+        notificationGranted = true
+        console.log('PermissionPopup: Notifications already enabled')
+      } else if (currentPermission === 'denied') {
         // Show detailed instructions
         toast.error(
           'To enable notifications:\n1. Click the lock/info icon (🔒/ⓘ) in your browser address bar\n2. Find "Notifications" and change to "Allow"\n3. Refresh this page',
@@ -138,25 +179,25 @@ export default function NotificationPermissionPopup() {
             }
           }
         )
-        return
+      } else {
+        // Request permission - this triggers the native browser prompt (only for 'default' state)
+        console.log('PermissionPopup: Triggering native notification permission request...')
+        const permission = await Notification.requestPermission()
+        console.log('PermissionPopup: Notification permission result:', permission)
+        notificationGranted = permission === 'granted'
       }
-
-      // Request permission - this triggers the native browser prompt (only for 'default' state)
-      console.log('NotificationPermissionPopup: Triggering native permission request...')
-      const permission = await Notification.requestPermission()
 
       // Clear timeout on response
       clearTimeout(timeout)
 
-      console.log('NotificationPermissionPopup: Permission result:', permission)
-
-      if (permission === 'granted') {
-        console.log('NotificationPermissionPopup: Permission granted!')
+      // Check if both permissions are granted
+      if (notificationGranted && locationGranted) {
+        console.log('PermissionPopup: All permissions granted!')
         setPermissionGranted(true)
         saveNotificationPreference(true)
         setShowPrompt(false)
 
-        toast.success('Notifications enabled successfully!', {
+        toast.success('All permissions enabled successfully!', {
           duration: 2000,
           icon: '🎉'
         })
@@ -164,22 +205,22 @@ export default function NotificationPermissionPopup() {
         // Subscribe to push notifications
         setTimeout(async () => {
           try {
-            console.log('NotificationPermissionPopup: Subscribing to push notifications...')
+            console.log('PermissionPopup: Subscribing to push notifications...')
             const subscription = await subscribeToPushNotifications()
 
             if (subscription) {
               // Save subscription to server
               await savePushSubscriptionToServer(subscription)
-              console.log('NotificationPermissionPopup: Push subscription saved to server')
+              console.log('PermissionPopup: Push subscription saved to server')
             }
 
             // Show a test notification
-            console.log('NotificationPermissionPopup: Showing test notification')
-            await showNotification('🎉 Notifications Enabled!', {
-              body: 'You will now receive important updates from Talio HRMS.',
+            console.log('PermissionPopup: Showing test notification')
+            await showNotification('🎉 All Permissions Enabled!', {
+              body: 'You will now receive important updates and geofencing features are active.',
               icon: '/icons/icon-192x192.png',
               badge: '/icons/icon-96x96.png',
-              tag: 'notification-success',
+              tag: 'permission-success',
               requireInteraction: false,
               vibrate: [200, 100, 200]
             })
@@ -187,28 +228,24 @@ export default function NotificationPermissionPopup() {
             console.error('Error in post-permission setup:', notifError)
           }
         }, 1000)
-      } else if (permission === 'denied') {
-        console.log('NotificationPermissionPopup: Permission denied by user')
-        // Keep popup visible - notifications are required
+      } else {
+        // Some permissions missing
+        console.log('PermissionPopup: Some permissions missing')
         setShowPrompt(true)
-        setIsDenied(true)
-        toast.error('Notifications are required for this app. Please try enabling them again.', {
+
+        const missingPerms = []
+        if (!notificationGranted) missingPerms.push('Notifications')
+        if (!locationGranted) missingPerms.push('Location')
+
+        toast.error(`${missingPerms.join(' and ')} ${missingPerms.length > 1 ? 'are' : 'is'} required for this app.`, {
           duration: 5000,
           icon: '⚠️'
-        })
-      } else {
-        // Permission is still 'default' - user dismissed the prompt
-        console.log('NotificationPermissionPopup: User dismissed the prompt')
-        setShowPrompt(true)
-        toast.info('Please enable notifications to use all features', {
-          duration: 3000,
-          icon: 'ℹ️'
         })
       }
     } catch (error) {
       clearTimeout(timeout)
-      console.error('NotificationPermissionPopup: Error requesting permission:', error)
-      toast.error('Failed to request notification permission. Please try again.', {
+      console.error('PermissionPopup: Error requesting permissions:', error)
+      toast.error('Failed to request permissions. Please try again.', {
         duration: 4000
       })
     } finally {
@@ -233,18 +270,19 @@ export default function NotificationPermissionPopup() {
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[10000] w-[90%] max-w-md animate-slide-up">
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
           {/* Header */}
-          <div className={`p-6 text-white relative ${isDenied ? 'bg-gradient-to-r from-red-600 to-red-700' : 'bg-gradient-to-r from-blue-600 to-blue-700'}`}>
+          <div className={`p-6 text-white relative ${isDenied || locationDenied ? 'bg-gradient-to-r from-red-600 to-red-700' : 'bg-gradient-to-r from-blue-600 to-blue-700'}`}>
 
             <div className="flex items-center space-x-4">
-              <div className="bg-white bg-opacity-20 p-4 rounded-full">
-                <FaBell className="w-8 h-8" />
+              <div className="bg-white bg-opacity-20 p-4 rounded-full flex items-center gap-2">
+                <FaBell className="w-6 h-6" />
+                <FaMapMarkerAlt className="w-6 h-6" />
               </div>
               <div>
                 <h3 className="text-xl font-bold">
-                  {isDenied ? 'Notifications Blocked' : 'Enable Notifications'}
+                  {isDenied || locationDenied ? 'Permissions Required' : 'Enable Permissions'}
                 </h3>
-                <p className={`text-sm mt-1 ${isDenied ? 'text-red-100' : 'text-blue-100'}`}>
-                  {isDenied ? 'Action Required' : 'Stay updated with Talio HRMS'}
+                <p className={`text-sm mt-1 ${isDenied || locationDenied ? 'text-red-100' : 'text-blue-100'}`}>
+                  {isDenied || locationDenied ? 'Action Required' : 'Notifications & Location Access'}
                 </p>
               </div>
             </div>
@@ -252,78 +290,74 @@ export default function NotificationPermissionPopup() {
 
           {/* Content */}
           <div className="p-6">
-            {isDenied ? (
+            {(isDenied || locationDenied) ? (
               <>
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                  <p className="text-red-800 font-semibold mb-2">⚠️ Notifications are currently blocked</p>
+                  <p className="text-red-800 font-semibold mb-2">⚠️ Permissions are currently blocked</p>
                   <p className="text-red-700 text-sm mb-3">
-                    Notifications are essential for this app. Please enable them manually:
+                    Both Notifications and Location permissions are essential for this app. Please enable them manually:
                   </p>
                   <ol className="text-red-700 text-sm space-y-1.5 list-decimal list-inside">
                     <li>Click the lock icon (🔒) or info icon (ⓘ) in your browser's address bar</li>
-                    <li>Find "Notifications" in the permissions list</li>
-                    <li>Change the setting from "Block" to "Allow"</li>
+                    <li>Find "Notifications" and "Location" in the permissions list</li>
+                    <li>Change both settings from "Block" to "Allow"</li>
                     <li>Refresh this page</li>
                   </ol>
                 </div>
               </>
             ) : (
               <>
-                <p className="text-gray-700 mb-4">
-                  Get instant notifications for:
-                </p>
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FaBell className="text-blue-500 w-5 h-5" />
+                    <h4 className="font-semibold text-gray-900">Notifications</h4>
+                  </div>
+                  <ul className="space-y-2 ml-7">
+                    <li className="flex items-start space-x-3">
+                      <FaCheck className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-600 text-sm">Task assignments and updates</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <FaCheck className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-600 text-sm">Leave request approvals</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <FaCheck className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-600 text-sm">Important announcements</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FaMapMarkerAlt className="text-blue-500 w-5 h-5" />
+                    <h4 className="font-semibold text-gray-900">Location Access</h4>
+                  </div>
+                  <ul className="space-y-2 ml-7">
+                    <li className="flex items-start space-x-3">
+                      <FaCheck className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-600 text-sm">Geofencing and attendance tracking</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <FaCheck className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-600 text-sm">Verify you're at office premises</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <FaCheck className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-600 text-sm">Automatic check-in/check-out</span>
+                    </li>
+                  </ul>
+                </div>
               </>
-            )}
-
-            {!isDenied && (
-              <ul className="space-y-3 mb-6">
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-600">Task assignments and updates</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-600">Leave request approvals</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-600">Important announcements</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-600">Attendance reminders</span>
-                </li>
-              </ul>
-            )}
-
-            {!isDenied && (
-              <ul className="space-y-3 mb-6">
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-600">Task assignments and updates</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-600">Leave request approvals</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-600">Important announcements</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-600">Attendance reminders</span>
-                </li>
-              </ul>
             )}
 
             {/* Buttons */}
             <div className="flex flex-col gap-3">
               <button
-                onClick={handleEnableNotifications}
+                onClick={handleEnablePermissions}
                 disabled={isRequesting}
                 className={`w-full font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 ${
-                  isDenied
+                  isDenied || locationDenied
                     ? 'bg-red-600 hover:bg-red-700 text-white'
                     : 'bg-blue-600 hover:bg-blue-700 text-white'
                 }`}
@@ -334,19 +368,20 @@ export default function NotificationPermissionPopup() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span>Checking...</span>
+                    <span>Requesting...</span>
                   </>
                 ) : (
                   <>
                     <FaBell className="w-4 h-4" />
-                    <span>{isDenied ? 'I Have Enabled Notifications' : 'Enable Notifications'}</span>
+                    <FaMapMarkerAlt className="w-4 h-4" />
+                    <span>{isDenied || locationDenied ? 'I Have Enabled Permissions' : 'Enable Permissions'}</span>
                   </>
                 )}
               </button>
             </div>
 
             <p className="text-xs text-gray-500 text-center mt-4">
-              Notifications are required to use this app
+              Both Notifications and Location permissions are required to use this app
             </p>
           </div>
         </div>

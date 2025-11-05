@@ -3,7 +3,9 @@ import './globals.css'
 import '../styles/mobile-responsive.css'
 import '../styles/mobile-fix.css'
 import '../styles/card-redesign.css'
+import '../styles/theme.css'
 import { Toaster } from 'react-hot-toast'
+import { ThemeProvider } from '@/contexts/ThemeContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -61,15 +63,17 @@ export default function RootLayout({ children }) {
         <link rel="shortcut icon" href="/favicon.ico" />
       </head>
       <body className={inter.className}>
-        {children}
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: {
-              fontSize: '14px',
-            },
-          }}
-        />
+        <ThemeProvider>
+          {children}
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: {
+                fontSize: '14px',
+              },
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   )

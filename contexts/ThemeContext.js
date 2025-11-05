@@ -1,0 +1,199 @@
+'use client'
+
+import { createContext, useContext, useState, useEffect } from 'react'
+
+const ThemeContext = createContext()
+
+// Theme configurations
+export const themes = {
+  default: {
+    name: 'Default Blue',
+    primary: {
+      50: '#EFF6FF',
+      100: '#DBEAFE',
+      200: '#BFDBFE',
+      300: '#93C5FD',
+      400: '#60A5FA',
+      500: '#3B82F6',
+      600: '#2563EB',
+      700: '#1D4ED8',
+      800: '#1E40AF',
+      900: '#1E3A8A',
+    },
+    background: {
+      main: '#F9FAFB',       // Original light gray background
+      card: '#EEF3FF',       // Original card color
+      sidebar: '#111827',    // Original dark sidebar (gray-900)
+      hover: '#1F2937',      // Dark gray hover for sidebar
+    },
+    text: {
+      primary: '#FFFFFF',    // White text for dark sidebar
+      secondary: '#9CA3AF',  // Gray text for dark sidebar
+    },
+    sidebarDark: true,       // Flag to indicate dark sidebar
+  },
+  purple: {
+    name: 'Purple Dream',
+    primary: {
+      50: '#FAF5FF',
+      100: '#F3E8FF',
+      200: '#E9D5FF',
+      300: '#D8B4FE',
+      400: '#C084FC',
+      500: '#A855F7',
+      600: '#9333EA',
+      700: '#7E22CE',
+      800: '#6B21A8',
+      900: '#581C87',
+    },
+    background: {
+      main: '#FAF5FF',       // Soft pastel purple background
+      card: '#FFFFFF',       // White cards for contrast
+      sidebar: '#4C1D95',    // Dark purple sidebar (purple-900)
+      hover: '#5B21B6',      // Slightly lighter purple hover
+    },
+    text: {
+      primary: '#FFFFFF',    // White text for dark sidebar
+      secondary: '#E9D5FF',  // Light purple text
+    },
+    sidebarDark: true,
+  },
+  green: {
+    name: 'Fresh Green',
+    primary: {
+      50: '#F0FDF4',
+      100: '#DCFCE7',
+      200: '#BBF7D0',
+      300: '#86EFAC',
+      400: '#4ADE80',
+      500: '#22C55E',
+      600: '#16A34A',
+      700: '#15803D',
+      800: '#166534',
+      900: '#14532D',
+    },
+    background: {
+      main: '#F0FDF4',       // Soft pastel green background
+      card: '#FFFFFF',       // White cards for contrast
+      sidebar: '#14532D',    // Dark green sidebar (green-900)
+      hover: '#166534',      // Slightly lighter green hover
+    },
+    text: {
+      primary: '#FFFFFF',    // White text for dark sidebar
+      secondary: '#BBF7D0',  // Light green text
+    },
+    sidebarDark: true,
+  },
+  orange: {
+    name: 'Warm Orange',
+    primary: {
+      50: '#FFF7ED',
+      100: '#FFEDD5',
+      200: '#FED7AA',
+      300: '#FDBA74',
+      400: '#FB923C',
+      500: '#F97316',
+      600: '#EA580C',
+      700: '#C2410C',
+      800: '#9A3412',
+      900: '#7C2D12',
+    },
+    background: {
+      main: '#FFF7ED',       // Soft pastel orange background
+      card: '#FFFFFF',       // White cards for contrast
+      sidebar: '#7C2D12',    // Dark orange sidebar (orange-900)
+      hover: '#9A3412',      // Slightly lighter orange hover
+    },
+    text: {
+      primary: '#FFFFFF',    // White text for dark sidebar
+      secondary: '#FED7AA',  // Light orange text
+    },
+    sidebarDark: true,
+  },
+  teal: {
+    name: 'Ocean Teal',
+    primary: {
+      50: '#F0FDFA',
+      100: '#CCFBF1',
+      200: '#99F6E4',
+      300: '#5EEAD4',
+      400: '#2DD4BF',
+      500: '#14B8A6',
+      600: '#0D9488',
+      700: '#0F766E',
+      800: '#115E59',
+      900: '#134E4A',
+    },
+    background: {
+      main: '#F0FDFA',       // Soft pastel teal background
+      card: '#FFFFFF',       // White cards for contrast
+      sidebar: '#134E4A',    // Dark teal sidebar (teal-900)
+      hover: '#115E59',      // Slightly lighter teal hover
+    },
+    text: {
+      primary: '#FFFFFF',    // White text for dark sidebar
+      secondary: '#99F6E4',  // Light teal text
+    },
+    sidebarDark: true,
+  }
+}
+
+export function ThemeProvider({ children }) {
+  const [currentTheme, setCurrentTheme] = useState('default')
+
+  // Load theme from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('app-theme')
+    if (savedTheme && themes[savedTheme]) {
+      setCurrentTheme(savedTheme)
+      applyTheme(savedTheme)
+    } else {
+      applyTheme('default')
+    }
+  }, [])
+
+  const applyTheme = (themeName) => {
+    const theme = themes[themeName]
+    if (!theme) return
+
+    const root = document.documentElement
+
+    // Apply primary colors
+    Object.keys(theme.primary).forEach(shade => {
+      root.style.setProperty(`--color-primary-${shade}`, theme.primary[shade])
+    })
+
+    // Apply background colors
+    root.style.setProperty('--color-bg-main', theme.background.main)
+    root.style.setProperty('--color-bg-card', theme.background.card)
+    root.style.setProperty('--color-bg-sidebar', theme.background.sidebar)
+    root.style.setProperty('--color-bg-hover', theme.background.hover)
+
+    // Apply text colors
+    root.style.setProperty('--color-text-primary', theme.text.primary)
+    root.style.setProperty('--color-text-secondary', theme.text.secondary)
+  }
+
+  const changeTheme = (themeName) => {
+    if (themes[themeName]) {
+      setCurrentTheme(themeName)
+      applyTheme(themeName)
+      localStorage.setItem('app-theme', themeName)
+    }
+  }
+
+  return (
+    <ThemeContext.Provider value={{ currentTheme, changeTheme, themes }}>
+      {children}
+    </ThemeContext.Provider>
+  )
+}
+
+export function useTheme() {
+  const context = useContext(ThemeContext)
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider')
+  }
+  return context
+}
+

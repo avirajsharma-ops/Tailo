@@ -1,6 +1,6 @@
-/* Card Redesign - Modern UI with #EEF3FF Background */
+/* Card Redesign - Modern UI with Theme-Aware Background */
 
-/* Apply new background color to all white cards - More specific selectors */
+/* Apply theme background color to all white cards - More specific selectors */
 .page-container .bg-white,
 .dashboard-card,
 .stats-card,
@@ -11,7 +11,7 @@ div.bg-white.rounded,
 .bg-white.shadow-md,
 .bg-white.shadow-lg,
 .bg-white.shadow-sm {
-  background-color: #EEF3FF !important;
+  background-color: var(--color-bg-card) !important;
   box-shadow: none !important;
 }
 

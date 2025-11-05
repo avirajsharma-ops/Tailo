@@ -1,0 +1,68 @@
+/* Theme-aware component styles */
+
+/* Dashboard Layout */
+.dashboard-layout {
+  background-color: var(--color-bg-main) !important;
+}
+
+/* Sidebar */
+.sidebar,
+.sidebar-container,
+nav.sidebar {
+  background-color: var(--color-bg-sidebar) !important;
+}
+
+/* Cards */
+.card,
+.bg-white,
+[class*="bg-white"] {
+  background-color: var(--color-bg-card) !important;
+}
+
+/* Hover states */
+.hover-theme:hover {
+  background-color: var(--color-bg-hover) !important;
+}
+
+/* Menu items */
+.menu-item:hover,
+.nav-item:hover {
+  background-color: var(--color-bg-hover) !important;
+}
+
+/* Active menu items */
+.menu-item.active,
+.nav-item.active {
+  background-color: var(--color-primary-100) !important;
+  color: var(--color-primary-700) !important;
+}
+
+/* Text colors */
+.text-theme-primary {
+  color: var(--color-text-primary) !important;
+}
+
+.text-theme-secondary {
+  color: var(--color-text-secondary) !important;
+}
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600)) !important;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700)) !important;
+}
+
+/* Borders */
+.border-theme {
+  border-color: var(--color-primary-200) !important;
+}
+
+/* Shadows with theme color */
+.shadow-theme {
+  box-shadow: 0 4px 6px -1px rgba(var(--color-primary-500-rgb), 0.1),
+              0 2px 4px -1px rgba(var(--color-primary-500-rgb), 0.06) !important;
+}
+

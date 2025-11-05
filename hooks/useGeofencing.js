@@ -1,0 +1,226 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'react-hot-toast'
+
+export default function useGeofencing() {
+  const [isTracking, setIsTracking] = useState(false)
+  const [currentLocation, setCurrentLocation] = useState(null)
+  const [geofenceSettings, setGeofenceSettings] = useState(null)
+  const [isWithinGeofence, setIsWithinGeofence] = useState(true)
+  const [lastCheckTime, setLastCheckTime] = useState(null)
+  const [watchId, setWatchId] = useState(null)
+
+  // Calculate distance between two coordinates (Haversine formula)
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371e3 // Earth's radius in meters
+    const φ1 = lat1 * Math.PI / 180
+    const φ2 = lat2 * Math.PI / 180
+    const Δφ = (lat2 - lat1) * Math.PI / 180
+    const Δλ = (lon2 - lon1) * Math.PI / 180
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+
+    return R * c // Distance in meters
+  }
+
+  // Check if current time is during work hours
+  const isDuringWorkHours = (checkInTime, checkOutTime) => {
+    if (!checkInTime || !checkOutTime) return false
+    
+    const now = new Date()
+    const currentTime = now.getHours() * 60 + now.getMinutes()
+    
+    const [checkInHour, checkInMin] = checkInTime.split(':').map(Number)
+    const [checkOutHour, checkOutMin] = checkOutTime.split(':').map(Number)
+    
+    const checkInMinutes = checkInHour * 60 + checkInMin
+    const checkOutMinutes = checkOutHour * 60 + checkOutMin
+    
+    return currentTime >= checkInMinutes && currentTime <= checkOutMinutes
+  }
+
+  // Fetch geofence settings
+  const fetchGeofenceSettings = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/settings/company', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const data = await response.json()
+      if (data.success && data.data.geofence) {
+        setGeofenceSettings(data.data)
+        return data.data
+      }
+    } catch (error) {
+      console.error('Error fetching geofence settings:', error)
+    }
+    return null
+  }, [])
+
+  // Log location to server
+  const logLocation = useCallback(async (position, eventType = 'location_update', reason = null) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/geofence/log', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          eventType,
+          reason
+        })
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setIsWithinGeofence(data.data.isWithinGeofence)
+        return data.data
+      }
+    } catch (error) {
+      console.error('Error logging location:', error)
+    }
+    return null
+  }, [])
+
+  // Handle location update
+  const handleLocationUpdate = useCallback(async (position) => {
+    setCurrentLocation({
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      accuracy: position.coords.accuracy,
+      timestamp: new Date(position.timestamp)
+    })
+
+    if (!geofenceSettings || !geofenceSettings.geofence.enabled) {
+      return
+    }
+
+    // Calculate distance from geofence center
+    const distance = calculateDistance(
+      position.coords.latitude,
+      position.coords.longitude,
+      geofenceSettings.geofence.center.latitude,
+      geofenceSettings.geofence.center.longitude
+    )
+
+    const withinGeofence = distance <= geofenceSettings.geofence.radius
+    const duringWorkHours = isDuringWorkHours(
+      geofenceSettings.checkInTime,
+      geofenceSettings.checkOutTime
+    )
+
+    // Check if status changed
+    const statusChanged = withinGeofence !== isWithinGeofence
+
+    // Log location if:
+    // 1. Status changed (entered or exited geofence)
+    // 2. Outside geofence during work hours
+    // 3. Periodic update (every 15 minutes)
+    const now = Date.now()
+    const shouldLog = statusChanged || 
+                     (!withinGeofence && duringWorkHours) ||
+                     (!lastCheckTime || (now - lastCheckTime) > 15 * 60 * 1000)
+
+    if (shouldLog) {
+      const eventType = statusChanged ? (withinGeofence ? 'entry' : 'exit') : 'location_update'
+      const logData = await logLocation(position, eventType)
+      
+      setLastCheckTime(now)
+
+      // If outside geofence during work hours and requires approval
+      if (!withinGeofence && duringWorkHours && geofenceSettings.geofence.requireApproval && statusChanged) {
+        // Show popup asking for reason
+        showOutOfPremisesPopup(position)
+      } else if (!withinGeofence && duringWorkHours && geofenceSettings.geofence.notifyOnExit && statusChanged) {
+        // Just notify
+        toast.error('You are outside the office premises during work hours', {
+          duration: 5000,
+          icon: '📍'
+        })
+      }
+    }
+
+    setIsWithinGeofence(withinGeofence)
+  }, [geofenceSettings, isWithinGeofence, lastCheckTime, logLocation])
+
+  // Show popup for out-of-premises reason
+  const showOutOfPremisesPopup = useCallback((position) => {
+    // This will be handled by a separate component
+    // Dispatch custom event that the component can listen to
+    const event = new CustomEvent('geofence-exit', {
+      detail: { position }
+    })
+    window.dispatchEvent(event)
+  }, [])
+
+  // Start tracking
+  const startTracking = useCallback(async () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser')
+      return
+    }
+
+    // Fetch settings first
+    const settings = await fetchGeofenceSettings()
+    if (!settings || !settings.geofence.enabled) {
+      console.log('Geofencing is not enabled')
+      return
+    }
+
+    // Request permission and start watching
+    const id = navigator.geolocation.watchPosition(
+      handleLocationUpdate,
+      (error) => {
+        console.error('Geolocation error:', error)
+        if (error.code === error.PERMISSION_DENIED) {
+          toast.error('Location permission denied. Please enable location access.')
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000 // Cache for 1 minute
+      }
+    )
+
+    setWatchId(id)
+    setIsTracking(true)
+  }, [fetchGeofenceSettings, handleLocationUpdate])
+
+  // Stop tracking
+  const stopTracking = useCallback(() => {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId)
+      setWatchId(null)
+      setIsTracking(false)
+    }
+  }, [watchId])
+
+  // Auto-start tracking on mount
+  useEffect(() => {
+    startTracking()
+    return () => stopTracking()
+  }, [])
+
+  return {
+    isTracking,
+    currentLocation,
+    isWithinGeofence,
+    geofenceSettings,
+    startTracking,
+    stopTracking,
+    logLocation
+  }
+}
+
