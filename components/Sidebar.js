@@ -237,7 +237,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           <Link
             href="/dashboard/settings"
             onClick={handleLinkClick}
-            className="w-full flex items-center ml-1 mt-[10px] md:mt-[6px] space-x-3 px-2 py-1 rounded-xl transition-all duration-200 group cursor-pointer"
+            className="w-full flex items-center ml-1 mt-[10px] md:mt-[6px] space-x-3 px-2 md:py-1 py-2 rounded-xl transition-all duration-200 group cursor-pointer"
             style={{
               backgroundColor: pathname === '/dashboard/settings' ? 'var(--color-primary-500)' : 'transparent',
               color: pathname === '/dashboard/settings' ? 'white' : 'var(--color-text-primary)'
