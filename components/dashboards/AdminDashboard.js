@@ -17,6 +17,11 @@ import { useTheme } from '@/contexts/ThemeContext'
 export default function AdminDashboard({ user }) {
   const router = useRouter()
   const { theme } = useTheme()
+
+  // Fallback theme colors if theme is not loaded yet
+  const primaryColor = theme?.primary?.[500] || '#3B82F6'
+  const primaryDark = theme?.primary?.[600] || '#2563EB'
+
   const [loading, setLoading] = useState(true)
   const [dashboardData, setDashboardData] = useState({
     employees: [],
@@ -749,9 +754,9 @@ export default function AdminDashboard({ user }) {
                     router.push(`/dashboard/employees/edit/${selectedEmployee._id}`)
                   }}
                   className="flex-1 px-4 py-2 text-white rounded-lg transition-colors"
-                  style={{ backgroundColor: theme.primary[500] }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.primary[600]}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.primary[500]}
+                  style={{ backgroundColor: primaryColor }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = primaryDark}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = primaryColor}
                 >
                   Edit Employee
                 </button>
@@ -761,9 +766,9 @@ export default function AdminDashboard({ user }) {
                     router.push(`/dashboard/leave/requests?employee=${selectedEmployee._id}`)
                   }}
                   className="flex-1 px-4 py-2 text-white rounded-lg transition-colors"
-                  style={{ backgroundColor: theme.primary[500] }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.primary[600]}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.primary[500]}
+                  style={{ backgroundColor: primaryColor }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = primaryDark}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = primaryColor}
                 >
                   View Leaves
                 </button>

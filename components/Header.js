@@ -11,6 +11,12 @@ export default function Header({ toggleSidebar }) {
   const { theme } = useTheme()
   const router = useRouter()
   const pathname = usePathname()
+
+  // Fallback theme colors if theme is not loaded yet
+  const primaryColor = theme?.primary?.[600] || '#2563EB'
+  const primaryLight = theme?.primary?.[50] || '#EFF6FF'
+  const primaryMedium = theme?.primary?.[500] || '#3B82F6'
+
   const [user, setUser] = useState(null)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
@@ -344,10 +350,10 @@ export default function Header({ toggleSidebar }) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search everything..."
                 className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:border-transparent transition-all"
-                style={{ '--tw-ring-color': theme.primary[500] }}
+                style={{ '--tw-ring-color': primaryMedium }}
               />
               {searching && (
-                <FaSpinner className="absolute right-3 animate-spin w-4 h-4" style={{ color: theme.primary[600] }} />
+                <FaSpinner className="absolute right-3 animate-spin w-4 h-4" style={{ color: primaryColor }} />
               )}
               {searchQuery && !searching && (
                 <button
@@ -382,7 +388,7 @@ export default function Header({ toggleSidebar }) {
                               backgroundColor: 'transparent',
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = theme.primary[50]
+                              e.currentTarget.style.backgroundColor = primaryLight
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.backgroundColor = 'transparent'
@@ -401,7 +407,7 @@ export default function Header({ toggleSidebar }) {
                                   )}
                                 </div>
                                 {item.subtitle && (
-                                  <p className="text-xs mb-1" style={{ color: theme.primary[600] }}>{item.subtitle}</p>
+                                  <p className="text-xs mb-1" style={{ color: primaryColor }}>{item.subtitle}</p>
                                 )}
                                 {item.description && (
                                   <p className="text-xs text-gray-500 line-clamp-1">{item.description}</p>
@@ -428,7 +434,7 @@ export default function Header({ toggleSidebar }) {
 
         {/* Center - Page Title */}
         <div className="absolute left-1/2 transform -translate-x-1/2">
-          <h1 className="text-lg font-semibold" style={{ color: window.innerWidth >= 768 ? theme.primary[600] : '#000000' }}>{pageTitle}</h1>
+          <h1 className="text-lg font-semibold" style={{ color: window.innerWidth >= 768 ? primaryColor : '#000000' }}>{pageTitle}</h1>
         </div>
 
         {/* Right side */}
@@ -441,8 +447,8 @@ export default function Header({ toggleSidebar }) {
               color: 'var(--color-text-secondary)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = theme.primary[600]
-              e.currentTarget.style.backgroundColor = theme.primary[50]
+              e.currentTarget.style.color = primaryColor
+              e.currentTarget.style.backgroundColor = primaryLight
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = 'var(--color-text-secondary)'
@@ -464,8 +470,8 @@ export default function Header({ toggleSidebar }) {
               color: 'var(--color-text-secondary)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = theme.primary[600]
-              e.currentTarget.style.backgroundColor = theme.primary[50]
+              e.currentTarget.style.color = primaryColor
+              e.currentTarget.style.backgroundColor = primaryLight
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = 'var(--color-text-secondary)'
@@ -629,7 +635,7 @@ export default function Header({ toggleSidebar }) {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search everything..."
                   className="w-full h-11 pl-10 pr-10 bg-gray-50 border border-gray-100 rounded-lg focus:ring-1 focus:border-transparent text-sm"
-                  style={{ '--tw-ring-color': theme.primary[500] }}
+                  style={{ '--tw-ring-color': primaryMedium }}
                   autoFocus
                 />
                 {searchQuery && !searching && (
@@ -645,7 +651,7 @@ export default function Header({ toggleSidebar }) {
                 )}
                 {searching && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <FaSpinner className="animate-spin w-4 h-4" style={{ color: theme.primary[600] }} />
+                    <FaSpinner className="animate-spin w-4 h-4" style={{ color: primaryColor }} />
                   </div>
                 )}
               </div>
@@ -663,7 +669,7 @@ export default function Header({ toggleSidebar }) {
                 </div>
               ) : searching ? (
                 <div className="flex items-center justify-center h-full">
-                  <FaSpinner className="animate-spin w-8 h-8" style={{ color: theme.primary[600] }} />
+                  <FaSpinner className="animate-spin w-8 h-8" style={{ color: primaryColor }} />
                 </div>
               ) : searchResults ? (
 <div>
@@ -683,13 +689,13 @@ export default function Header({ toggleSidebar }) {
                               backgroundColor: 'transparent',
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = theme.primary[50]
+                              e.currentTarget.style.backgroundColor = primaryLight
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.backgroundColor = 'transparent'
                             }}
                             onTouchStart={(e) => {
-                              e.currentTarget.style.backgroundColor = theme.primary[100]
+                              e.currentTarget.style.backgroundColor = theme?.primary?.[100] || '#DBEAFE'
                             }}
                             onTouchEnd={(e) => {
                               e.currentTarget.style.backgroundColor = 'transparent'
@@ -705,7 +711,7 @@ export default function Header({ toggleSidebar }) {
                                   )}
                                 </div>
                                 {item.subtitle && (
-                                  <p className="text-sm mb-1" style={{ color: theme.primary[600] }}>{item.subtitle}</p>
+                                  <p className="text-sm mb-1" style={{ color: primaryColor }}>{item.subtitle}</p>
                                 )}
                                 {item.description && (
                                   <p className="text-sm text-gray-500 line-clamp-2">{item.description}</p>

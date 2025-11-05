@@ -14,6 +14,10 @@ import { useTheme } from '@/contexts/ThemeContext'
 
 export default function EmployeeDashboard({ user }) {
   const { theme } = useTheme()
+
+  // Fallback theme colors if theme is not loaded yet
+  const primaryColor = theme?.primary?.[500] || '#3B82F6'
+
   const [announcements, setAnnouncements] = useState([])
   const [holidays, setHolidays] = useState([])
   const [dashboardStats, setDashboardStats] = useState(null)
@@ -267,7 +271,7 @@ export default function EmployeeDashboard({ user }) {
       value: `${dashboardStats.stats.hoursThisMonth.value}h`,
       change: `${dashboardStats.stats.hoursThisMonth.change >= 0 ? '+' : ''}${dashboardStats.stats.hoursThisMonth.change}h`,
       icon: FaClock,
-      color: theme.primary[500],
+      color: primaryColor,
       trend: dashboardStats.stats.hoursThisMonth.trend
     },
     {
@@ -275,7 +279,7 @@ export default function EmployeeDashboard({ user }) {
       value: `${dashboardStats.stats.leaveBalance.value} days`,
       change: `${dashboardStats.stats.leaveBalance.change >= 0 ? '+' : ''}${dashboardStats.stats.leaveBalance.change}`,
       icon: FaCalendarAlt,
-      color: theme.primary[500],
+      color: primaryColor,
       trend: dashboardStats.stats.leaveBalance.trend
     },
     {
@@ -283,7 +287,7 @@ export default function EmployeeDashboard({ user }) {
       value: `₹${dashboardStats.stats.thisMonthSalary.value.toLocaleString()}`,
       change: `${dashboardStats.stats.thisMonthSalary.change >= 0 ? '+' : ''}₹${Math.abs(dashboardStats.stats.thisMonthSalary.change).toLocaleString()}`,
       icon: FaMoneyBillWave,
-      color: theme.primary[500],
+      color: primaryColor,
       trend: dashboardStats.stats.thisMonthSalary.trend
     },
     {
@@ -291,7 +295,7 @@ export default function EmployeeDashboard({ user }) {
       value: `${dashboardStats.stats.pendingTasks.value}`,
       change: `${dashboardStats.stats.pendingTasks.change >= 0 ? '+' : ''}${dashboardStats.stats.pendingTasks.change}`,
       icon: FaFileAlt,
-      color: theme.primary[500],
+      color: primaryColor,
       trend: dashboardStats.stats.pendingTasks.trend
     },
     {

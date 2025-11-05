@@ -14,6 +14,11 @@ import { useTheme } from '@/contexts/ThemeContext'
 
 export default function ManagerDashboard({ user }) {
   const { theme } = useTheme()
+
+  // Fallback theme colors if theme is not loaded yet
+  const primaryColor = theme?.primary?.[500] || '#3B82F6'
+  const primaryDark = theme?.primary?.[600] || '#2563EB'
+
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState(null)
   const [teamMembers, setTeamMembers] = useState([])
@@ -561,7 +566,7 @@ export default function ManagerDashboard({ user }) {
                 href={action.href}
                 className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
               >
-                <div className="p-3 rounded-lg mb-3" style={{ backgroundColor: theme.primary[500] }}>
+                <div className="p-3 rounded-lg mb-3" style={{ backgroundColor: primaryColor }}>
                   <action.icon className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-sm font-medium text-gray-900 text-center">{action.name}</span>
@@ -598,7 +603,7 @@ export default function ManagerDashboard({ user }) {
                           className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm" style={{ backgroundColor: theme.primary[500] }}>
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm" style={{ backgroundColor: primaryColor }}>
                           {initials}
                         </div>
                       )}
@@ -653,9 +658,9 @@ export default function ManagerDashboard({ user }) {
                       <button
                         onClick={() => handleApproveLeave(leave._id)}
                         className="px-3 py-1 text-white text-xs rounded transition-colors"
-                        style={{ backgroundColor: theme.primary[500] }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.primary[600]}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.primary[500]}
+                        style={{ backgroundColor: primaryColor }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = primaryDark}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = primaryColor}
                       >
                         Approve
                       </button>
