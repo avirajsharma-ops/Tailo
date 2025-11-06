@@ -1,5 +1,5 @@
-# Use the official Node.js 18 Alpine image
-FROM node:18-alpine
+# Use the official Node.js 20 Alpine image (required for Firebase)
+FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
