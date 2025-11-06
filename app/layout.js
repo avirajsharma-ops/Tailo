@@ -7,7 +7,6 @@ import '../styles/theme.css'
 import { Toaster } from 'react-hot-toast'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import FirebaseInit from '@/components/FirebaseInit'
-import PermissionHandler from '@/components/PermissionHandler'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -67,7 +66,6 @@ export default function RootLayout({ children }) {
       <body className={inter.className}>
         <ThemeProvider>
           <FirebaseInit />
-          <PermissionHandler />
           {children}
           <Toaster
             position="top-right"
