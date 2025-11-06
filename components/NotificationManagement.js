@@ -18,12 +18,16 @@ export default function NotificationManagement() {
     if (userData) {
       const user = JSON.parse(userData)
       setUserRole(user.role)
+      console.log('User role:', user.role)
     }
 
     const employeeData = localStorage.getItem('employee')
     if (employeeData) {
       const employee = JSON.parse(employeeData)
-      setUserDepartment(employee.department?._id || employee.department)
+      const deptId = employee.department?._id || employee.department
+      setUserDepartment(deptId)
+      console.log('User department ID:', deptId)
+      console.log('Is department head:', employee.isDepartmentHead)
       // Check if employee data has isDepartmentHead flag
       if (employee.isDepartmentHead) {
         setIsDepartmentHead(true)
@@ -239,14 +243,17 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
 
         // If department head, only show employees from their department
         if (isDepartmentHead && !['admin', 'hr'].includes(userRole)) {
+          console.log('Department head filtering - userDepartment:', userDepartment)
           filteredEmployees = data.data.filter(emp => {
             const empDeptId = emp.department?._id || emp.department
+            console.log('Employee:', emp.firstName, emp.lastName, 'Dept:', empDeptId)
             return empDeptId && empDeptId.toString() === userDepartment?.toString()
           })
+          console.log('Filtered employees for department head:', filteredEmployees.length)
         }
 
         setEmployees(filteredEmployees)
-        console.log('Filtered employees:', filteredEmployees.length)
+        console.log('Final employees list:', filteredEmployees.length)
       }
     } catch (error) {
       console.error('Error fetching employees:', error)
@@ -297,25 +304,27 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
   const isDeptHead = userRole === 'department_head' || isDepartmentHead
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* API Key Warning */}
-      {!apiKeyConfigured && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
-          <div className="flex items-start gap-3">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+      {/* API Key Warning - Only show if actually not configured */}
+      {checkingApiKey === false && !apiKeyConfigured && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 sm:p-4 rounded-lg">
+          <div className="flex items-start gap-2 sm:gap-3">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              <svg className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
             </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-red-800">
-                Cannot Send Notifications
+            <div className="flex-1 min-w-0">
+              <h3 className="text-xs sm:text-sm font-medium text-yellow-800">
+                OneSignal Configuration Needed
               </h3>
-              <p className="mt-1 text-sm text-red-700">
-                OneSignal API key is not configured. Notifications cannot be sent until an administrator configures the API credentials.
+              <p className="mt-1 text-xs sm:text-sm text-yellow-700">
+                OneSignal API key is not configured. Web push notifications require OneSignal setup.
                 {userRole === 'admin' && (
                   <span> Please go to the <strong>Configuration</strong> tab to set up OneSignal.</span>
                 )}
+                <br />
+                <span className="text-xs">Note: Native app notifications work independently of OneSignal.</span>
               </p>
             </div>
           </div>
@@ -323,31 +332,31 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
       )}
 
       {/* Notification Content */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Notification Content</h3>
+      <div className="space-y-3 sm:space-y-4">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Notification Content</h3>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
             Title *
           </label>
           <input
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+            className="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
             placeholder="Enter notification title"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
             Message *
           </label>
           <textarea
             value={formData.message}
             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-            className="w-full px-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+            className="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
             placeholder="Enter notification message"
             rows={4}
             required
@@ -355,24 +364,24 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
             Action URL
           </label>
           <input
             type="text"
             value={formData.url}
             onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-            className="w-full px-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+            className="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
             placeholder="/dashboard"
           />
         </div>
       </div>
 
       {/* Schedule Type */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Schedule</h3>
+      <div className="space-y-3 sm:space-y-4">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Schedule</h3>
 
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <label className="flex items-center space-x-2 cursor-pointer">
             <input
               type="radio"
@@ -381,7 +390,7 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
               onChange={(e) => setFormData({ ...formData, scheduleType: e.target.value })}
               className="w-4 h-4 text-primary-500 focus:ring-primary-500"
             />
-            <span className="text-sm text-gray-900">Send Now</span>
+            <span className="text-xs sm:text-sm text-gray-900">Send Now</span>
           </label>
           <label className="flex items-center space-x-2 cursor-pointer">
             <input
@@ -391,20 +400,20 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
               onChange={(e) => setFormData({ ...formData, scheduleType: e.target.value })}
               className="w-4 h-4 text-primary-500 focus:ring-primary-500"
             />
-            <span className="text-sm text-gray-900">Schedule for Later</span>
+            <span className="text-xs sm:text-sm text-gray-900">Schedule for Later</span>
           </label>
         </div>
 
         {formData.scheduleType === 'scheduled' && (
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
               Schedule Date & Time
             </label>
             <input
               type="datetime-local"
               value={formData.scheduledFor}
               onChange={(e) => setFormData({ ...formData, scheduledFor: e.target.value })}
-              className="w-full px-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+              className="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
               required
             />
           </div>
@@ -412,17 +421,17 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
       </div>
 
       {/* Target Audience */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Target Audience</h3>
-        
+      <div className="space-y-3 sm:space-y-4">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Target Audience</h3>
+
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
             Send To
           </label>
           <select
             value={formData.targetType}
             onChange={(e) => setFormData({ ...formData, targetType: e.target.value })}
-            className="w-full px-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+            className="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
           >
             <option value="all">{isDeptHead && !['admin', 'hr'].includes(userRole) ? 'All Department Members' : 'All Employees'}</option>
             {!isDeptHead && <option value="department">Specific Department</option>}
@@ -488,12 +497,12 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
 
         {formData.targetType === 'specific' && (
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
               Select Users ({formData.targetUsers.length} selected)
             </label>
-            <div className="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto bg-gray-50">
+            <div className="border border-gray-300 rounded-lg p-3 sm:p-4 max-h-64 sm:max-h-96 overflow-y-auto bg-gray-50">
               {employees.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">
+                <p className="text-xs sm:text-sm text-gray-500 text-center py-4">
                   {isDeptHead && !['admin', 'hr'].includes(userRole) ? 'No employees found in your department' : 'No employees found'}
                 </p>
               ) : (
@@ -571,27 +580,26 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
       </div>
 
       {/* Submit Button */}
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-end pt-3 sm:pt-4">
         <button
           type="submit"
-          disabled={sending || !apiKeyConfigured}
-          className="px-6 py-2.5 text-white rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center space-x-2 font-medium transition-colors"
+          disabled={sending}
+          className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base text-white rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2 font-medium transition-colors"
           style={{
-            backgroundColor: sending || !apiKeyConfigured ? '#9CA3AF' : 'var(--color-primary-600)'
+            backgroundColor: sending ? '#9CA3AF' : 'var(--color-primary-600)'
           }}
           onMouseEnter={(e) => {
-            if (!sending && apiKeyConfigured) {
+            if (!sending) {
               e.currentTarget.style.backgroundColor = 'var(--color-primary-700)'
             }
           }}
           onMouseLeave={(e) => {
-            if (!sending && apiKeyConfigured) {
+            if (!sending) {
               e.currentTarget.style.backgroundColor = 'var(--color-primary-600)'
             }
           }}
-          title={!apiKeyConfigured ? 'OneSignal API key not configured' : ''}
         >
-          <FaPaperPlane className="w-4 h-4" />
+          <FaPaperPlane className="w-3 h-3 sm:w-4 sm:h-4" />
           <span>{sending ? 'Sending...' : formData.scheduleType === 'now' ? 'Send Notification' : 'Schedule Notification'}</span>
         </button>
       </div>
