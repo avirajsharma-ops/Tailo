@@ -1,13 +1,15 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { 
-  requestFCMToken, 
-  saveFCMTokenToBackend, 
+import {
+  requestFCMToken,
+  saveFCMTokenToBackend,
   onForegroundMessage,
-  getStoredFCMToken 
+  getStoredFCMToken
 } from '@/lib/firebase'
+import { useInAppNotification } from '@/contexts/InAppNotificationContext'
+import { playNotificationSound } from '@/utils/audio'
 
 /**
  * Firebase Cloud Messaging Initialization Component
@@ -15,6 +17,19 @@ import {
  */
 export default function FirebaseInit() {
   const router = useRouter()
+  const { showNotification } = useInAppNotification()
+  const [isAppVisible, setIsAppVisible] = useState(true)
+
+  // Track app visibility
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsAppVisible(!document.hidden)
+      console.log('[FirebaseInit] App visibility changed:', !document.hidden ? 'visible' : 'hidden')
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
 
   useEffect(() => {
     // Only run on client side
@@ -65,31 +80,53 @@ export default function FirebaseInit() {
         // Set up foreground message listener
         onForegroundMessage((payload) => {
           console.log('[FirebaseInit] Foreground message received:', payload)
+          console.log('[FirebaseInit] App is visible:', isAppVisible)
 
-          // Show browser notification
-          if (Notification.permission === 'granted') {
-            const title = payload.notification?.title || 'Talio HRMS'
-            const options = {
-              body: payload.notification?.body || 'You have a new notification',
-              icon: payload.notification?.icon || '/icons/icon-192x192.png',
-              badge: '/icons/icon-96x96.png',
-              tag: 'talio-notification',
-              data: payload.data,
-              vibrate: [200, 100, 200],
-              requireInteraction: false
-            }
+          const title = payload.notification?.title || 'Talio HRMS'
+          const body = payload.notification?.body || 'You have a new notification'
+          const url = payload.data?.click_action || payload.fcmOptions?.link || '/dashboard'
+          const type = payload.data?.type || 'general'
 
-            if (payload.notification?.image) {
-              options.image = payload.notification.image
-            }
+          // If app is visible, show in-app notification
+          if (isAppVisible) {
+            console.log('[FirebaseInit] Showing in-app notification')
 
-            const notification = new Notification(title, options)
+            // Play notification sound
+            playNotificationSound()
 
-            // Handle notification click
-            notification.onclick = () => {
-              const url = payload.data?.click_action || payload.fcmOptions?.link || '/dashboard'
-              router.push(url)
-              notification.close()
+            // Show in-app notification
+            showNotification({
+              title,
+              message: body,
+              url,
+              type
+            })
+          } else {
+            // If app is not visible, show browser notification
+            console.log('[FirebaseInit] Showing browser notification')
+
+            if (Notification.permission === 'granted') {
+              const options = {
+                body,
+                icon: payload.notification?.icon || '/icons/icon-192x192.png',
+                badge: '/icons/icon-96x96.png',
+                tag: 'talio-notification',
+                data: payload.data,
+                vibrate: [200, 100, 200],
+                requireInteraction: false
+              }
+
+              if (payload.notification?.image) {
+                options.image = payload.notification.image
+              }
+
+              const notification = new Notification(title, options)
+
+              // Handle notification click
+              notification.onclick = () => {
+                router.push(url)
+                notification.close()
+              }
             }
           }
         })

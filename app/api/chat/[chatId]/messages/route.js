@@ -139,10 +139,12 @@ export async function POST(request, context) {
       const io = global.io
 
       if (io) {
-        // Broadcast to all users in this chat room
+        // Broadcast to all users in this chat room EXCEPT the sender
+        // This prevents duplicate messages on sender's side
         io.to(`chat:${chatId}`).emit('new-message', {
           chatId,
-          message: newMessage
+          message: newMessage,
+          senderId: user._id.toString() // Include sender ID so clients can filter
         })
         console.log(`💬 [WebSocket] Broadcasted message to chat:${chatId}`)
       } else {

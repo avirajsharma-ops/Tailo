@@ -12,6 +12,8 @@ import {
 import { useState, useEffect, useMemo } from 'react'
 import { getMenuItemsForRole } from '@/utils/roleBasedMenus'
 import toast from 'react-hot-toast'
+import { useUnreadMessages } from '@/contexts/UnreadMessagesContext'
+import UnreadBadge from './UnreadBadge'
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const pathname = usePathname()
@@ -21,6 +23,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   const [mounted, setMounted] = useState(false)
   const [isDepartmentHead, setIsDepartmentHead] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const { unreadCount } = useUnreadMessages()
 
   // Load user only once on mount
   useEffect(() => {
@@ -213,20 +216,23 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 <Link
                   href={item.path}
                   onClick={handleLinkClick}
-                  className="w-full flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-xl transition-all duration-200 group cursor-pointer"
+                  className="w-full flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-xl transition-all duration-200 group cursor-pointer relative"
                   style={{
                     backgroundColor: pathname === item.path ? 'var(--color-primary-500)' : 'transparent',
                     color: pathname === item.path ? 'white' : 'var(--color-text-primary)'
                   }}
                 >
                   <div
-                    className="p-2 rounded-lg transition-colors"
+                    className="p-2 rounded-lg transition-colors relative"
                     style={{
                       backgroundColor: pathname === item.path ? 'var(--color-primary-600)' : 'var(--color-primary-100)',
                       color: pathname === item.path ? 'white' : 'var(--color-primary-700)'
                     }}
                   >
                     <item.icon className="w-4 h-4" />
+                    {item.name === 'Messages' && unreadCount > 0 && (
+                      <UnreadBadge count={unreadCount} />
+                    )}
                   </div>
                   <span className="text-sm font-medium">{item.name}</span>
                 </Link>

@@ -1,0 +1,81 @@
+import { NextResponse } from 'next/server'
+import jwt from 'jsonwebtoken'
+import dbConnect from '@/lib/mongodb'
+import Chat from '@/models/Chat'
+import Employee from '@/models/Employee'
+
+// POST - Mark all messages in a chat as read
+export async function POST(request, context) {
+  try {
+    await dbConnect()
+
+    // Get user from token
+    const token = request.headers.get('authorization')?.replace('Bearer ', '')
+    if (!token) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    const employee = await Employee.findOne({ userId: decoded.userId })
+    
+    if (!employee) {
+      return NextResponse.json({ success: false, message: 'Employee not found' }, { status: 404 })
+    }
+
+    const params = await context.params
+    const chatId = params.chatId
+
+    // Find the chat
+    const chat = await Chat.findById(chatId)
+    if (!chat) {
+      return NextResponse.json({ success: false, message: 'Chat not found' }, { status: 404 })
+    }
+
+    // Check if user is a participant
+    if (!chat.participants.some(p => p.toString() === employee._id.toString())) {
+      return NextResponse.json({ success: false, message: 'Not a participant' }, { status: 403 })
+    }
+
+    // Mark all unread messages as read
+    let markedCount = 0
+    for (const message of chat.messages) {
+      // Skip messages sent by current user
+      if (message.sender.toString() === employee._id.toString()) {
+        continue
+      }
+
+      // Check if already read by user
+      const alreadyRead = message.isRead?.some(
+        read => read.user.toString() === employee._id.toString()
+      )
+
+      if (!alreadyRead) {
+        if (!message.isRead) {
+          message.isRead = []
+        }
+        message.isRead.push({
+          user: employee._id,
+          readAt: new Date()
+        })
+        markedCount++
+      }
+    }
+
+    if (markedCount > 0) {
+      await chat.save()
+    }
+
+    return NextResponse.json({
+      success: true,
+      markedCount,
+      message: `Marked ${markedCount} messages as read`
+    })
+  } catch (error) {
+    console.error('[API] Error marking messages as read:', error)
+    return NextResponse.json(
+      { success: false, message: 'Failed to mark messages as read', error: error.message },
+      { status: 500 }
+    )
+  }
+}
+

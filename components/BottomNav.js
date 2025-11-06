@@ -2,11 +2,14 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useUnreadMessages } from '@/contexts/UnreadMessagesContext'
+import UnreadBadge from './UnreadBadge'
 
 export default function BottomNav() {
   const pathname = usePathname()
   const router = useRouter()
   const { currentTheme, themes } = useTheme()
+  const { unreadCount } = useUnreadMessages()
 
   // Get theme colors with fallbacks
   const bottomNavColor = '#FFFFFF' // White bottom nav
@@ -64,7 +67,7 @@ export default function BottomNav() {
             <button
               key={item.path}
               onClick={() => router.push(item.path)}
-              className={`p-0 h-14 w-14 rounded-full transition-all duration-300 ${
+              className={`relative p-0 h-14 w-14 rounded-full transition-all duration-300 ${
                 item.active && !isChat
                   ? '-translate-y-[34px]'
                   : item.active && isChat
@@ -88,6 +91,9 @@ export default function BottomNav() {
                     : 'brightness(0) saturate(100%) invert(44%) sepia(8%) saturate(400%) hue-rotate(180deg)' // Gray icon for inactive
                 }}
               />
+              {isChat && unreadCount > 0 && (
+                <UnreadBadge count={unreadCount} />
+              )}
             </button>
           )
         })}

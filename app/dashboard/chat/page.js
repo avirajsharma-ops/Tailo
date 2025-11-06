@@ -3,6 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { FaUserPlus, FaUsers, FaTimes, FaFile, FaImage, FaFilePdf, FaUser, FaComments, FaArrowLeft } from 'react-icons/fa'
 import { useSocket } from '@/contexts/SocketContext'
+import { useUnreadMessages } from '@/contexts/UnreadMessagesContext'
+import UnreadBadge from '@/components/UnreadBadge'
+import { playNotificationSound } from '@/utils/audio'
 
 export default function ChatPage() {
   const [chats, setChats] = useState([])
@@ -29,6 +32,9 @@ export default function ChatPage() {
   // Get Socket.IO context
   // Note: sendMessage is removed - server now broadcasts messages automatically
   const { isConnected, joinChat, leaveChat, onNewMessage, sendTyping, sendStopTyping, onUserTyping, onUserStopTyping } = useSocket()
+
+  // Get unread messages context
+  const { markChatAsRead, unreadChats } = useUnreadMessages()
 
   useEffect(() => {
     fetchChats()
@@ -67,6 +73,12 @@ export default function ChatPage() {
         setMessages(prev => {
           const exists = prev.some(msg => msg._id === newMessage._id)
           if (exists) return prev
+
+          // Play notification sound if message is from someone else
+          if (newMessage.sender._id !== currentUserId) {
+            playNotificationSound()
+          }
+
           return [...prev, newMessage]
         })
       }
@@ -180,7 +192,11 @@ export default function ChatPage() {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const result = await response.json()
-      if (result.success) setMessages(result.data)
+      if (result.success) {
+        setMessages(result.data)
+        // Mark chat as read when viewing messages
+        markChatAsRead(chatId)
+      }
     } catch (error) {
       console.error('Error:', error)
     }
@@ -209,13 +225,29 @@ export default function ChatPage() {
       const result = await response.json()
       if (result.success) {
         // Server will broadcast via WebSocket automatically
-        // No need to call sendSocketMessage() - reduces duplicate broadcasts
+        // Add message locally for immediate feedback (WebSocket handler will prevent duplicates)
+        setMessages(prev => {
+          const exists = prev.some(msg => msg._id === result.data._id)
+          if (exists) return prev
+          return [...prev, result.data]
+        })
 
-        // Update local state immediately for sender
-        setMessages(prev => [...prev, result.data])
+        // Update chat list
+        setChats(prev => {
+          const chatIndex = prev.findIndex(c => c._id === selectedChat._id)
+          if (chatIndex === -1) return prev
 
-        // REMOVED: fetchChats() - reduces unnecessary API calls
-        // The chat list will be updated when we receive the WebSocket event
+          const updatedChats = [...prev]
+          const chat = { ...updatedChats[chatIndex] }
+          chat.lastMessage = result.data.content || result.data.fileName || 'File'
+          chat.lastMessageAt = result.data.createdAt
+
+          // Move to top
+          updatedChats.splice(chatIndex, 1)
+          updatedChats.unshift(chat)
+
+          return updatedChats
+        })
       } else {
         // Restore message if failed
         setMessage(messageContent)
@@ -482,7 +514,7 @@ export default function ChatPage() {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 md:w-11 md:h-11 rounded-full bg-gradient-to-br from-[#6B7FFF] to-[#5A6EEE] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        <div className="w-12 h-12 md:w-11 md:h-11 rounded-full bg-gradient-to-br from-[#6B7FFF] to-[#5A6EEE] flex items-center justify-center flex-shrink-0 overflow-hidden relative">
                           {getChatAvatar(chat) ? (
                             <img src={getChatAvatar(chat)} alt="" className="w-full h-full object-cover" />
                           ) : chat.isGroup ? (
@@ -490,13 +522,16 @@ export default function ChatPage() {
                           ) : (
                             <FaUser className="text-white text-lg" />
                           )}
+                          {unreadChats[chat._id] > 0 && (
+                            <UnreadBadge count={unreadChats[chat._id]} />
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <h3 className="font-semibold text-gray-900 truncate text-[15px]">{getChatName(chat)}</h3>
+                            <h3 className={`font-semibold truncate text-[15px] ${unreadChats[chat._id] > 0 ? 'text-gray-900' : 'text-gray-900'}`}>{getChatName(chat)}</h3>
                             <span className="text-xs text-gray-400 ml-2 flex-shrink-0">{chat.lastMessageAt ? formatTime(chat.lastMessageAt) : ''}</span>
                           </div>
-                          <p className="text-sm text-gray-500 truncate">{chat.lastMessage || 'No messages yet'}</p>
+                          <p className={`text-sm truncate ${unreadChats[chat._id] > 0 ? 'text-gray-900 font-semibold' : 'text-gray-500'}`}>{chat.lastMessage || 'No messages yet'}</p>
                         </div>
                       </div>
                     </div>

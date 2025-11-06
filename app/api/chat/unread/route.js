@@ -1,0 +1,69 @@
+import { NextResponse } from 'next/server'
+import jwt from 'jsonwebtoken'
+import dbConnect from '@/lib/mongodb'
+import Chat from '@/models/Chat'
+import Employee from '@/models/Employee'
+
+// GET - Get unread message count for current user
+export async function GET(request) {
+  try {
+    await dbConnect()
+
+    // Get user from token
+    const token = request.headers.get('authorization')?.replace('Bearer ', '')
+    if (!token) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    const employee = await Employee.findOne({ userId: decoded.userId })
+    
+    if (!employee) {
+      return NextResponse.json({ success: false, message: 'Employee not found' }, { status: 404 })
+    }
+
+    // Find all chats where user is a participant
+    const chats = await Chat.find({
+      participants: employee._id
+    }).select('messages participants')
+
+    let totalUnread = 0
+    const unreadByChat = {}
+
+    // Count unread messages in each chat
+    for (const chat of chats) {
+      let chatUnread = 0
+      
+      for (const message of chat.messages) {
+        // Check if message is from someone else and not read by current user
+        if (message.sender.toString() !== employee._id.toString()) {
+          const isReadByUser = message.isRead?.some(
+            read => read.user.toString() === employee._id.toString()
+          )
+          
+          if (!isReadByUser) {
+            chatUnread++
+          }
+        }
+      }
+      
+      if (chatUnread > 0) {
+        unreadByChat[chat._id.toString()] = chatUnread
+        totalUnread += chatUnread
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      totalUnread,
+      unreadByChat
+    })
+  } catch (error) {
+    console.error('[API] Error getting unread count:', error)
+    return NextResponse.json(
+      { success: false, message: 'Failed to get unread count', error: error.message },
+      { status: 500 }
+    )
+  }
+}
+
