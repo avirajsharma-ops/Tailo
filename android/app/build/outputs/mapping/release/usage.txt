@@ -12667,7 +12667,6 @@ sbs.zenova.twa.notifications.TalioNotificationManager:
     public final void cancelAllNotifications()
     public final void cancelNotification(int)
     public static synthetic void showAnnouncementNotification$default(sbs.zenova.twa.notifications.TalioNotificationManager,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)
-    public final void showGeneralNotification(java.lang.String,java.lang.String,java.lang.String)
     public static synthetic void showGeneralNotification$default(sbs.zenova.twa.notifications.TalioNotificationManager,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)
     public static synthetic void showMessageNotification$default(sbs.zenova.twa.notifications.TalioNotificationManager,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)
 sbs.zenova.twa.services.NotificationService:
@@ -18788,6 +18787,7 @@ sbs.zenova.twa.services.NotificationService$$InternalSyntheticLambda$1$59eb2109f
 sbs.zenova.twa.services.NotificationService$$InternalSyntheticLambda$1$59eb2109f7bedbbaadf59ba7efaff8f2ea363ed1075a28be8faaec44f2b70097$6
 sbs.zenova.twa.services.NotificationService$$InternalSyntheticLambda$1$59eb2109f7bedbbaadf59ba7efaff8f2ea363ed1075a28be8faaec44f2b70097$7
 sbs.zenova.twa.services.NotificationService$$InternalSyntheticLambda$1$59eb2109f7bedbbaadf59ba7efaff8f2ea363ed1075a28be8faaec44f2b70097$8
+sbs.zenova.twa.services.NotificationService$$InternalSyntheticLambda$1$59eb2109f7bedbbaadf59ba7efaff8f2ea363ed1075a28be8faaec44f2b70097$9
 sbs.zenova.twa.services.NotificationService$Companion
 sbs.zenova.twa.services.NotificationService:
     public static final com.google.firebase.heartbeatinfo.HeartBeatConsumerComponent$1 Companion

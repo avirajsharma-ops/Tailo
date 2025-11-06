@@ -26,12 +26,7 @@ export default function NotificationManagement() {
       const employee = JSON.parse(employeeData)
       const deptId = employee.department?._id || employee.department
       setUserDepartment(deptId)
-      console.log('User department ID:', deptId)
-      console.log('Is department head:', employee.isDepartmentHead)
-      // Check if employee data has isDepartmentHead flag
-      if (employee.isDepartmentHead) {
-        setIsDepartmentHead(true)
-      }
+      console.log('Employee department ID:', deptId)
     }
 
     checkDepartmentHead()
@@ -54,8 +49,14 @@ export default function NotificationManagement() {
       })
 
       const data = await response.json()
+      console.log('Department head check response:', data)
       if (data.success && data.isDepartmentHead) {
         setIsDepartmentHead(true)
+        // Set the department they are head of
+        if (data.department && data.department._id) {
+          setUserDepartment(data.department._id)
+          console.log('Department head of:', data.department._id, data.department.name)
+        }
       }
     } catch (error) {
       console.error('Error checking department head:', error)
@@ -232,28 +233,30 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
   const fetchEmployees = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/employees?limit=1000', {
+
+      // Build URL with department filter if department head
+      let url = '/api/employees?limit=1000&status=active'
+      if (isDepartmentHead && !['admin', 'hr'].includes(userRole) && userDepartment) {
+        url += `&department=${userDepartment}`
+        console.log('Fetching employees for department:', userDepartment)
+      }
+
+      const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const data = await response.json()
-      console.log('Employees fetched:', data)
+      console.log('Employees API response:', {
+        success: data.success,
+        count: data.data?.length,
+        isDepartmentHead,
+        userDepartment,
+        userRole
+      })
+
       if (data.success) {
-        // Filter employees based on role
-        let filteredEmployees = data.data
-
-        // If department head, only show employees from their department
-        if (isDepartmentHead && !['admin', 'hr'].includes(userRole)) {
-          console.log('Department head filtering - userDepartment:', userDepartment)
-          filteredEmployees = data.data.filter(emp => {
-            const empDeptId = emp.department?._id || emp.department
-            console.log('Employee:', emp.firstName, emp.lastName, 'Dept:', empDeptId)
-            return empDeptId && empDeptId.toString() === userDepartment?.toString()
-          })
-          console.log('Filtered employees for department head:', filteredEmployees.length)
-        }
-
-        setEmployees(filteredEmployees)
-        console.log('Final employees list:', filteredEmployees.length)
+        // The API already includes userId in the response
+        console.log('Employees loaded:', data.data.length)
+        setEmployees(data.data)
       }
     } catch (error) {
       console.error('Error fetching employees:', error)
@@ -306,25 +309,25 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
   return (
     <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
       {/* API Key Warning - Only show if actually not configured */}
-      {checkingApiKey === false && !apiKeyConfigured && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 sm:p-4 rounded-lg">
+      {!apiKeyConfigured && (
+        <div className="bg-blue-50 border-l-4 border-blue-400 p-3 sm:p-4 rounded-lg">
           <div className="flex items-start gap-2 sm:gap-3">
             <div className="flex-shrink-0">
-              <svg className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <svg className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-xs sm:text-sm font-medium text-yellow-800">
-                OneSignal Configuration Needed
+              <h3 className="text-xs sm:text-sm font-medium text-blue-800">
+                OneSignal Configuration Recommended
               </h3>
-              <p className="mt-1 text-xs sm:text-sm text-yellow-700">
-                OneSignal API key is not configured. Web push notifications require OneSignal setup.
+              <p className="mt-1 text-xs sm:text-sm text-blue-700">
+                OneSignal is not configured. Web and desktop push notifications require OneSignal setup.
                 {userRole === 'admin' && (
                   <span> Please go to the <strong>Configuration</strong> tab to set up OneSignal.</span>
                 )}
                 <br />
-                <span className="text-xs">Note: Native app notifications work independently of OneSignal.</span>
+                <span className="text-xs">Note: Native app notifications work independently and will still function.</span>
               </p>
             </div>
           </div>

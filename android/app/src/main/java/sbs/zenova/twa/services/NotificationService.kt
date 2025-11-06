@@ -90,6 +90,7 @@ class NotificationService : Service() {
             socket?.on("task-updated", onTaskUpdated)
             socket?.on("task-approved", onTaskApproved)
             socket?.on("task-rejected", onTaskRejected)
+            socket?.on("custom-notification", onCustomNotification)
 
             socket?.connect()
             Log.d(TAG, "Connecting to Socket.IO server...")
@@ -247,6 +248,25 @@ class NotificationService : Service() {
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error handling task rejection", e)
+        }
+    }
+
+    private val onCustomNotification = Emitter.Listener { args ->
+        try {
+            val data = args[0] as JSONObject
+            val title = data.getString("title")
+            val message = data.getString("message")
+            val url = data.optString("url", "/dashboard")
+
+            Log.d(TAG, "Custom notification: $title")
+
+            notificationManager.showGeneralNotification(
+                title = title,
+                message = message,
+                url = url
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error handling custom notification", e)
         }
     }
 

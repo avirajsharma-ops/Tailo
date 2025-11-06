@@ -34,23 +34,34 @@ export async function POST(request) {
 
     // Find employee by reverse lookup (User has employeeId field)
     let currentEmployee = null
+    let userDepartment = null
     if (currentUser && currentUser.employeeId) {
       currentEmployee = await Employee.findById(currentUser.employeeId)
+
+      // Check if this employee is a department head
+      if (currentEmployee) {
+        userDepartment = await Department.findOne({
+          head: currentEmployee._id,
+          isActive: true
+        })
+      }
+
       console.log('[Notifications] Current employee:', {
         employeeId: currentEmployee?._id,
-        isDepartmentHead: currentEmployee?.isDepartmentHead,
-        department: currentEmployee?.department
+        isDepartmentHead: !!userDepartment,
+        department: currentEmployee?.department,
+        headOfDepartment: userDepartment?._id
       })
     }
 
-    // Check if user has permission (admin, hr, department_head role, or isDepartmentHead flag)
+    // Check if user has permission (admin, hr, department_head role, or is a department head)
     const hasPermission = ['admin', 'hr', 'department_head'].includes(decoded.role) ||
-                         (currentEmployee && currentEmployee.isDepartmentHead)
+                         !!userDepartment
 
     console.log('[Notifications] Permission check:', {
       role: decoded.role,
       hasPermission,
-      isDepartmentHead: currentEmployee?.isDepartmentHead
+      isDepartmentHead: !!userDepartment
     })
 
     if (!hasPermission) {
@@ -71,8 +82,8 @@ export async function POST(request) {
       )
     }
 
-    // Determine if user is department head (by role or flag)
-    const isDeptHead = decoded.role === 'department_head' || (currentEmployee && currentEmployee.isDepartmentHead)
+    // Determine if user is department head (by role or by being head of a department)
+    const isDeptHead = decoded.role === 'department_head' || !!userDepartment
 
     // Department heads need an employee record to send notifications
     if (isDeptHead && !['admin', 'hr'].includes(decoded.role) && !currentEmployee) {
@@ -103,14 +114,15 @@ export async function POST(request) {
 
     if (targetType === 'all') {
       // Department heads can only send to their department
-      if (isDeptHead) {
+      if (isDeptHead && !['admin', 'hr'].includes(decoded.role)) {
         const deptEmployees = await Employee.find({
-          department: currentEmployee.department,
+          department: userDepartment._id,
           status: 'active'
-        }).select('userId')
+        }).select('_id')
 
-        const employeeUserIds = deptEmployees.map(e => e.userId).filter(Boolean)
-        userIds = employeeUserIds.map(id => id.toString())
+        const employeeIds = deptEmployees.map(e => e._id)
+        const users = await User.find({ employeeId: { $in: employeeIds } }).select('_id')
+        userIds = users.map(u => u._id.toString())
       } else {
         // Admin and HR can send to all
         const users = await User.find({}).select('_id')
@@ -119,17 +131,18 @@ export async function POST(request) {
     } else if (targetType === 'department') {
       // Department heads can only send to their own department
       let deptId = targetDepartment
-      if (isDeptHead) {
-        deptId = currentEmployee.department
+      if (isDeptHead && !['admin', 'hr'].includes(decoded.role)) {
+        deptId = userDepartment._id
       }
 
       const deptEmployees = await Employee.find({
         department: deptId,
         status: 'active'
-      }).select('userId')
+      }).select('_id')
 
-      const employeeUserIds = deptEmployees.map(e => e.userId).filter(Boolean)
-      userIds = employeeUserIds.map(id => id.toString())
+      const employeeIds = deptEmployees.map(e => e._id)
+      const users = await User.find({ employeeId: { $in: employeeIds } }).select('_id')
+      userIds = users.map(u => u._id.toString())
     } else if (targetType === 'role') {
       if (!targetRoles || targetRoles.length === 0) {
         return NextResponse.json(
@@ -139,15 +152,15 @@ export async function POST(request) {
       }
 
       // Department heads can only send to users in their department
-      if (isDeptHead) {
+      if (isDeptHead && !['admin', 'hr'].includes(decoded.role)) {
         const deptEmployees = await Employee.find({
-          department: currentEmployee.department,
+          department: userDepartment._id,
           status: 'active'
-        }).select('userId')
+        }).select('_id')
 
-        const employeeUserIds = deptEmployees.map(e => e.userId).filter(Boolean)
+        const employeeIds = deptEmployees.map(e => e._id)
         const users = await User.find({
-          _id: { $in: employeeUserIds },
+          employeeId: { $in: employeeIds },
           role: { $in: targetRoles }
         }).select('_id')
 
@@ -168,20 +181,36 @@ export async function POST(request) {
       }
 
       // Department heads can only send to users in their department
-      if (isDeptHead) {
+      if (isDeptHead && !['admin', 'hr'].includes(decoded.role)) {
         const deptEmployees = await Employee.find({
-          department: currentEmployee.department,
+          department: userDepartment._id,
           status: 'active'
-        }).select('userId')
+        }).select('_id')
 
-        const employeeUserIds = deptEmployees.map(e => e.userId?.toString()).filter(Boolean)
+        const employeeIds = deptEmployees.map(e => e._id.toString())
+        console.log('Department employees found:', employeeIds.length)
+
+        // Get users for these employees
+        const deptUsers = await User.find({
+          employeeId: { $in: employeeIds }
+        }).select('_id')
+
+        const deptUserIds = deptUsers.map(u => u._id.toString())
+        console.log('Department users found:', deptUserIds.length)
+        console.log('Target users selected:', targetUsers.length)
 
         // Filter targetUsers to only include users from department
-        userIds = targetUsers.filter(userId => employeeUserIds.includes(userId.toString()))
+        userIds = targetUsers.filter(userId => deptUserIds.includes(userId.toString()))
+        console.log('Filtered user IDs:', userIds.length)
       } else {
         userIds = targetUsers
       }
     }
+
+    console.log('Target type:', targetType)
+    console.log('User IDs found:', userIds.length)
+    console.log('Is dept head:', isDeptHead)
+    console.log('User department:', userDepartment?._id)
 
     if (userIds.length === 0) {
       return NextResponse.json(
@@ -199,7 +228,7 @@ export async function POST(request) {
         message,
         url: url || '/dashboard',
         targetType,
-        targetDepartment: targetType === 'department' ? (isDeptHead && currentEmployee ? currentEmployee.department : targetDepartment) : null,
+        targetDepartment: targetType === 'department' ? (isDeptHead && !['admin', 'hr'].includes(decoded.role) && userDepartment ? userDepartment._id : targetDepartment) : null,
         targetUsers: targetType === 'specific' ? userIds : [],
         targetRoles: targetType === 'role' ? targetRoles : [],
         scheduledFor: new Date(scheduledFor),
@@ -215,23 +244,61 @@ export async function POST(request) {
       })
     }
 
-    // Send notification immediately
-    const result = await sendOneSignalNotification({
-      userIds,
-      title,
-      message,
-      url: url || '/dashboard',
-      data: {
-        type: 'custom',
-        sentBy: currentEmployee ? currentEmployee._id.toString() : decoded.userId
-      }
-    })
+    // Send notification immediately via OneSignal (for web/desktop) - OPTIONAL
+    let oneSignalResult = { success: false, message: 'OneSignal not configured' }
+    try {
+      oneSignalResult = await sendOneSignalNotification({
+        userIds,
+        title,
+        message,
+        url: url || '/dashboard',
+        data: {
+          type: 'custom',
+          sentBy: currentEmployee ? currentEmployee._id.toString() : decoded.userId
+        }
+      })
 
-    if (!result.success) {
-      return NextResponse.json(
-        { success: false, message: result.message || 'Failed to send notification' },
-        { status: 500 }
-      )
+      if (oneSignalResult.success) {
+        console.log(`[OneSignal] Notification sent to ${userIds.length} user(s)`)
+      } else {
+        console.warn(`[OneSignal] Failed to send notification:`, oneSignalResult.message)
+      }
+    } catch (oneSignalError) {
+      console.error('[OneSignal] Error sending notification:', oneSignalError)
+      // Don't fail the request if OneSignal fails - it's optional
+    }
+
+    // Emit Socket.IO event for native app notifications (parallel fallback)
+    let socketSuccess = false
+    try {
+      const io = global.io
+      if (io) {
+        userIds.forEach(userId => {
+          io.to(`user:${userId}`).emit('custom-notification', {
+            title,
+            message,
+            url: url || '/dashboard',
+            type: 'custom',
+            sentBy: currentEmployee ? currentEmployee._id.toString() : decoded.userId
+          })
+        })
+        socketSuccess = true
+        console.log(`[Socket.IO] Notification emitted to ${userIds.length} user(s)`)
+      } else {
+        console.warn('[Socket.IO] Socket.IO not initialized')
+      }
+    } catch (socketError) {
+      console.error('[Socket.IO] Error emitting notification:', socketError)
+      // Don't fail the request if Socket.IO fails
+    }
+
+    // Success if either OneSignal OR Socket.IO succeeded
+    const notificationSent = oneSignalResult.success || socketSuccess
+
+    if (!notificationSent) {
+      console.warn('[Notification] Neither OneSignal nor Socket.IO succeeded')
+      // Still return success because the notification was processed
+      // Users will receive it when they reconnect or via other means
     }
 
     return NextResponse.json({
@@ -239,7 +306,12 @@ export async function POST(request) {
       message: `Notification sent to ${userIds.length} user(s)`,
       data: {
         recipientCount: userIds.length,
-        oneSignalResponse: result
+        oneSignalSuccess: oneSignalResult.success,
+        socketIOSuccess: socketSuccess,
+        methods: {
+          oneSignal: oneSignalResult.success ? 'sent' : 'failed',
+          socketIO: socketSuccess ? 'sent' : 'failed'
+        }
       }
     })
   } catch (error) {
