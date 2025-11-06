@@ -133,7 +133,7 @@ export async function POST(request, { params }) {
       relatedId: task._id
     })
 
-    // Send push notification to task assignees
+    // Send push notification to task assignees and emit Socket.IO event
     try {
       const assignedEmployeeIds = task.assignedTo.map(a => a.employee)
       const assignedUsers = await User.find({ employeeId: { $in: assignedEmployeeIds } }).select('_id')
@@ -155,6 +155,25 @@ export async function POST(request, { params }) {
           approverName,
           null // No token needed for system notifications
         )
+
+        // Emit Socket.IO event for real-time notification
+        try {
+          const io = global.io
+          if (io) {
+            const eventName = action === 'approve' ? 'task-approved' : 'task-rejected'
+            assignedUserIds.forEach(userId => {
+              io.to(`user:${userId}`).emit(eventName, {
+                _id: task._id.toString(),
+                title: task.title,
+                approverName: approverName,
+                reason: action === 'reject' ? reason : null
+              })
+            })
+            console.log(`Socket.IO ${eventName} event emitted to ${assignedUserIds.length} user(s)`)
+          }
+        } catch (socketError) {
+          console.error('Failed to emit Socket.IO task status event:', socketError)
+        }
 
         console.log(`Task ${status} notification sent to ${assignedUserIds.length} user(s)`)
       }

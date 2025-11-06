@@ -121,7 +121,7 @@ export async function POST(request) {
       .populate('createdBy', 'firstName lastName')
       .populate('departments', 'name')
 
-    // Send push notification to targeted users
+    // Send push notification to targeted users and emit Socket.IO event
     try {
       let targetUsers = []
 
@@ -161,6 +161,25 @@ export async function POST(request) {
           creatorName,
           null // No token needed for system notifications
         )
+
+        // Emit Socket.IO event for real-time notification
+        try {
+          const io = global.io
+          if (io) {
+            userIds.forEach(userId => {
+              io.to(`user:${userId}`).emit('new-announcement', {
+                _id: announcement._id.toString(),
+                title: announcement.title,
+                content: announcement.content,
+                priority: announcement.priority || 'normal',
+                createdBy: creatorName
+              })
+            })
+            console.log(`Socket.IO announcement event emitted to ${userIds.length} user(s)`)
+          }
+        } catch (socketError) {
+          console.error('Failed to emit Socket.IO announcement event:', socketError)
+        }
 
         console.log(`Announcement notification sent to ${userIds.length} user(s)`)
       }

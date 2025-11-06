@@ -401,7 +401,7 @@ export async function POST(request) {
       relatedId: task._id
     })
 
-    // Send push notifications to assigned employees
+    // Send push notifications to assigned employees and emit Socket.IO event
     try {
       const assignedEmployeeIds = taskData.assignedTo.map(a => a.employee)
       const assignedUsers = await User.find({ employeeId: { $in: assignedEmployeeIds } }).select('_id')
@@ -422,6 +422,25 @@ export async function POST(request) {
           assignerName,
           token
         )
+
+        // Emit Socket.IO event for real-time notification
+        try {
+          const io = global.io
+          if (io) {
+            assignedUserIds.forEach(userId => {
+              io.to(`user:${userId}`).emit('task-assigned', {
+                _id: task._id.toString(),
+                title: task.title,
+                priority: task.priority,
+                dueDate: task.dueDate,
+                assignerName: assignerName
+              })
+            })
+            console.log(`Socket.IO task-assigned event emitted to ${assignedUserIds.length} user(s)`)
+          }
+        } catch (socketError) {
+          console.error('Failed to emit Socket.IO task-assigned event:', socketError)
+        }
 
         console.log(`Task assignment notification sent to ${assignedUserIds.length} user(s)`)
       }
