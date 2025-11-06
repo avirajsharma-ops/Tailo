@@ -66,15 +66,41 @@ export function UnreadMessagesProvider({ children }) {
     if (!onNewMessage) return
 
     const unsubscribe = onNewMessage((data) => {
-      const { chatId } = data
-      
-      // Increment unread count for this chat
-      setUnreadChats(prev => ({
-        ...prev,
-        [chatId]: (prev[chatId] || 0) + 1
-      }))
-      
-      setUnreadCount(prev => prev + 1)
+      const { chatId, message } = data
+
+      // Get current user ID
+      const userStr = localStorage.getItem('user')
+      if (!userStr) return
+
+      const user = JSON.parse(userStr)
+      const currentUserId = user.employeeId || user._id
+
+      // Normalize IDs to strings for comparison
+      const currentUserIdStr = typeof currentUserId === 'object' ? currentUserId._id || currentUserId.toString() : currentUserId.toString()
+      const messageSenderId = message?.sender?._id || message?.sender
+      const messageSenderIdStr = typeof messageSenderId === 'object' ? messageSenderId._id || messageSenderId.toString() : messageSenderId?.toString()
+
+      console.log('[UnreadMessages] New message received:', {
+        chatId,
+        currentUserId: currentUserIdStr,
+        messageSenderId: messageSenderIdStr,
+        isFromCurrentUser: messageSenderIdStr === currentUserIdStr
+      })
+
+      // Only increment unread count if message is NOT from current user
+      if (messageSenderIdStr !== currentUserIdStr) {
+        console.log('[UnreadMessages] Incrementing unread count for chat:', chatId)
+
+        // Increment unread count for this chat
+        setUnreadChats(prev => ({
+          ...prev,
+          [chatId]: (prev[chatId] || 0) + 1
+        }))
+
+        setUnreadCount(prev => prev + 1)
+      } else {
+        console.log('[UnreadMessages] Message is from current user, not incrementing unread count')
+      }
     })
 
     return unsubscribe

@@ -8,16 +8,13 @@ import {
   onForegroundMessage,
   getStoredFCMToken
 } from '@/lib/firebase'
-import { useInAppNotification } from '@/contexts/InAppNotificationContext'
-import { playNotificationSound } from '@/utils/audio'
-
 /**
  * Firebase Cloud Messaging Initialization Component
- * Initializes FCM for push notifications
+ * Initializes FCM for push notifications (background only)
+ * In-app notifications are handled by InAppNotificationContext via Socket.IO
  */
 export default function FirebaseInit() {
   const router = useRouter()
-  const { showNotification } = useInAppNotification()
   const [isAppVisible, setIsAppVisible] = useState(true)
 
   // Track app visibility
@@ -77,7 +74,8 @@ export default function FirebaseInit() {
           await saveFCMTokenToBackend(fcmToken, userId)
         }
 
-        // Set up foreground message listener
+        // Set up foreground message listener (for background notifications only)
+        // In-app notifications are now handled by InAppNotificationContext via Socket.IO
         onForegroundMessage((payload) => {
           console.log('[FirebaseInit] Foreground message received:', payload)
           console.log('[FirebaseInit] App is visible:', isAppVisible)
@@ -85,49 +83,35 @@ export default function FirebaseInit() {
           const title = payload.notification?.title || 'Talio HRMS'
           const body = payload.notification?.body || 'You have a new notification'
           const url = payload.data?.click_action || payload.fcmOptions?.link || '/dashboard'
-          const type = payload.data?.type || 'general'
 
-          // If app is visible, show in-app notification
-          if (isAppVisible) {
-            console.log('[FirebaseInit] Showing in-app notification')
+          // Only show browser notification if app is not visible
+          // When app is visible, Socket.IO handles in-app notifications
+          if (!isAppVisible && Notification.permission === 'granted') {
+            console.log('[FirebaseInit] Showing browser notification (app hidden)')
 
-            // Play notification sound
-            playNotificationSound()
-
-            // Show in-app notification
-            showNotification({
-              title,
-              message: body,
-              url,
-              type
-            })
-          } else {
-            // If app is not visible, show browser notification
-            console.log('[FirebaseInit] Showing browser notification')
-
-            if (Notification.permission === 'granted') {
-              const options = {
-                body,
-                icon: payload.notification?.icon || '/icons/icon-192x192.png',
-                badge: '/icons/icon-96x96.png',
-                tag: 'talio-notification',
-                data: payload.data,
-                vibrate: [200, 100, 200],
-                requireInteraction: false
-              }
-
-              if (payload.notification?.image) {
-                options.image = payload.notification.image
-              }
-
-              const notification = new Notification(title, options)
-
-              // Handle notification click
-              notification.onclick = () => {
-                router.push(url)
-                notification.close()
-              }
+            const options = {
+              body,
+              icon: payload.notification?.icon || '/icons/icon-192x192.png',
+              badge: '/icons/icon-96x96.png',
+              tag: 'talio-notification',
+              data: payload.data,
+              vibrate: [200, 100, 200],
+              requireInteraction: false
             }
+
+            if (payload.notification?.image) {
+              options.image = payload.notification.image
+            }
+
+            const notification = new Notification(title, options)
+
+            // Handle notification click
+            notification.onclick = () => {
+              router.push(url)
+              notification.close()
+            }
+          } else {
+            console.log('[FirebaseInit] App is visible - Socket.IO handles in-app notifications')
           }
         })
 

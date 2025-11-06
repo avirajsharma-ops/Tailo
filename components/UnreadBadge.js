@@ -7,9 +7,13 @@ export default function UnreadBadge({ count, className = '' }) {
   const displayCount = count > 99 ? '99+' : count
 
   return (
-    <span 
-      className={`absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 ${className}`}
-      style={{ fontSize: '10px' }}
+    <span
+      className={`absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1.5 shadow-lg border-2 border-white ${className}`}
+      style={{
+        fontSize: '10px',
+        zIndex: 50,
+        pointerEvents: 'none'
+      }}
     >
       {displayCount}
     </span>

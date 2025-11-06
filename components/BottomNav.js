@@ -63,37 +63,38 @@ export default function BottomNav() {
           // Don't elevate chat button when active
           const isChat = item.name === 'Chat'
           return (
-            <button
-              key={item.path}
-              onClick={() => router.push(item.path)}
-              className={`relative p-0 h-14 w-14 rounded-full transition-all duration-300 ${
-                item.active && !isChat
-                  ? '-translate-y-[34px]'
-                  : item.active && isChat
-                  ? ''
-                  : 'text-gray-600'
-              }`}
-              style={{
-                margin: 0,
-                backgroundColor: item.active ? activeButtonColor : 'transparent',
-                boxShadow: item.active && !isChat ? '0 0 0 10px var(--color-bg-main)' : 'none' // Use opaque bg color for shadow ring
-              }}
-            >
-              <img
-                src={item.icon}
-                width={24}
-                height={24}
-                className="transition-transform duration-300"
+            <div key={item.path} className="relative">
+              <button
+                onClick={() => router.push(item.path)}
+                className={`relative p-0 h-14 w-14 rounded-full transition-all duration-300 ${
+                  item.active && !isChat
+                    ? '-translate-y-[34px]'
+                    : item.active && isChat
+                    ? ''
+                    : 'text-gray-600'
+                }`}
                 style={{
-                  filter: item.active
-                    ? 'brightness(0) invert(1)' // White icon for active (on colored background)
-                    : 'brightness(0) saturate(100%) invert(44%) sepia(8%) saturate(400%) hue-rotate(180deg)' // Gray icon for inactive
+                  margin: 0,
+                  backgroundColor: item.active ? activeButtonColor : 'transparent',
+                  boxShadow: item.active && !isChat ? '0 0 0 10px var(--color-bg-main)' : 'none' // Use opaque bg color for shadow ring
                 }}
-              />
+              >
+                <img
+                  src={item.icon}
+                  width={24}
+                  height={24}
+                  className="transition-transform duration-300"
+                  style={{
+                    filter: item.active
+                      ? 'brightness(0) invert(1)' // White icon for active (on colored background)
+                      : 'brightness(0) saturate(100%) invert(44%) sepia(8%) saturate(400%) hue-rotate(180deg)' // Gray icon for inactive
+                  }}
+                />
+              </button>
               {isChat && unreadCount > 0 && (
-                <UnreadBadge count={unreadCount} />
+                <UnreadBadge count={unreadCount} className="top-0 right-0" />
               )}
-            </button>
+            </div>
           )
         })}
       </div>

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { FaUserPlus, FaUsers, FaTimes, FaFile, FaImage, FaFilePdf, FaUser, FaComments, FaArrowLeft } from 'react-icons/fa'
+import { FaUserPlus, FaUsers, FaTimes, FaFile, FaImage, FaFilePdf, FaUser, FaComments, FaArrowDown, FaArrowLeft } from 'react-icons/fa'
 import { useSocket } from '@/contexts/SocketContext'
 import { useUnreadMessages } from '@/contexts/UnreadMessagesContext'
+import { useTheme } from '@/contexts/ThemeContext'
 import UnreadBadge from '@/components/UnreadBadge'
 import { playNotificationSound } from '@/utils/audio'
 
@@ -25,13 +26,26 @@ export default function ChatPage() {
   const [uploadingFile, setUploadingFile] = useState(false)
   const [lightboxImage, setLightboxImage] = useState(null)
   const [typingUsers, setTypingUsers] = useState({})
+  const [showScrollButton, setShowScrollButton] = useState(false)
+  const [isUserScrolling, setIsUserScrolling] = useState(false)
+  const [replyingTo, setReplyingTo] = useState(null)
+  const [showReactionPicker, setShowReactionPicker] = useState(null)
+  const [swipedMessage, setSwipedMessage] = useState(null)
   const messagesEndRef = useRef(null)
+  const messagesContainerRef = useRef(null)
   const fileInputRef = useRef(null)
   const typingTimeoutRef = useRef(null)
+  const touchStartX = useRef(0)
+  const touchStartY = useRef(0)
+  const longPressTimer = useRef(null)
+  const { currentTheme, themes } = useTheme()
+
+  // Available reactions
+  const reactions = ['👍', '❤️', '😂', '😮', '😢', '🙏']
 
   // Get Socket.IO context
   // Note: sendMessage is removed - server now broadcasts messages automatically
-  const { isConnected, joinChat, leaveChat, onNewMessage, sendTyping, sendStopTyping, onUserTyping, onUserStopTyping } = useSocket()
+  const { isConnected, joinChat, leaveChat, onNewMessage, sendTyping, sendStopTyping, onUserTyping, onUserStopTyping, onMessageReaction, onMessageDeleted } = useSocket()
 
   // Get unread messages context
   const { markChatAsRead, unreadChats } = useUnreadMessages()
@@ -129,19 +143,155 @@ export default function ChatPage() {
       }
     })
 
+    // Listen for message reactions
+    const unsubscribeReaction = onMessageReaction?.((data) => {
+      if (data.chatId === selectedChat?._id) {
+        setMessages(prev => prev.map(msg =>
+          msg._id === data.messageId ? data.message : msg
+        ))
+      }
+    })
+
+    // Listen for message deletions
+    const unsubscribeDelete = onMessageDeleted?.((data) => {
+      if (data.chatId === selectedChat?._id) {
+        setMessages(prev => prev.filter(msg => msg._id !== data.messageId))
+      }
+    })
+
     return () => {
       unsubscribeTyping?.()
       unsubscribeStopTyping?.()
+      unsubscribeReaction?.()
+      unsubscribeDelete?.()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChat?._id, currentUserId])
 
+  // Auto-scroll to bottom when messages change (only if user is not scrolling up)
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    if (!isUserScrolling) {
+      scrollToBottom('auto') // Use instant scroll for initial load
+    }
+  }, [messages, isUserScrolling])
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  // Detect scroll position to show/hide scroll-to-bottom button
+  const handleScroll = () => {
+    if (!messagesContainerRef.current) return
+
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100
+
+    setShowScrollButton(!isNearBottom)
+    setIsUserScrolling(!isNearBottom)
+  }
+
+  const scrollToBottom = (behavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior })
+    setShowScrollButton(false)
+    setIsUserScrolling(false)
+  }
+
+  // Touch handlers for swipe to reply
+  const handleTouchStart = (e, msg) => {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+
+    // Start long press timer
+    longPressTimer.current = setTimeout(() => {
+      setShowReactionPicker(msg._id)
+    }, 500)
+  }
+
+  const handleTouchMove = (e, msg) => {
+    // Cancel long press if user moves
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+    }
+
+    const touchX = e.touches[0].clientX
+    const touchY = e.touches[0].clientY
+    const deltaX = touchX - touchStartX.current
+    const deltaY = touchY - touchStartY.current
+
+    // Only trigger swipe if horizontal movement is greater than vertical
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      setSwipedMessage(msg._id)
+    }
+  }
+
+  const handleTouchEnd = (e, msg) => {
+    // Cancel long press timer
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+    }
+
+    const touchX = e.changedTouches[0].clientX
+    const deltaX = touchX - touchStartX.current
+
+    // Swipe right to reply (for received messages on left, swipe right)
+    // Swipe left to reply (for sent messages on right, swipe left)
+    const isMine = msg.sender._id === currentUserId
+    const swipeThreshold = 80
+
+    if (!isMine && deltaX > swipeThreshold) {
+      // Swiped right on received message
+      setReplyingTo(msg)
+      setSwipedMessage(null)
+    } else if (isMine && deltaX < -swipeThreshold) {
+      // Swiped left on sent message
+      setReplyingTo(msg)
+      setSwipedMessage(null)
+    } else {
+      setSwipedMessage(null)
+    }
+  }
+
+  // Add reaction to message
+  const handleReaction = async (messageId, reaction) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/chat/${selectedChat._id}/messages/${messageId}/react`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reaction })
+      })
+      const result = await response.json()
+
+      if (result.success) {
+        // Update message locally
+        setMessages(prev => prev.map(msg =>
+          msg._id === messageId ? result.data : msg
+        ))
+      }
+    } catch (error) {
+      console.error('Error adding reaction:', error)
+    } finally {
+      setShowReactionPicker(null)
+    }
+  }
+
+  // Delete message
+  const handleDeleteMessage = async (messageId) => {
+    if (!confirm('Delete this message?')) return
+
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/chat/${selectedChat._id}/messages/${messageId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const result = await response.json()
+
+      if (result.success) {
+        // Remove message locally
+        setMessages(prev => prev.filter(msg => msg._id !== messageId))
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error)
+    } finally {
+      setShowReactionPicker(null)
+    }
   }
 
   const fetchChats = async () => {
@@ -213,14 +363,19 @@ export default function ChatPage() {
 
     setSending(true)
     const messageContent = message
+    const replyToMessage = replyingTo
     setMessage('') // Clear input immediately for better UX
+    setReplyingTo(null) // Clear reply
 
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(`/api/chat/${selectedChat._id}/messages`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: messageContent })
+        body: JSON.stringify({
+          content: messageContent,
+          replyTo: replyToMessage?._id
+        })
       })
       const result = await response.json()
       if (result.success) {
@@ -251,11 +406,13 @@ export default function ChatPage() {
       } else {
         // Restore message if failed
         setMessage(messageContent)
+        setReplyingTo(replyToMessage)
       }
     } catch (error) {
       console.error('Error:', error)
       // Restore message if failed
       setMessage(messageContent)
+      setReplyingTo(replyToMessage)
     } finally {
       setSending(false)
     }
@@ -448,31 +605,29 @@ export default function ChatPage() {
 
   return (
     <>
-      {/* Hide header when chat is selected on mobile */}
-      {!selectedChat && (
-        <div className="fixed top-[72px] left-0 right-0 z-[45] bg-white md:relative md:top-auto md:left-auto md:right-auto md:z-auto md:px-0 md:pt-0 md:pb-0 md:mb-4 flex items-center justify-between md:bg-transparent md:page-container shadow-sm md:shadow-none">
-          <div>
-            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">Chat</h1>
-            <p className="text-xs md:text-sm lg:text-base text-gray-600 mt-1">Connect with your team</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowNewChatModal(true)}
-              className="bg-[#6B7FFF] text-white w-14 h-14 rounded-full hover:bg-[#5A6EEE] transition-colors flex items-center justify-center shadow-md"
-              title="New Chat"
-            >
-              <FaUserPlus className="text-base" />
-            </button>
-            <button
-              onClick={() => setShowGroupModal(true)}
-              className="bg-[#00D9A5] text-white w-14 h-14 rounded-full hover:bg-[#00C794] transition-colors flex items-center justify-center shadow-md"
-              title="New Group"
-            >
-              <FaUsers className="text-base" />
-            </button>
-          </div>
+      {/* Header - Hide on mobile when chat is selected, always show on desktop */}
+      <div className={`${selectedChat ? 'hidden md:flex' : 'flex'} fixed top-[72px] left-0 right-0 z-[45] bg-white md:relative md:top-auto md:left-auto md:right-auto md:z-auto md:px-0 md:pt-0 md:pb-0 md:mb-4 items-center justify-between md:bg-transparent md:page-container shadow-sm md:shadow-none`}>
+        <div>
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">Chat</h1>
+          <p className="text-xs md:text-sm lg:text-base text-gray-600 mt-1">Connect with your team</p>
         </div>
-      )}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowNewChatModal(true)}
+            className="bg-[#6B7FFF] text-white w-14 h-14 rounded-full hover:bg-[#5A6EEE] transition-colors flex items-center justify-center shadow-md"
+            title="New Chat"
+          >
+            <FaUserPlus className="text-base" />
+          </button>
+          <button
+            onClick={() => setShowGroupModal(true)}
+            className="bg-[#00D9A5] text-white w-14 h-14 rounded-full hover:bg-[#00C794] transition-colors flex items-center justify-center shadow-md"
+            title="New Group"
+          >
+            <FaUsers className="text-base" />
+          </button>
+        </div>
+      </div>
 
       {/* Chat Container - Full screen edge-to-edge when chat selected */}
       <div className={`overflow-hidden ${
@@ -486,18 +641,7 @@ export default function ChatPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 h-full -ml-4 -mr-4 md:ml-0 md:mr-0">
           {/* Chat List - Hide on mobile when chat is selected */}
           <div className={`border-r border-gray-100 flex flex-col h-full bg-white ${selectedChat ? 'hidden md:flex' : 'flex'}`}>
-            {/* Chat list header - no search, clean design */}
-            <div className="flex-shrink-0 px-4 py-4 md:px-6 md:py-5 border-b border-gray-100">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Chats</h2>
-                {/* WebSocket Connection Status */}
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                  <span className="text-xs text-gray-500">{isConnected ? 'Live' : 'Offline'}</span>
-                </div>
-              </div>
-            </div>
-
+            {/* Chat list - no header, just the list */}
             <div className="overflow-y-auto flex-1">
               {filteredChats.length === 0 ? (
                 <div className="p-4 text-center text-gray-500 text-sm">
@@ -509,12 +653,17 @@ export default function ChatPage() {
                     <div
                       key={chat._id}
                       onClick={() => setSelectedChat(chat)}
-                      className={`px-4 md:px-6 py-3.5 md:py-4 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
+                      className={`py-3.5 md:py-4 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
                         selectedChat?._id === chat._id ? 'bg-gray-50' : ''
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 md:w-11 md:h-11 rounded-full bg-gradient-to-br from-[#6B7FFF] to-[#5A6EEE] flex items-center justify-center flex-shrink-0 overflow-hidden relative">
+                        <div
+                          className="w-12 h-12 md:w-11 md:h-11 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden relative"
+                          style={{
+                            background: `linear-gradient(135deg, ${themes[currentTheme]?.primary?.[600] || '#2563EB'} 0%, ${themes[currentTheme]?.primary?.[500] || '#3B82F6'} 100%)`
+                          }}
+                        >
                           {getChatAvatar(chat) ? (
                             <img src={getChatAvatar(chat)} alt="" className="w-full h-full object-cover" />
                           ) : chat.isGroup ? (
@@ -546,7 +695,7 @@ export default function ChatPage() {
             {selectedChat ? (
               <>
                 {/* Chat Header - Clean minimal design */}
-                <div className="px-4 py-4 md:px-6 md:py-5 bg-white flex items-center gap-3 flex-shrink-0 border-b border-gray-100">
+                <div className="px-4 py-3 md:px-6 md:py-4 bg-white flex items-center gap-3 flex-shrink-0 border-b border-gray-100">
                   <button
                     onClick={() => setSelectedChat(null)}
                     className="text-gray-600 hover:text-gray-900 -ml-1 md:hidden"
@@ -554,7 +703,12 @@ export default function ChatPage() {
                   >
                     <FaArrowLeft className="text-xl" />
                   </button>
-                  <div className="w-11 h-11 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-[#6B7FFF] to-[#5A6EEE] flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div
+                    className="w-11 h-11 md:w-10 md:h-10 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
+                    style={{
+                      background: `linear-gradient(135deg, ${themes[currentTheme]?.primary?.[600] || '#2563EB'} 0%, ${themes[currentTheme]?.primary?.[500] || '#3B82F6'} 100%)`
+                    }}
+                  >
                     {getChatAvatar(selectedChat) ? (
                       <img src={getChatAvatar(selectedChat)} alt="" className="w-full h-full object-cover" />
                     ) : selectedChat.isGroup ? (
@@ -569,7 +723,11 @@ export default function ChatPage() {
                 </div>
 
                 {/* Messages Area - Clean white background with scroll */}
-                <div className="flex-1 overflow-y-auto -mt-[0.8em] mb-12 overflow-x-hidden px-4 py-6 pb-44 md:pb-12 md:px-6 md:py-6 space-y-4 bg-white md:bg-gray-50 min-h-0">
+                <div
+                  ref={messagesContainerRef}
+                  onScroll={handleScroll}
+                  className="flex-1 overflow-y-auto -mt-[0.8em] mb-12 overflow-x-hidden px-4 py-6 pb-44 md:pb-12 md:px-6 md:py-6 space-y-4 bg-white min-h-0"
+                >
                   {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-gray-400">
                       <FaComments className="text-5xl mb-3 opacity-30" />
@@ -585,16 +743,40 @@ export default function ChatPage() {
                           {/* Date separator */}
                           {showDateSeparator && (
                             <div className="flex justify-center mb-4 mt-2">
-                              <span className="text-xs text-gray-400 bg-gray-100 md:bg-white px-3 py-1 rounded-full">
+                              <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
                                 {getDateSeparator(msg.createdAt)}
                               </span>
                             </div>
                           )}
 
-                          <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-3`}>
-                            <div className={`max-w-[80%] sm:max-w-sm ${isMine ? '' : 'flex items-start gap-2.5'}`}>
+                          <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-3 relative`}>
+                            {/* Swipe Reply Indicator */}
+                            {swipedMessage === msg._id && (
+                              <div className={`absolute top-1/2 -translate-y-1/2 ${isMine ? 'right-full mr-2' : 'left-full ml-2'}`}>
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                </svg>
+                              </div>
+                            )}
+
+                            <div
+                              className={`max-w-[80%] sm:max-w-sm ${isMine ? '' : 'flex items-start gap-2.5'} transition-transform duration-200`}
+                              style={{
+                                transform: swipedMessage === msg._id
+                                  ? isMine ? 'translateX(-30px)' : 'translateX(30px)'
+                                  : 'translateX(0)'
+                              }}
+                              onTouchStart={(e) => handleTouchStart(e, msg)}
+                              onTouchMove={(e) => handleTouchMove(e, msg)}
+                              onTouchEnd={(e) => handleTouchEnd(e, msg)}
+                            >
                               {!isMine && (
-                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#6B7FFF] to-[#5A6EEE] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                <div
+                                  className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
+                                  style={{
+                                    background: `linear-gradient(135deg, ${themes[currentTheme]?.primary?.[600] || '#2563EB'} 0%, ${themes[currentTheme]?.primary?.[500] || '#3B82F6'} 100%)`
+                                  }}
+                                >
                                   {msg.sender.profilePicture ? (
                                     <img src={msg.sender.profilePicture} alt="" className="w-full h-full object-cover" />
                                   ) : (
@@ -602,9 +784,22 @@ export default function ChatPage() {
                                   )}
                                 </div>
                               )}
-                              <div className="flex-1">
+                              <div className="flex-1 relative">
                                 {msg.fileUrl ? (
-                                  <div className={`px-4 py-3 rounded-2xl ${isMine ? 'bg-gradient-to-r from-[#6B7FFF] to-[#5A6EEE] text-white rounded-br-md' : 'bg-gray-100 text-gray-900 rounded-bl-md'}`}>
+                                  <div
+                                    className={`px-4 py-3 rounded-2xl relative ${isMine ? 'text-white rounded-br-md' : 'bg-white text-gray-900 rounded-bl-md shadow-sm border border-gray-100'}`}
+                                    style={isMine ? {
+                                      background: `linear-gradient(135deg, ${themes[currentTheme]?.primary?.[600] || '#2563EB'} 0%, ${themes[currentTheme]?.primary?.[500] || '#3B82F6'} 100%)`
+                                    } : {}}
+                                  >
+                                    {/* Reply Preview */}
+                                    {msg.replyTo && (
+                                      <div className={`mb-2 pb-2 border-l-2 pl-2 ${isMine ? 'border-white/50' : 'border-gray-300'}`}>
+                                        <p className="text-xs opacity-75 font-semibold">{msg.replyTo.sender?.firstName || 'User'}</p>
+                                        <p className="text-xs opacity-75 truncate">{msg.replyTo.content || 'File'}</p>
+                                      </div>
+                                    )}
+
                                     {msg.fileType?.startsWith('image/') ? (
                                       <img
                                         src={msg.fileUrl}
@@ -623,12 +818,88 @@ export default function ChatPage() {
                                     )}
                                     {msg.content && <p className="text-[15px] leading-relaxed mb-1">{msg.content}</p>}
                                     <p className="text-xs mt-1 opacity-75">{formatMessageTime(msg.createdAt)}</p>
+
+                                    {/* Reactions */}
+                                    {msg.reactions && msg.reactions.length > 0 && (
+                                      <div className="flex gap-1 mt-2 flex-wrap">
+                                        {Object.entries(
+                                          msg.reactions.reduce((acc, r) => {
+                                            acc[r.reaction] = (acc[r.reaction] || 0) + 1
+                                            return acc
+                                          }, {})
+                                        ).map(([reaction, count]) => (
+                                          <span key={reaction} className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
+                                            {reaction} {count > 1 && count}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
                                 ) : (
-                                  <div className={`px-4 py-3 rounded-2xl ${isMine ? 'bg-gradient-to-r from-[#6B7FFF] to-[#5A6EEE] text-white rounded-br-md' : 'bg-gray-100 text-gray-900 rounded-bl-md'}`}>
+                                  <div
+                                    className={`px-4 py-3 rounded-2xl relative ${isMine ? 'text-white rounded-br-md' : 'bg-white text-gray-900 rounded-bl-md shadow-sm border border-gray-100'}`}
+                                    style={isMine ? {
+                                      background: `linear-gradient(135deg, ${themes[currentTheme]?.primary?.[600] || '#2563EB'} 0%, ${themes[currentTheme]?.primary?.[500] || '#3B82F6'} 100%)`
+                                    } : {}}
+                                  >
+                                    {/* Reply Preview */}
+                                    {msg.replyTo && (
+                                      <div className={`mb-2 pb-2 border-l-2 pl-2 ${isMine ? 'border-white/50' : 'border-gray-300'}`}>
+                                        <p className="text-xs opacity-75 font-semibold">{msg.replyTo.sender?.firstName || 'User'}</p>
+                                        <p className="text-xs opacity-75 truncate">{msg.replyTo.content || 'File'}</p>
+                                      </div>
+                                    )}
+
                                     {!isMine && selectedChat.isGroup && <p className="text-xs font-semibold mb-1 opacity-90">{msg.sender.firstName} {msg.sender.lastName}</p>}
                                     <p className="text-[15px] leading-relaxed mb-1">{msg.content}</p>
                                     <p className="text-xs opacity-75">{formatMessageTime(msg.createdAt)}</p>
+
+                                    {/* Reactions */}
+                                    {msg.reactions && msg.reactions.length > 0 && (
+                                      <div className="flex gap-1 mt-2 flex-wrap">
+                                        {Object.entries(
+                                          msg.reactions.reduce((acc, r) => {
+                                            acc[r.reaction] = (acc[r.reaction] || 0) + 1
+                                            return acc
+                                          }, {})
+                                        ).map(([reaction, count]) => (
+                                          <span key={reaction} className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
+                                            {reaction} {count > 1 && count}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Reaction Picker */}
+                                {showReactionPicker === msg._id && (
+                                  <div
+                                    className={`fixed z-[200] ${isMine ? 'right-4' : 'left-4'}`}
+                                    style={{
+                                      bottom: '140px',
+                                      maxWidth: 'calc(100vw - 2rem)'
+                                    }}
+                                  >
+                                    <div className="bg-white rounded-2xl shadow-2xl px-4 py-3 flex gap-3 border border-gray-200 items-center">
+                                      {reactions.map(reaction => (
+                                        <button
+                                          key={reaction}
+                                          onClick={() => handleReaction(msg._id, reaction)}
+                                          className="text-2xl hover:scale-125 transition-transform active:scale-110"
+                                        >
+                                          {reaction}
+                                        </button>
+                                      ))}
+                                      <div className="w-px h-6 bg-gray-200"></div>
+                                      <button
+                                        onClick={() => handleDeleteMessage(msg._id)}
+                                        className="text-red-500 hover:scale-125 transition-transform text-xl active:scale-110"
+                                        title="Delete message"
+                                      >
+                                        🗑️
+                                      </button>
+                                    </div>
                                   </div>
                                 )}
                               </div>
@@ -643,10 +914,15 @@ export default function ChatPage() {
                   {Object.keys(typingUsers).length > 0 && (
                     <div className="flex justify-start mb-3">
                       <div className="flex items-start gap-2.5">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#6B7FFF] to-[#5A6EEE] flex items-center justify-center flex-shrink-0">
+                        <div
+                          className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: `linear-gradient(135deg, ${themes[currentTheme]?.primary?.[600] || '#2563EB'} 0%, ${themes[currentTheme]?.primary?.[500] || '#3B82F6'} 100%)`
+                          }}
+                        >
                           <FaUser className="text-white text-sm" />
                         </div>
-                        <div className="px-4 py-3 rounded-2xl bg-gray-100 text-gray-900 rounded-bl-md">
+                        <div className="px-4 py-3 rounded-2xl bg-white text-gray-900 rounded-bl-md shadow-sm border border-gray-100">
                           <p className="text-xs text-gray-500 mb-1">
                             {Object.values(typingUsers).join(', ')} {Object.keys(typingUsers).length === 1 ? 'is' : 'are'} typing...
                           </p>
@@ -663,9 +939,51 @@ export default function ChatPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
+                {/* Reaction Picker Backdrop */}
+                {showReactionPicker && (
+                  <div
+                    className="fixed inset-0 bg-black/20 z-[199]"
+                    onClick={() => setShowReactionPicker(null)}
+                  />
+                )}
+
+                {/* Scroll to Bottom Button */}
+                {showScrollButton && (
+                  <button
+                    onClick={() => scrollToBottom('smooth')}
+                    className="fixed bottom-[180px] right-6 md:absolute md:bottom-24 md:right-8 w-12 h-12 rounded-full shadow-lg flex items-center justify-center z-50 transition-all hover:scale-110"
+                    style={{
+                      background: `linear-gradient(135deg, ${themes[currentTheme]?.primary?.[600] || '#2563EB'} 0%, ${themes[currentTheme]?.primary?.[500] || '#3B82F6'} 100%)`
+                    }}
+                    title="Scroll to latest message"
+                  >
+                    <FaArrowDown className="text-white text-lg" />
+                  </button>
+                )}
+
                 {/* Message Input - Sleek minimal design */}
-                <div className="fixed bottom-[72px] left-0 right-0 px-4 py-3 bg-white z-[100] md:relative md:bottom-auto md:left-auto md:right-auto md:px-6 md:py-3 flex-shrink-0">
-                  <div className="flex items-center gap-2">
+                <div className="fixed bottom-[72px] left-0 right-0 px-4 py-2 bg-white border-t border-gray-100 z-[100] md:relative md:bottom-auto md:left-auto md:right-auto md:px-6 md:py-2 flex-shrink-0">
+                  {/* Reply Preview */}
+                  {replyingTo && (
+                    <div className="mb-2 bg-gray-50 rounded-lg p-[10px] flex items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-600 mb-1">
+                          Replying to {replyingTo.sender?.firstName || 'User'}
+                        </p>
+                        <p className="text-sm text-gray-700 truncate">
+                          {replyingTo.content || replyingTo.fileName || 'File'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setReplyingTo(null)}
+                        className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                      >
+                        <FaTimes className="text-sm" />
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 max-w-full">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -675,7 +993,10 @@ export default function ChatPage() {
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadingFile}
-                      className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 flex-shrink-0 p-2"
+                      className="transition-colors disabled:opacity-50 flex-shrink-0 p-2.5 rounded-full"
+                      style={{
+                        color: themes[currentTheme]?.primary?.[600] || '#2563EB'
+                      }}
                       title="Attach file"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -690,13 +1011,18 @@ export default function ChatPage() {
                         handleTyping()
                       }}
                       onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                      placeholder="Ok, see U in a bar after work"
-                      className="flex-1 px-4 py-2.5 border-0 rounded-full focus:outline-none text-[15px] bg-gray-50 text-gray-900 placeholder-gray-400"
+                      placeholder="Type a message..."
+                      className="flex-1 min-w-0 px-4 py-2.5 border-0 rounded-full focus:outline-none text-[15px] bg-gray-50 text-gray-900 placeholder-gray-400"
                     />
                     <button
                       onClick={handleSendMessage}
                       disabled={sending || !message.trim()}
-                      className="text-white bg-gradient-to-r from-[#6B7FFF] to-[#5A6EEE] hover:from-[#5A6EEE] hover:to-[#4A5EDE] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 p-2 rounded-full"
+                      className="text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 p-2.5 rounded-full w-10 h-10 flex items-center justify-center"
+                      style={{
+                        background: (sending || !message.trim())
+                          ? '#D1D5DB'
+                          : `linear-gradient(135deg, ${themes[currentTheme]?.primary?.[600] || '#2563EB'} 0%, ${themes[currentTheme]?.primary?.[500] || '#3B82F6'} 100%)`
+                      }}
                       title="Send message"
                     >
                       {sending ? (

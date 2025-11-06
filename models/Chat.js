@@ -24,6 +24,24 @@ const MessageSchema = new mongoose.Schema({
   fileSize: {
     type: Number
   },
+  replyTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Message'
+  },
+  reactions: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Employee'
+    },
+    reaction: {
+      type: String,
+      required: true
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   isRead: [{
     user: {
       type: mongoose.Schema.Types.ObjectId,

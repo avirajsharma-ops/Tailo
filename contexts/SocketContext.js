@@ -170,6 +170,38 @@ export function SocketProvider({ children }) {
     }
   }, [socket])
 
+  // Subscribe to task update events
+  const onTaskUpdate = useCallback((callback) => {
+    if (socket) {
+      socket.on('task-update', callback)
+      return () => socket.off('task-update', callback)
+    }
+  }, [socket])
+
+  // Subscribe to announcement events
+  const onAnnouncement = useCallback((callback) => {
+    if (socket) {
+      socket.on('new-announcement', callback)
+      return () => socket.off('new-announcement', callback)
+    }
+  }, [socket])
+
+  // Subscribe to message reaction events
+  const onMessageReaction = useCallback((callback) => {
+    if (socket) {
+      socket.on('message-reaction', callback)
+      return () => socket.off('message-reaction', callback)
+    }
+  }, [socket])
+
+  // Subscribe to message deleted events
+  const onMessageDeleted = useCallback((callback) => {
+    if (socket) {
+      socket.on('message-deleted', callback)
+      return () => socket.off('message-deleted', callback)
+    }
+  }, [socket])
+
   const value = {
     socket,
     isConnected,
@@ -185,7 +217,11 @@ export function SocketProvider({ children }) {
     onUserStopTyping,
     onUserJoined,
     onUserLeft,
-    onMessageRead
+    onMessageRead,
+    onTaskUpdate,
+    onAnnouncement,
+    onMessageReaction,
+    onMessageDeleted
   }
 
   return (

@@ -50,9 +50,26 @@ export async function GET(request, context) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 })
     }
 
+    // Manually populate replyTo messages (since they're subdocuments)
+    const messagesWithReplies = chat.messages.map(msg => {
+      const msgObj = msg.toObject()
+      if (msgObj.replyTo) {
+        const replyToMessage = chat.messages.id(msgObj.replyTo)
+        if (replyToMessage) {
+          msgObj.replyTo = {
+            _id: replyToMessage._id,
+            content: replyToMessage.content,
+            fileName: replyToMessage.fileName,
+            sender: replyToMessage.sender
+          }
+        }
+      }
+      return msgObj
+    })
+
     return NextResponse.json({
       success: true,
-      data: chat.messages
+      data: messagesWithReplies
     })
   } catch (error) {
     console.error('Get messages error:', error)
@@ -78,7 +95,7 @@ export async function POST(request, context) {
     const params = await context.params
     const { chatId } = params
     const body = await request.json()
-    const { content, fileUrl, fileName, fileType, fileSize } = body
+    const { content, fileUrl, fileName, fileType, fileSize, replyTo } = body
 
     // Get user to find employee ID
     const userDoc = await User.findById(decoded.userId).select('employeeId')
@@ -108,7 +125,12 @@ export async function POST(request, context) {
     const message = {
       sender: user._id,
       content: content || '',
-      createdAt: new Date()
+      createdAt: new Date(),
+      // Mark as read by sender immediately
+      isRead: [{
+        user: user._id,
+        readAt: new Date()
+      }]
     }
 
     // Add file info if present
@@ -119,11 +141,16 @@ export async function POST(request, context) {
       message.fileSize = fileSize
     }
 
+    // Add reply reference if present
+    if (replyTo) {
+      message.replyTo = replyTo
+    }
+
     // Add message to chat
     chat.messages.push(message)
     chat.lastMessage = content || fileName || 'File'
     chat.lastMessageAt = new Date()
-    
+
     await chat.save()
 
     // Populate the new message
@@ -131,7 +158,20 @@ export async function POST(request, context) {
       .populate('messages.sender', 'firstName lastName profilePicture employeeCode')
       .populate('participants', 'firstName lastName')
 
-    const newMessage = updatedChat.messages[updatedChat.messages.length - 1]
+    let newMessage = updatedChat.messages[updatedChat.messages.length - 1].toObject()
+
+    // Manually populate replyTo if it exists
+    if (newMessage.replyTo) {
+      const replyToMessage = updatedChat.messages.id(newMessage.replyTo)
+      if (replyToMessage) {
+        newMessage.replyTo = {
+          _id: replyToMessage._id,
+          content: replyToMessage.content,
+          fileName: replyToMessage.fileName,
+          sender: replyToMessage.sender
+        }
+      }
+    }
 
     // Broadcast message via WebSocket (server-side)
     try {
@@ -139,14 +179,29 @@ export async function POST(request, context) {
       const io = global.io
 
       if (io) {
-        // Broadcast to all users in this chat room EXCEPT the sender
-        // This prevents duplicate messages on sender's side
+        // Broadcast to the chat room (for users actively viewing the chat)
         io.to(`chat:${chatId}`).emit('new-message', {
           chatId,
           message: newMessage,
-          senderId: user._id.toString() // Include sender ID so clients can filter
+          senderId: user._id.toString()
         })
-        console.log(`💬 [WebSocket] Broadcasted message to chat:${chatId}`)
+
+        // ALSO broadcast to each participant's personal room (for notifications and unread counts)
+        // This ensures users receive the message even if they're not actively viewing the chat
+        chat.participants.forEach(participantId => {
+          const participantIdStr = participantId.toString()
+          // Don't send to the sender's personal room (they already have the message)
+          if (participantIdStr !== user._id.toString()) {
+            io.to(`user:${participantIdStr}`).emit('new-message', {
+              chatId,
+              message: newMessage,
+              senderId: user._id.toString()
+            })
+            console.log(`💬 [WebSocket] Sent message to user:${participantIdStr}`)
+          }
+        })
+
+        console.log(`💬 [WebSocket] Broadcasted message to chat:${chatId} and ${chat.participants.length - 1} participant(s)`)
       } else {
         console.warn('⚠️ [WebSocket] Socket.IO instance not available')
       }

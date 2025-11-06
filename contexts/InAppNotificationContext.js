@@ -1,7 +1,10 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import InAppNotification from '@/components/InAppNotification'
+import { useSocket } from './SocketContext'
+import { playNotificationSound } from '@/utils/audio'
 
 const InAppNotificationContext = createContext({
   showNotification: () => {}
@@ -9,17 +12,135 @@ const InAppNotificationContext = createContext({
 
 export function InAppNotificationProvider({ children }) {
   const [notifications, setNotifications] = useState([])
+  const { onNewMessage, onTaskUpdate, onAnnouncement } = useSocket()
+  const pathname = usePathname()
 
   const showNotification = useCallback((notification) => {
     const id = Date.now() + Math.random()
     const newNotification = { ...notification, id }
-    
+
     setNotifications(prev => [...prev, newNotification])
+
+    // Play notification sound
+    playNotificationSound()
   }, [])
 
   const removeNotification = useCallback((id) => {
     setNotifications(prev => prev.filter(n => n.id !== id))
   }, [])
+
+  // Listen for new messages via Socket.IO
+  useEffect(() => {
+    if (!onNewMessage) return
+
+    const unsubscribe = onNewMessage((data) => {
+      const { chatId, message } = data
+
+      // Get current user ID
+      const userStr = localStorage.getItem('user')
+      if (!userStr) return
+
+      const user = JSON.parse(userStr)
+      const currentUserId = user.employeeId || user._id
+
+      // Normalize IDs to strings for comparison
+      const currentUserIdStr = typeof currentUserId === 'object' ? currentUserId._id || currentUserId.toString() : currentUserId.toString()
+      const messageSenderId = message?.sender?._id || message?.sender
+      const messageSenderIdStr = typeof messageSenderId === 'object' ? messageSenderId._id || messageSenderId.toString() : messageSenderId?.toString()
+
+      // Only show notification if:
+      // 1. Message is NOT from current user
+      // 2. User is NOT on the chat page OR not viewing this specific chat
+      const isOnChatPage = pathname?.startsWith('/dashboard/chat')
+      const isFromCurrentUser = messageSenderIdStr === currentUserIdStr
+      const shouldShowNotification = !isFromCurrentUser && !isOnChatPage
+
+      console.log('[InAppNotification] Message received:', {
+        chatId,
+        isFromCurrentUser,
+        isOnChatPage,
+        shouldShowNotification
+      })
+
+      if (shouldShowNotification) {
+        const senderName = message.sender?.firstName
+          ? `${message.sender.firstName} ${message.sender.lastName || ''}`
+          : 'Someone'
+
+        showNotification({
+          title: `New message from ${senderName}`,
+          message: message.content || message.fileName || 'Sent a file',
+          url: `/dashboard/chat?chatId=${chatId}`,
+          type: 'message'
+        })
+      }
+    })
+
+    return unsubscribe
+  }, [onNewMessage, pathname, showNotification])
+
+  // Listen for task updates via Socket.IO
+  useEffect(() => {
+    if (!onTaskUpdate) return
+
+    const unsubscribe = onTaskUpdate((data) => {
+      const { task, action } = data
+
+      // Get current user ID
+      const userStr = localStorage.getItem('user')
+      if (!userStr) return
+
+      const user = JSON.parse(userStr)
+      const currentUserId = user.employeeId || user._id
+
+      // Only show notification if task update is relevant to current user
+      const isAssignedToMe = task?.assignedTo?._id === currentUserId || task?.assignedTo === currentUserId
+      const isCreatedByMe = task?.createdBy?._id === currentUserId || task?.createdBy === currentUserId
+
+      if (isAssignedToMe || isCreatedByMe) {
+        let title = 'Task Update'
+        let message = task?.title || 'A task has been updated'
+
+        if (action === 'assigned') {
+          title = 'New Task Assigned'
+          message = `You have been assigned: ${task?.title}`
+        } else if (action === 'completed') {
+          title = 'Task Completed'
+          message = `Task completed: ${task?.title}`
+        } else if (action === 'status_update') {
+          title = 'Task Status Updated'
+          message = `${task?.title} - Status: ${task?.status}`
+        }
+
+        showNotification({
+          title,
+          message,
+          url: `/dashboard/tasks/my-tasks`,
+          type: action === 'assigned' ? 'task_assigned' : 'task_status_update'
+        })
+      }
+    })
+
+    return unsubscribe
+  }, [onTaskUpdate, showNotification])
+
+  // Listen for announcements via Socket.IO
+  useEffect(() => {
+    if (!onAnnouncement) return
+
+    const unsubscribe = onAnnouncement((data) => {
+      const { announcement } = data
+
+      showNotification({
+        title: 'New Announcement',
+        message: announcement?.title || 'A new announcement has been posted',
+        url: `/dashboard/announcements`,
+        type: 'announcement'
+      })
+    })
+
+    return unsubscribe
+  }, [onAnnouncement, showNotification])
 
   return (
     <InAppNotificationContext.Provider value={{ showNotification }}>
