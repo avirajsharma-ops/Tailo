@@ -4,134 +4,286 @@ import { useState, useEffect } from 'react'
 import { FaBell, FaTimes } from 'react-icons/fa'
 
 /**
- * Persistent Notification Banner
- * Shows when notifications are disabled
- * Prompts user to enable notifications
+ * Persistent OneSignal Subscription Banner
+ * Shows when user is logged in but not subscribed to OneSignal
+ * Handles both permission and subscription separately
  */
 export default function NotificationBanner() {
   const [show, setShow] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [permissionStatus, setPermissionStatus] = useState('default')
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    // Check if user is logged in
+    const checkLoginStatus = () => {
+      const token = localStorage.getItem('token')
+      const loggedIn = !!token
+      setIsLoggedIn(loggedIn)
+
+      if (!loggedIn) {
+        setShow(false)
+        setIsLoading(false)
+        return false
+      }
+      return true
+    }
+
     const checkNotificationStatus = async () => {
       try {
+        // First check if user is logged in
+        if (!checkLoginStatus()) {
+          return
+        }
+
         // Wait for OneSignal to be ready
         if (typeof window === 'undefined' || !window.OneSignal) {
           setTimeout(checkNotificationStatus, 1000)
           return
         }
 
-        // Check notification permission
-        const permission = await window.OneSignal.Notifications.permission
+        // Check browser notification permission
+        const permission = await window.OneSignal.Notifications.permissionNative
+        setPermissionStatus(permission)
 
-        // Show banner if notifications are not granted
-        if (!permission) {
+        // Check OneSignal subscription status (this is separate from permission!)
+        const subscribed = await window.OneSignal.User.PushSubscription.optedIn
+        setIsSubscribed(subscribed)
+
+        // Get user ID to verify login
+        const externalUserId = await window.OneSignal.User.getExternalId()
+
+        console.log('[NotificationBanner] Status check:', {
+          permission,
+          subscribed,
+          externalUserId,
+          isLoggedIn: true
+        })
+
+        // Show banner if user is logged in but NOT subscribed to OneSignal
+        // Permission can be granted, but subscription might not be active
+        if (!subscribed) {
           setShow(true)
         } else {
           setShow(false)
         }
 
-        // Check permission status every 5 seconds
-        const interval = setInterval(async () => {
-          const perm = await window.OneSignal.Notifications.permission
-          if (!perm) {
-            setShow(true)
-          } else {
-            setShow(false)
-          }
-        }, 5000)
-
-        return () => clearInterval(interval)
+        setIsLoading(false)
       } catch (error) {
         console.error('[NotificationBanner] Error checking status:', error)
+        setIsLoading(false)
       }
     }
 
+    // Initial check
     checkNotificationStatus()
-  }, [])
 
-  const handleEnable = async () => {
-    try {
-      console.log('[NotificationBanner] Enable button clicked')
-
-      if (typeof window === 'undefined' || !window.OneSignal) {
-        console.error('[NotificationBanner] OneSignal not available')
-        // Fallback to native browser prompt
-        if ('Notification' in window) {
-          const permission = await Notification.requestPermission()
-          console.log('[NotificationBanner] Native permission result:', permission)
-          if (permission === 'granted') {
-            setShow(false)
-          }
-        }
+    // Check permission status every 5 seconds
+    const interval = setInterval(async () => {
+      // Only check if user is still logged in
+      if (!checkLoginStatus()) {
         return
       }
 
-      // Use OneSignal's requestPermission method (triggers native browser prompt)
-      console.log('[NotificationBanner] Requesting permission via OneSignal...')
-      const granted = await window.OneSignal.Notifications.requestPermission()
-      console.log('[NotificationBanner] Permission granted:', granted)
+      if (window.OneSignal) {
+        try {
+          const perm = await window.OneSignal.Notifications.permissionNative
+          const subscribed = await window.OneSignal.User.PushSubscription.optedIn
 
-      if (granted) {
-        // Subscribe to push notifications
-        console.log('[NotificationBanner] Subscribing to push...')
-        await window.OneSignal.User.PushSubscription.optIn()
+          setPermissionStatus(perm)
+          setIsSubscribed(subscribed)
+
+          console.log('[NotificationBanner] Periodic check:', { perm, subscribed })
+
+          // Show banner only if not subscribed (regardless of permission)
+          setShow(!subscribed)
+        } catch (error) {
+          console.error('[NotificationBanner] Error in periodic check:', error)
+        }
+      }
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const handleSubscribe = async () => {
+    try {
+      console.log('[NotificationBanner] Subscribe button clicked')
+      console.log('[NotificationBanner] Current status:', { permissionStatus, isSubscribed })
+
+      if (typeof window === 'undefined' || !window.OneSignal) {
+        console.error('[NotificationBanner] OneSignal not available')
+        alert('OneSignal is not loaded yet. Please refresh the page and try again.')
+        return
+      }
+
+      // Step 1: Check/Request browser notification permission
+      if (permissionStatus !== 'granted') {
+        console.log('[NotificationBanner] Requesting browser notification permission...')
+        const granted = await window.OneSignal.Notifications.requestPermission()
+        console.log('[NotificationBanner] Permission result:', granted)
+
+        if (!granted) {
+          alert('Please allow notifications in your browser to continue.')
+          return
+        }
+
+        setPermissionStatus('granted')
+      }
+
+      // Step 2: Login user to OneSignal with their external user ID
+      const token = localStorage.getItem('token')
+      if (!token) {
+        console.error('[NotificationBanner] No auth token found')
+        alert('Please log in again to enable notifications.')
+        return
+      }
+
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        const userId = payload.userId
+
+        if (!userId) {
+          console.error('[NotificationBanner] No user ID in token')
+          alert('Invalid user session. Please log in again.')
+          return
+        }
+
+        console.log('[NotificationBanner] Logging in user to OneSignal:', userId)
+        await window.OneSignal.login(userId)
+
+        // Set user tags for better targeting
+        await window.OneSignal.User.addTags({
+          userId: userId,
+          platform: 'web',
+          appVersion: '1.0.0',
+          subscribedAt: new Date().toISOString()
+        })
+        console.log('[NotificationBanner] User logged in and tags set')
+      } catch (error) {
+        console.error('[NotificationBanner] Error logging in user:', error)
+        alert('Failed to set up your user profile. Please try again.')
+        return
+      }
+
+      // Step 3: Subscribe to push notifications (this is the key step!)
+      console.log('[NotificationBanner] Subscribing to OneSignal push notifications...')
+      await window.OneSignal.User.PushSubscription.optIn()
+
+      // Wait a moment for subscription to complete
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // Step 4: Verify subscription
+      const subscribed = await window.OneSignal.User.PushSubscription.optedIn
+      const playerId = await window.OneSignal.User.PushSubscription.id
+      const externalUserId = await window.OneSignal.User.getExternalId()
+
+      console.log('[NotificationBanner] Subscription verification:', {
+        subscribed,
+        playerId,
+        externalUserId
+      })
+
+      if (subscribed && playerId) {
+        setIsSubscribed(true)
         setShow(false)
+
+        // Show success notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('✅ Successfully Subscribed!', {
+            body: 'You will now receive important updates, messages, and alerts from Talio HRMS.',
+            icon: '/icons/icon-192x192.png',
+            badge: '/icons/icon-96x96.png',
+            tag: 'subscription-success'
+          })
+        }
+
+        console.log('[NotificationBanner] ✅ Subscription successful!')
+      } else {
+        console.error('[NotificationBanner] Subscription verification failed:', { subscribed, playerId })
+        alert('Subscription completed but verification failed. Please refresh the page.')
       }
     } catch (error) {
-      console.error('[NotificationBanner] Error enabling notifications:', error)
-
-      // Fallback to native browser prompt
-      try {
-        if ('Notification' in window) {
-          console.log('[NotificationBanner] Using fallback native prompt...')
-          const permission = await Notification.requestPermission()
-          console.log('[NotificationBanner] Fallback permission result:', permission)
-          if (permission === 'granted') {
-            setShow(false)
-          }
-        }
-      } catch (fallbackError) {
-        console.error('[NotificationBanner] Fallback failed:', fallbackError)
-      }
+      console.error('[NotificationBanner] Error during subscription:', error)
+      alert('Failed to subscribe to notifications. Error: ' + error.message)
     }
   }
 
-  if (!show) {
+  // Don't show if loading or user not logged in
+  if (isLoading || !isLoggedIn || !show) {
     return null
   }
+
+  // Determine banner message based on status
+  const getBannerMessage = () => {
+    if (permissionStatus === 'denied') {
+      return {
+        title: '🔕 Notifications Blocked',
+        message: 'Notifications are blocked in your browser. Please enable them in browser settings to receive updates.',
+        buttonText: 'Open Settings Guide',
+        buttonAction: () => window.open('/dashboard/notification-debug', '_blank')
+      }
+    }
+
+    if (permissionStatus !== 'granted') {
+      return {
+        title: '🔔 Enable Notifications',
+        message: 'Allow browser notifications and subscribe to receive important updates about tasks, messages, and announcements.',
+        buttonText: 'Enable & Subscribe',
+        buttonAction: handleSubscribe
+      }
+    }
+
+    // Permission granted but not subscribed to OneSignal
+    return {
+      title: '📬 Complete Notification Setup',
+      message: 'You have allowed notifications, but need to subscribe to OneSignal to receive push notifications.',
+      buttonText: 'Subscribe Now',
+      buttonAction: handleSubscribe
+    }
+  }
+
+  const bannerConfig = getBannerMessage()
 
   return (
     <div className="fixed top-20 left-0 right-0 z-[55] px-4 md:px-6 animate-slideDown">
       <div
         className="max-w-4xl mx-auto rounded-lg shadow-lg overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%)'
+          background: permissionStatus === 'denied'
+            ? 'linear-gradient(135deg, #DC2626 0%, #B91C1C 100%)'
+            : 'linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%)'
         }}
       >
         <div className="flex items-center justify-between p-4 gap-4">
           {/* Icon and Message */}
           <div className="flex items-center gap-3 flex-1">
             <div className="bg-white bg-opacity-20 p-2.5 rounded-lg">
-              <FaBell className="w-5 h-5 text-white" />
+              <FaBell className="w-5 h-5 text-white animate-pulse" />
             </div>
             <div className="flex-1">
               <h3 className="text-white font-semibold text-sm md:text-base">
-                Notifications Required
+                {bannerConfig.title}
               </h3>
               <p className="text-white text-opacity-90 text-xs md:text-sm">
-                Please enable notifications to use this app. You'll receive important updates about tasks, messages, and announcements.
+                {bannerConfig.message}
+              </p>
+              {/* Show current status for debugging */}
+              <p className="text-white text-opacity-70 text-xs mt-1">
+                Status: Permission {permissionStatus} • Subscribed {isSubscribed ? 'Yes' : 'No'}
               </p>
             </div>
           </div>
 
-          {/* Action Button - No dismiss button */}
+          {/* Action Button */}
           <div className="flex items-center gap-2">
             <button
-              onClick={handleEnable}
-              className="bg-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-opacity-90 transition-all shadow-md"
-              style={{ color: 'var(--color-primary-600)' }}
+              onClick={bannerConfig.buttonAction}
+              className="bg-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-opacity-90 transition-all shadow-md whitespace-nowrap"
+              style={{ color: permissionStatus === 'denied' ? '#DC2626' : 'var(--color-primary-600)' }}
             >
-              Enable Now
+              {bannerConfig.buttonText}
             </button>
           </div>
         </div>

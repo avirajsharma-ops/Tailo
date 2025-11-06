@@ -117,23 +117,48 @@ export default function OneSignalInit() {
               // Decode JWT to get user ID
               const payload = JSON.parse(atob(token.split('.')[1]))
               const userId = payload.userId
-              
+
               if (userId) {
                 // Set external user ID for targeting
                 await OneSignal.login(userId)
-                console.log('[OneSignal] User logged in:', userId)
-                
+                console.log('[OneSignal] User logged in with external ID:', userId)
+
                 // Set user tags for segmentation
                 await OneSignal.User.addTags({
                   userId: userId,
                   platform: 'web',
-                  appVersion: '1.0.0'
+                  appVersion: '1.0.0',
+                  lastLogin: new Date().toISOString()
                 })
                 console.log('[OneSignal] User tags set')
+
+                // Check subscription status
+                const isSubscribed = await OneSignal.User.PushSubscription.optedIn
+                const permission = await OneSignal.Notifications.permissionNative
+                const playerId = await OneSignal.User.PushSubscription.id
+
+                console.log('[OneSignal] Current status:', {
+                  userId,
+                  permission,
+                  isSubscribed,
+                  playerId: playerId || 'Not subscribed'
+                })
+
+                // IMPORTANT: Do NOT auto-subscribe
+                // Let the user explicitly subscribe via the banner
+                // This ensures they understand they're subscribing to push notifications
+                if (!isSubscribed) {
+                  console.log('[OneSignal] ⚠️ User is not subscribed to push notifications')
+                  console.log('[OneSignal] User will be prompted via notification banner')
+                } else {
+                  console.log('[OneSignal] ✅ User is already subscribed to push notifications')
+                }
               }
             } catch (error) {
-              console.error('[OneSignal] Error setting user ID:', error)
+              console.error('[OneSignal] Error during user setup:', error)
             }
+          } else {
+            console.log('[OneSignal] No auth token found - user not logged in')
           }
 
           // Listen for permission changes
