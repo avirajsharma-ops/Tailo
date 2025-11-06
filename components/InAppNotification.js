@@ -3,12 +3,10 @@
 import { useEffect, useState } from 'react'
 import { FaTimes, FaComment, FaTasks, FaBullhorn, FaBell } from 'react-icons/fa'
 import { useRouter } from 'next/navigation'
-import { useTheme } from '@/contexts/ThemeContext'
 
 export default function InAppNotification({ notification, onClose }) {
   const [isVisible, setIsVisible] = useState(false)
   const router = useRouter()
-  const { theme } = useTheme()
 
   useEffect(() => {
     // Fade in animation
@@ -39,9 +37,9 @@ export default function InAppNotification({ notification, onClose }) {
       case 'message':
         return {
           icon: <FaComment className="w-5 h-5" />,
-          bgColor: theme.primary[50],
-          iconColor: theme.primary[600],
-          progressColor: theme.primary[500]
+          bgColor: '#EFF6FF',
+          iconColor: '#2563EB',
+          progressColor: '#3B82F6'
         }
       case 'task_assigned':
       case 'task_status_update':
@@ -62,9 +60,9 @@ export default function InAppNotification({ notification, onClose }) {
       default:
         return {
           icon: <FaBell className="w-5 h-5" />,
-          bgColor: theme.primary[50],
-          iconColor: theme.primary[600],
-          progressColor: theme.primary[500]
+          bgColor: '#EFF6FF',
+          iconColor: '#2563EB',
+          progressColor: '#3B82F6'
         }
     }
   }
