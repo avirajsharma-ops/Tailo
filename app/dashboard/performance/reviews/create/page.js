@@ -36,7 +36,7 @@ export default function CreatePerformanceReviewPage() {
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch('/api/employees')
+      const response = await fetch('/api/employees?limit=1000')
       const data = await response.json()
       if (data.success) {
         setEmployees(data.data)

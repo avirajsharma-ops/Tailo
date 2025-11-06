@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FaPlus, FaTrash, FaUser, FaUsers, FaSearch, FaCheck, FaTimes } from 'react-icons/fa'
+import { FaPlus, FaTrash, FaUser, FaUsers, FaSearch, FaCheck, FaTimes, FaChevronDown } from 'react-icons/fa'
 import { formatDesignation } from '@/lib/formatters'
 
 const TaskAssignment = ({ taskId, currentAssignees = [], onAssignmentChange, mode = 'create' }) => {
@@ -15,6 +15,9 @@ const TaskAssignment = ({ taskId, currentAssignees = [], onAssignmentChange, mod
   const [currentEmp, setCurrentEmp] = useState(null)
   const [isDepartmentHead, setIsDepartmentHead] = useState(false)
   const [activeTab, setActiveTab] = useState('myDepartment') // 'myDepartment' or 'otherDepartments'
+  const [employeePage, setEmployeePage] = useState(1)
+  const [employeeHasMore, setEmployeeHasMore] = useState(true)
+  const [employeeLoading, setEmployeeLoading] = useState(false)
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -57,10 +60,11 @@ const TaskAssignment = ({ taskId, currentAssignees = [], onAssignmentChange, mod
     }
   }
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = async (page = 1, append = false) => {
     try {
+      setEmployeeLoading(true)
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/employees?status=active&limit=1000', {
+      const response = await fetch(`/api/employees?status=active&limit=50&page=${page}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -68,10 +72,26 @@ const TaskAssignment = ({ taskId, currentAssignees = [], onAssignmentChange, mod
 
       if (response.ok) {
         const data = await response.json()
-        setEmployees(data.data || [])
+        if (append) {
+          setEmployees(prev => [...prev, ...(data.data || [])])
+        } else {
+          setEmployees(data.data || [])
+        }
+
+        // Check if there are more pages
+        setEmployeeHasMore(data.pagination.page < data.pagination.pages)
+        setEmployeePage(page)
       }
     } catch (error) {
       console.error('Error fetching employees:', error)
+    } finally {
+      setEmployeeLoading(false)
+    }
+  }
+
+  const loadMoreEmployees = () => {
+    if (!employeeLoading && employeeHasMore) {
+      fetchEmployees(employeePage + 1, true)
     }
   }
 
@@ -418,46 +438,49 @@ const TaskAssignment = ({ taskId, currentAssignees = [], onAssignmentChange, mod
 
         {/* Employee Dropdown */}
         {showDropdown && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto">
-            {filteredEmployees.length > 0 ? (
-              <>
-                {filteredEmployees.slice(0, 20).map((employee) => (
-                  <div
-                    key={employee._id}
-                    onClick={() => addAssignee(employee)}
-                    className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                  >
-                    <div className="flex items-center space-x-3 flex-1 min-w-0">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        {employee.profilePicture ? (
-                          <img
-                            src={employee.profilePicture}
-                            alt={`${employee.firstName} ${employee.lastName}`}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <FaUser className="w-4 h-4 text-white" />
-                        )}
+          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+            <div className="max-h-80 overflow-y-auto">
+              {filteredEmployees.length > 0 ? (
+                <>
+                  {filteredEmployees.map((employee) => (
+                    <div
+                      key={employee._id}
+                      onClick={() => addAssignee(employee)}
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    >
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          {employee.profilePicture ? (
+                            <img
+                              src={employee.profilePicture}
+                              alt={`${employee.firstName} ${employee.lastName}`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <FaUser className="w-4 h-4 text-white" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {employee.firstName} {employee.lastName}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {employee.employeeCode} • {formatDesignation(employee.designation)}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {employee.firstName} {employee.lastName}
-                        </p>
-                        <p className="text-xs text-gray-500 truncate">
-                          {employee.employeeCode} • {formatDesignation(employee.designation)}
-                        </p>
-                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${getAssignmentTypeColor(employee)}`}>
+                        {getAssignmentTypeLabel(employee)}
+                      </span>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${getAssignmentTypeColor(employee)}`}>
-                      {getAssignmentTypeLabel(employee)}
-                    </span>
-                  </div>
-                ))}
-                {filteredEmployees.length > 20 && (
-                  <div className="p-3 text-center text-xs text-gray-500 bg-gray-50">
-                    Showing 20 of {filteredEmployees.length} employees. Refine your search to see more.
-                  </div>
-                )}
+                  ))}
+
+                  {employeeLoading && (
+                    <div className="p-3 text-center">
+                      <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                      <p className="text-xs text-gray-500 mt-2">Loading more employees...</p>
+                    </div>
+                  )}
               </>
             ) : (
               <div className="p-4 text-center text-sm text-gray-500">
@@ -475,6 +498,21 @@ const TaskAssignment = ({ taskId, currentAssignees = [], onAssignmentChange, mod
                 ) : (
                   <p>No employees found in other departments.</p>
                 )}
+              </div>
+            )}
+            </div>
+
+            {/* Load More Button */}
+            {employeeHasMore && !employeeLoading && filteredEmployees.length > 0 && (
+              <div className="border-t border-gray-200 p-3">
+                <button
+                  type="button"
+                  onClick={loadMoreEmployees}
+                  className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
+                >
+                  <FaChevronDown className="w-3 h-3" />
+                  <span>Load More Employees</span>
+                </button>
               </div>
             )}
           </div>

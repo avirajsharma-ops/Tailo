@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
 import Employee from '@/models/Employee'
 import Department from '@/models/Department'
+import Notification from '@/models/Notification'
 import { sendOneSignalNotification } from '@/lib/onesignal'
 
 export async function POST(request) {
@@ -244,6 +245,42 @@ export async function POST(request) {
       })
     }
 
+    // Create notification records in database for each user
+    const notificationRecords = []
+    const now = new Date()
+
+    for (const userId of userIds) {
+      const notificationData = {
+        user: userId,
+        title,
+        message,
+        url: url || '/dashboard',
+        type: 'custom',
+        priority: 'medium',
+        data: {
+          sentBy: currentEmployee ? currentEmployee._id.toString() : decoded.userId
+        },
+        sentBy: currentEmployee ? currentEmployee._id : null,
+        sentByRole: decoded.role,
+        deliveryStatus: {
+          oneSignal: { sent: false },
+          socketIO: { sent: false }
+        },
+        createdAt: now
+      }
+      notificationRecords.push(notificationData)
+    }
+
+    // Save all notifications to database
+    let savedNotifications = []
+    try {
+      savedNotifications = await Notification.insertMany(notificationRecords)
+      console.log(`[Database] Saved ${savedNotifications.length} notification(s) to database`)
+    } catch (dbError) {
+      console.error('[Database] Error saving notifications:', dbError)
+      // Continue even if database save fails
+    }
+
     // Send notification immediately via OneSignal (for web/desktop) - OPTIONAL
     let oneSignalResult = { success: false, message: 'OneSignal not configured' }
     try {
@@ -260,6 +297,17 @@ export async function POST(request) {
 
       if (oneSignalResult.success) {
         console.log(`[OneSignal] Notification sent to ${userIds.length} user(s)`)
+
+        // Update delivery status in database
+        if (savedNotifications.length > 0) {
+          await Notification.updateMany(
+            { _id: { $in: savedNotifications.map(n => n._id) } },
+            {
+              'deliveryStatus.oneSignal.sent': true,
+              'deliveryStatus.oneSignal.sentAt': new Date()
+            }
+          )
+        }
       } else {
         console.warn(`[OneSignal] Failed to send notification:`, oneSignalResult.message)
       }
@@ -284,6 +332,17 @@ export async function POST(request) {
         })
         socketSuccess = true
         console.log(`[Socket.IO] Notification emitted to ${userIds.length} user(s)`)
+
+        // Update delivery status in database
+        if (savedNotifications.length > 0) {
+          await Notification.updateMany(
+            { _id: { $in: savedNotifications.map(n => n._id) } },
+            {
+              'deliveryStatus.socketIO.sent': true,
+              'deliveryStatus.socketIO.sentAt': new Date()
+            }
+          )
+        }
       } else {
         console.warn('[Socket.IO] Socket.IO not initialized')
       }
@@ -292,13 +351,15 @@ export async function POST(request) {
       // Don't fail the request if Socket.IO fails
     }
 
-    // Success if either OneSignal OR Socket.IO succeeded
-    const notificationSent = oneSignalResult.success || socketSuccess
+    // Success if either OneSignal OR Socket.IO succeeded OR notifications saved to DB
+    const notificationSent = oneSignalResult.success || socketSuccess || savedNotifications.length > 0
 
     if (!notificationSent) {
-      console.warn('[Notification] Neither OneSignal nor Socket.IO succeeded')
-      // Still return success because the notification was processed
-      // Users will receive it when they reconnect or via other means
+      console.warn('[Notification] Neither OneSignal nor Socket.IO succeeded, and database save failed')
+      return NextResponse.json(
+        { success: false, message: 'Failed to send notifications' },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({
@@ -306,9 +367,11 @@ export async function POST(request) {
       message: `Notification sent to ${userIds.length} user(s)`,
       data: {
         recipientCount: userIds.length,
+        savedToDatabase: savedNotifications.length,
         oneSignalSuccess: oneSignalResult.success,
         socketIOSuccess: socketSuccess,
         methods: {
+          database: savedNotifications.length > 0 ? 'saved' : 'failed',
           oneSignal: oneSignalResult.success ? 'sent' : 'failed',
           socketIO: socketSuccess ? 'sent' : 'failed'
         }

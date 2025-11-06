@@ -131,7 +131,7 @@ function SendNotificationTab({ userRole, userDepartment }) {
   const fetchEmployees = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/employees', {
+      const response = await fetch('/api/employees?limit=1000', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const data = await response.json()

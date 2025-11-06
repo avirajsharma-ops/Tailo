@@ -58,7 +58,7 @@ export default function AdminDashboard({ user }) {
         leaveRequestsRes,
         attendanceRes
       ] = await Promise.all([
-        fetch('/api/employees', { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch('/api/employees?limit=1000', { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch('/api/departments', { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch('/api/leave', { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch('/api/attendance/summary', { headers: { 'Authorization': `Bearer ${token}` } })

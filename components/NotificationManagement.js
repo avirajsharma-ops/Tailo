@@ -230,12 +230,17 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
     }
   }
 
-  const fetchEmployees = async () => {
+  const [employeePage, setEmployeePage] = useState(1)
+  const [employeeHasMore, setEmployeeHasMore] = useState(true)
+  const [employeeLoading, setEmployeeLoading] = useState(false)
+
+  const fetchEmployees = async (page = 1, append = false) => {
     try {
+      setEmployeeLoading(true)
       const token = localStorage.getItem('token')
 
       // Build URL with department filter if department head
-      let url = '/api/employees?limit=1000&status=active'
+      let url = `/api/employees?limit=50&page=${page}&status=active`
       if (isDepartmentHead && !['admin', 'hr'].includes(userRole) && userDepartment) {
         url += `&department=${userDepartment}`
         console.log('Fetching employees for department:', userDepartment)
@@ -248,6 +253,8 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
       console.log('Employees API response:', {
         success: data.success,
         count: data.data?.length,
+        page,
+        total: data.pagination?.total,
         isDepartmentHead,
         userDepartment,
         userRole
@@ -256,11 +263,27 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
       if (data.success) {
         // The API already includes userId in the response
         console.log('Employees loaded:', data.data.length)
-        setEmployees(data.data)
+        if (append) {
+          setEmployees(prev => [...prev, ...data.data])
+        } else {
+          setEmployees(data.data)
+        }
+
+        // Check if there are more pages
+        setEmployeeHasMore(data.pagination.page < data.pagination.pages)
+        setEmployeePage(page)
       }
     } catch (error) {
       console.error('Error fetching employees:', error)
       toast.error('Failed to load employees')
+    } finally {
+      setEmployeeLoading(false)
+    }
+  }
+
+  const loadMoreEmployees = () => {
+    if (!employeeLoading && employeeHasMore) {
+      fetchEmployees(employeePage + 1, true)
     }
   }
 
@@ -503,64 +526,90 @@ function SendNotificationTab({ userRole, userDepartment, isDepartmentHead, apiKe
             <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
               Select Users ({formData.targetUsers.length} selected)
             </label>
-            <div className="border border-gray-300 rounded-lg p-3 sm:p-4 max-h-64 sm:max-h-96 overflow-y-auto bg-gray-50">
-              {employees.length === 0 ? (
-                <p className="text-xs sm:text-sm text-gray-500 text-center py-4">
-                  {isDeptHead && !['admin', 'hr'].includes(userRole) ? 'No employees found in your department' : 'No employees found'}
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {employees.map(emp => {
-                    const userId = emp.userId?._id || emp.userId
-                    if (!userId) return null
+            <div className="border border-gray-300 rounded-lg bg-gray-50">
+              <div className="p-3 sm:p-4 max-h-64 sm:max-h-96 overflow-y-auto">
+                {employees.length === 0 && !employeeLoading ? (
+                  <p className="text-xs sm:text-sm text-gray-500 text-center py-4">
+                    {isDeptHead && !['admin', 'hr'].includes(userRole) ? 'No employees found in your department' : 'No employees found'}
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {employees.map(emp => {
+                      const userId = emp.userId?._id || emp.userId
+                      if (!userId) return null
 
-                    return (
-                      <label
-                        key={emp._id}
-                        className="flex items-center space-x-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.targetUsers.includes(userId)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setFormData({ ...formData, targetUsers: [...formData.targetUsers, userId] })
-                            } else {
-                              setFormData({ ...formData, targetUsers: formData.targetUsers.filter(id => id !== userId) })
-                            }
-                          }}
-                          className="rounded text-primary-500 w-4 h-4 focus:ring-primary-500"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-sm font-medium text-gray-900 truncate">
-                              {emp.firstName} {emp.lastName}
-                            </span>
-                            {emp.isDepartmentHead && (
-                              <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full whitespace-nowrap">
-                                Dept Head
+                      return (
+                        <label
+                          key={emp._id}
+                          className="flex items-center space-x-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.targetUsers.includes(userId)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({ ...formData, targetUsers: [...formData.targetUsers, userId] })
+                              } else {
+                                setFormData({ ...formData, targetUsers: formData.targetUsers.filter(id => id !== userId) })
+                              }
+                            }}
+                            className="rounded text-primary-500 w-4 h-4 focus:ring-primary-500"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-sm font-medium text-gray-900 truncate">
+                                {emp.firstName} {emp.lastName}
                               </span>
-                            )}
+                              {emp.isDepartmentHead && (
+                                <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full whitespace-nowrap">
+                                  Dept Head
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center flex-wrap gap-1 text-xs text-gray-500 mt-0.5">
+                              <span className="truncate">{emp.department?.name || 'No Department'}</span>
+                              {emp.designation?.title && (
+                                <>
+                                  <span>•</span>
+                                  <span className="truncate">{emp.designation.title}</span>
+                                </>
+                              )}
+                              {emp.userId?.role && (
+                                <>
+                                  <span>•</span>
+                                  <span className="capitalize">{emp.userId.role}</span>
+                                </>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center flex-wrap gap-1 text-xs text-gray-500 mt-0.5">
-                            <span className="truncate">{emp.department?.name || 'No Department'}</span>
-                            {emp.designation?.title && (
-                              <>
-                                <span>•</span>
-                                <span className="truncate">{emp.designation.title}</span>
-                              </>
-                            )}
-                            {emp.userId?.role && (
-                              <>
-                                <span>•</span>
-                                <span className="capitalize">{emp.userId.role}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </label>
-                    )
-                  })}
+                        </label>
+                      )
+                    })}
+
+                    {employeeLoading && (
+                      <div className="text-center py-3">
+                        <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: 'var(--color-primary-500)' }}></div>
+                        <p className="text-xs text-gray-500 mt-2">Loading more employees...</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Load More Button */}
+              {employeeHasMore && !employeeLoading && employees.length > 0 && (
+                <div className="border-t border-gray-200 p-3">
+                  <button
+                    type="button"
+                    onClick={loadMoreEmployees}
+                    className="w-full px-4 py-2 text-sm font-medium text-white rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
+                    style={{ backgroundColor: 'var(--color-primary-500)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-primary-600)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-primary-500)'}
+                  >
+                    <FaChevronDown className="w-3 h-3" />
+                    <span>Load More Employees</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -915,31 +964,63 @@ function CreateRecurringForm({ formData, setFormData, handleSubmit, creating, de
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Select Users ({formData.targetUsers.length} selected)
           </label>
-          <div className="border border-gray-300 rounded-lg p-4 max-h-64 overflow-y-auto space-y-2">
-            {employees.map(emp => (
-              <label key={emp._id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
-                <input
-                  type="checkbox"
-                  checked={formData.targetUsers.includes(emp.userId?._id)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setFormData({ ...formData, targetUsers: [...formData.targetUsers, emp.userId?._id] })
-                    } else {
-                      setFormData({ ...formData, targetUsers: formData.targetUsers.filter(id => id !== emp.userId?._id) })
-                    }
-                  }}
-                  className="rounded w-4 h-4"
-                  style={{ accentColor: 'var(--color-primary-500)' }}
-                />
-                <div className="flex-1">
-                  <span className="text-sm font-medium text-gray-800">{emp.name}</span>
-                  <span className="text-xs text-gray-500 ml-2">({emp.designation})</span>
-                  {emp.isDepartmentHead && (
-                    <span className="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">Dept Head</span>
+          <div className="border border-gray-300 rounded-lg bg-gray-50">
+            <div className="p-4 max-h-64 overflow-y-auto space-y-2">
+              {employees.length === 0 && !employeeLoading2 ? (
+                <p className="text-sm text-gray-500 text-center py-4">No employees found</p>
+              ) : (
+                <>
+                  {employees.map(emp => (
+                    <label key={emp._id} className="flex items-center space-x-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={formData.targetUsers.includes(emp.userId?._id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({ ...formData, targetUsers: [...formData.targetUsers, emp.userId?._id] })
+                          } else {
+                            setFormData({ ...formData, targetUsers: formData.targetUsers.filter(id => id !== emp.userId?._id) })
+                          }
+                        }}
+                        className="rounded w-4 h-4"
+                        style={{ accentColor: 'var(--color-primary-500)' }}
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-gray-800">{emp.name}</span>
+                        <span className="text-xs text-gray-500 ml-2">({emp.designation})</span>
+                        {emp.isDepartmentHead && (
+                          <span className="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">Dept Head</span>
+                        )}
+                      </div>
+                    </label>
+                  ))}
+
+                  {employeeLoading2 && (
+                    <div className="text-center py-3">
+                      <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: 'var(--color-primary-500)' }}></div>
+                      <p className="text-xs text-gray-500 mt-2">Loading more employees...</p>
+                    </div>
                   )}
-                </div>
-              </label>
-            ))}
+                </>
+              )}
+            </div>
+
+            {/* Load More Button */}
+            {employeeHasMore2 && !employeeLoading2 && employees.length > 0 && (
+              <div className="border-t border-gray-200 p-3">
+                <button
+                  type="button"
+                  onClick={loadMoreEmployees2}
+                  className="w-full px-4 py-2 text-sm font-medium text-white rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
+                  style={{ backgroundColor: 'var(--color-primary-500)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-primary-600)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-primary-500)'}
+                >
+                  <FaChevronDown className="w-3 h-3" />
+                  <span>Load More Employees</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1061,12 +1142,17 @@ function RecurringNotificationsTab({ userRole, userDepartment, isDepartmentHead 
     }
   }
 
-  const fetchEmployees = async () => {
+  const [employeePage2, setEmployeePage2] = useState(1)
+  const [employeeHasMore2, setEmployeeHasMore2] = useState(true)
+  const [employeeLoading2, setEmployeeLoading2] = useState(false)
+
+  const fetchEmployees = async (page = 1, append = false) => {
     try {
+      setEmployeeLoading2(true)
       const token = localStorage.getItem('token')
       const isDeptHead = userRole === 'department_head' || isDepartmentHead
 
-      let url = '/api/employees?limit=1000'
+      let url = `/api/employees?limit=50&page=${page}`
       if (isDeptHead && userDepartment) {
         url += `&department=${userDepartment}`
       }
@@ -1076,10 +1162,26 @@ function RecurringNotificationsTab({ userRole, userDepartment, isDepartmentHead 
       })
       const data = await response.json()
       if (data.success) {
-        setEmployees(data.data)
+        if (append) {
+          setEmployees(prev => [...prev, ...data.data])
+        } else {
+          setEmployees(data.data)
+        }
+
+        // Check if there are more pages
+        setEmployeeHasMore2(data.pagination.page < data.pagination.pages)
+        setEmployeePage2(page)
       }
     } catch (error) {
       console.error('Error fetching employees:', error)
+    } finally {
+      setEmployeeLoading2(false)
+    }
+  }
+
+  const loadMoreEmployees2 = () => {
+    if (!employeeLoading2 && employeeHasMore2) {
+      fetchEmployees(employeePage2 + 1, true)
     }
   }
 

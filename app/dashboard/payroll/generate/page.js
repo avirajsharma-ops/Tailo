@@ -24,7 +24,7 @@ export default function GeneratePayrollPage() {
   const fetchEmployees = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/employees', {
+      const response = await fetch('/api/employees?limit=1000&status=active', {
         headers: { 'Authorization': `Bearer ${token}` },
       })
 

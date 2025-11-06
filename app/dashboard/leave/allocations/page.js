@@ -45,7 +45,7 @@ export default function LeaveAllocationsPage() {
       
       // Fetch all data in parallel
       const [employeesRes, leaveTypesRes, balancesRes] = await Promise.all([
-        fetch('/api/employees', { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch('/api/employees?limit=1000', { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch('/api/leave/types', { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`/api/leave/balance?year=${selectedYear}`, { headers: { 'Authorization': `Bearer ${token}` } })
       ])
