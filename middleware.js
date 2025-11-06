@@ -6,7 +6,7 @@ export async function middleware(request) {
                 request.cookies.get('token')?.value
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/login', '/register', '/forgot-password']
+  const publicRoutes = ['/', '/login', '/register', '/forgot-password']
   const publicApiRoutes = [
     '/api/auth/login',
     '/api/auth/register',
@@ -17,7 +17,9 @@ export async function middleware(request) {
     '/api/debug/users'
   ]
 
-  const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname.startsWith(route))
+  const isPublicRoute = publicRoutes.some(route =>
+    route === '/' ? request.nextUrl.pathname === '/' : request.nextUrl.pathname.startsWith(route)
+  )
   const isPublicApiRoute = publicApiRoutes.some(route => request.nextUrl.pathname.startsWith(route))
 
   if (isPublicRoute || isPublicApiRoute) {

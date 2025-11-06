@@ -134,15 +134,15 @@ class MainActivity : AppCompatActivity() {
             window.decorView.systemUiVisibility = flags
         }
 
-        // Set TRANSPARENT navigation bar
-        window.navigationBarColor = Color.TRANSPARENT
+        // Set WHITE navigation bar (will be updated dynamically based on bottom nav)
+        window.navigationBarColor = Color.WHITE
 
         // Disable navigation bar contrast enforcement (Android 10+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }
 
-        // Set light navigation bar icons (Android 8.0+)
+        // Set dark navigation bar icons for white background (Android 8.0+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 window.insetsController?.setSystemBarsAppearance(
@@ -273,8 +273,8 @@ class MainActivity : AppCompatActivity() {
                                     }
                                 }
 
-                                // Default to #192A5A if not found
-                                return 'rgb(25, 42, 90)';
+                                // Default to white if not found
+                                return 'rgb(255, 255, 255)';
                             }
 
                             // Send color to Android
@@ -577,8 +577,8 @@ class MainActivity : AppCompatActivity() {
                 return Color.parseColor(colorString)
             }
 
-            // Default to #192A5A if parsing fails
-            return Color.parseColor("#192A5A")
+            // Default to white if parsing fails
+            return Color.parseColor("#FFFFFF")
         }
     }
 

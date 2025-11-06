@@ -6,11 +6,11 @@ import { useTheme } from '@/contexts/ThemeContext'
 export default function BottomNav() {
   const pathname = usePathname()
   const router = useRouter()
-  const { theme } = useTheme()
+  const { currentTheme, themes } = useTheme()
 
   // Get theme colors with fallbacks
-  const bottomNavColor = 'transparent' // Transparent bottom nav as requested
-  const activeButtonColor = theme?.primary?.[600] || '#3B82F6'
+  const bottomNavColor = '#FFFFFF' // White bottom nav
+  const activeButtonColor = themes[currentTheme]?.primary?.[600] || '#3B82F6' // Active button uses theme color
 
   const navItems = [
     {
@@ -51,7 +51,8 @@ export default function BottomNav() {
       style={{
         backgroundColor: bottomNavColor,
         paddingBottom: 'env(safe-area-inset-bottom)',
-        borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+        borderTop: '1px solid rgba(0, 0, 0, 0.1)', // Subtle gray border for white background
+        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.05)' // Subtle shadow for depth
       }}
     >
       <div className="flex items-center justify-around py-2 px-4">
@@ -73,7 +74,7 @@ export default function BottomNav() {
               style={{
                 margin: 0,
                 backgroundColor: item.active ? activeButtonColor : 'transparent',
-                boxShadow: item.active && !isChat ? '0 0 0 10px var(--color-bg-main)' : 'none'
+                boxShadow: item.active && !isChat ? '0 0 0 10px #FFFFFF' : 'none' // White shadow ring
               }}
             >
               <img
@@ -82,7 +83,9 @@ export default function BottomNav() {
                 height={24}
                 className="transition-transform duration-300"
                 style={{
-                  filter: item.active ? 'brightness(0) invert(1)' : 'brightness(0) invert(0.7)'
+                  filter: item.active
+                    ? 'brightness(0) invert(1)' // White icon for active (on colored background)
+                    : 'brightness(0) saturate(100%) invert(44%) sepia(8%) saturate(400%) hue-rotate(180deg)' // Gray icon for inactive
                 }}
               />
             </button>

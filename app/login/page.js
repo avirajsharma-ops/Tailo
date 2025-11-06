@@ -18,12 +18,17 @@ export default function LoginPage() {
   // Check if user is already logged in
   useEffect(() => {
     const checkSession = () => {
+      console.log('[Login Page] Checking session...')
       const token = localStorage.getItem('token')
       const user = localStorage.getItem('user')
 
+      console.log('[Login Page] Token exists:', !!token)
+      console.log('[Login Page] User exists:', !!user)
+
       if (token && user) {
         // User is already logged in, redirect to dashboard
-        router.push('/dashboard')
+        console.log('[Login Page] Redirecting to dashboard...')
+        window.location.href = '/dashboard'
       } else {
         // Check for error in URL params
         const urlParams = new URLSearchParams(window.location.search)
@@ -41,12 +46,13 @@ export default function LoginPage() {
         }
 
         // No session found, show login page
+        console.log('[Login Page] Showing login form...')
         setChecking(false)
       }
     }
 
     checkSession()
-  }, [router])
+  }, [])
 
   const handleChange = (e) => {
     setFormData({
@@ -79,7 +85,9 @@ export default function LoginPage() {
         // Also set cookie for middleware
         document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}` // 7 days
 
-        router.push('/dashboard')
+        console.log('[Login] Redirecting to dashboard...')
+        // Use window.location.href for reliable redirect
+        window.location.href = '/dashboard'
       } else {
         toast.error(data.message || 'Login failed')
       }

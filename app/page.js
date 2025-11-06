@@ -1,60 +1,67 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 export default function Home() {
-  const router = useRouter()
   const [showClearOption, setShowClearOption] = useState(false)
 
   useEffect(() => {
+    // Immediate redirect - no delay
+    try {
+      console.log('[Session Check] Starting...')
+      const token = localStorage.getItem('token')
+      const user = localStorage.getItem('user')
+
+      console.log('[Session Check] Token exists:', !!token)
+      console.log('[Session Check] User exists:', !!user)
+
+      if (token && user) {
+        // User is logged in, redirect to dashboard
+        console.log('[Session Check] Redirecting to dashboard...')
+        window.location.replace('/dashboard')
+      } else {
+        // No session, redirect to login page
+        console.log('[Session Check] Redirecting to login...')
+        window.location.replace('/login')
+      }
+    } catch (error) {
+      console.error('[Session Check] Error:', error)
+      // On error, clear storage and redirect to login
+      try {
+        localStorage.clear()
+        sessionStorage.clear()
+      } catch (e) {
+        console.error('[Session Check] Failed to clear storage:', e)
+      }
+      window.location.replace('/login')
+    }
+
     // Set a timeout to show clear cache option if stuck
     const stuckTimer = setTimeout(() => {
       setShowClearOption(true)
-    }, 2000) // Show option after 2 seconds
-
-    // Check if user is already logged in
-    const checkSession = () => {
-      try {
-        const token = localStorage.getItem('token')
-        const user = localStorage.getItem('user')
-
-        if (token && user) {
-          // User is logged in, redirect to dashboard
-          router.push('/dashboard')
-        } else {
-          // No session, redirect to login page
-          router.push('/login')
-        }
-      } catch (error) {
-        console.error('Session check error:', error)
-        // On error, clear storage and redirect to login
-        localStorage.clear()
-        sessionStorage.clear()
-        router.push('/login')
-      }
-    }
-
-    // Small delay to ensure localStorage is accessible
-    setTimeout(checkSession, 100)
+    }, 1000) // Show option after 1 second
 
     return () => clearTimeout(stuckTimer)
-  }, [router])
+  }, [])
 
   const clearCacheAndRedirect = () => {
     // Clear all storage
-    localStorage.clear()
-    sessionStorage.clear()
+    try {
+      localStorage.clear()
+      sessionStorage.clear()
 
-    // Clear cookies
-    document.cookie.split(";").forEach((c) => {
-      document.cookie = c
-        .replace(/^ +/, "")
-        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")
-    })
+      // Clear cookies
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")
+      })
+    } catch (e) {
+      console.error('Failed to clear cache:', e)
+    }
 
-    // Redirect to clear cache page
-    window.location.href = '/clear-cache.html'
+    // Force redirect to login
+    window.location.replace('/login')
   }
 
   return (
