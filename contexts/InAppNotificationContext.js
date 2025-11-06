@@ -146,8 +146,8 @@ export function InAppNotificationProvider({ children }) {
     <InAppNotificationContext.Provider value={{ showNotification }}>
       {children}
       {/* Render notifications */}
-      <div className="fixed top-0 right-0 z-[9999] pointer-events-none">
-        <div className="flex flex-col gap-2 p-4 pointer-events-auto">
+      <div className="fixed top-20 md:top-4 right-0 left-0 md:left-auto md:right-4 z-[9999] pointer-events-none">
+        <div className="flex flex-col gap-3 p-4 md:p-0 pointer-events-auto max-w-sm mx-auto md:mx-0">
           {notifications.map((notification) => (
             <InAppNotification
               key={notification.id}

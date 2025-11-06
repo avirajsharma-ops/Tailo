@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react'
 import { FaTimes, FaComment, FaTasks, FaBullhorn, FaBell } from 'react-icons/fa'
 import { useRouter } from 'next/navigation'
+import { useTheme } from '@/contexts/ThemeContext'
 
 export default function InAppNotification({ notification, onClose }) {
   const [isVisible, setIsVisible] = useState(false)
   const router = useRouter()
+  const { theme } = useTheme()
 
   useEffect(() => {
     // Fade in animation
@@ -32,37 +34,77 @@ export default function InAppNotification({ notification, onClose }) {
     handleClose()
   }
 
-  const getIcon = () => {
+  const getIconAndColor = () => {
     switch (notification.type) {
       case 'message':
-        return <FaComment className="text-blue-500" />
+        return {
+          icon: <FaComment className="w-5 h-5" />,
+          bgColor: theme.primary[50],
+          iconColor: theme.primary[600],
+          progressColor: theme.primary[500]
+        }
       case 'task_assigned':
       case 'task_status_update':
       case 'task_completed':
-        return <FaTasks className="text-green-500" />
+        return {
+          icon: <FaTasks className="w-5 h-5" />,
+          bgColor: '#ECFDF5',
+          iconColor: '#059669',
+          progressColor: '#10B981'
+        }
       case 'announcement':
-        return <FaBullhorn className="text-orange-500" />
+        return {
+          icon: <FaBullhorn className="w-5 h-5" />,
+          bgColor: '#FFF7ED',
+          iconColor: '#EA580C',
+          progressColor: '#F97316'
+        }
       default:
-        return <FaBell className="text-gray-500" />
+        return {
+          icon: <FaBell className="w-5 h-5" />,
+          bgColor: theme.primary[50],
+          iconColor: theme.primary[600],
+          progressColor: theme.primary[500]
+        }
     }
   }
 
+  const { icon, bgColor, iconColor, progressColor } = getIconAndColor()
+
   return (
     <div
-      className={`fixed top-20 right-4 z-[9999] max-w-sm w-full bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden transition-all duration-300 transform ${
-        isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
-      }`}
+      className={`max-w-sm w-full bg-white rounded-xl shadow-2xl border overflow-hidden transition-all duration-300 transform ${
+        isVisible ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-full opacity-0 scale-95'
+      } ${notification.url ? 'cursor-pointer hover:shadow-3xl' : ''}`}
       onClick={handleClick}
-      style={{ cursor: notification.url ? 'pointer' : 'default' }}
+      style={{
+        borderColor: progressColor,
+        borderWidth: '2px'
+      }}
     >
+      {/* Header with gradient */}
+      <div
+        className="h-1.5"
+        style={{ background: `linear-gradient(90deg, ${progressColor} 0%, ${iconColor} 100%)` }}
+      />
+
       <div className="p-4">
         <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-            {getIcon()}
+          {/* Icon */}
+          <div
+            className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-sm"
+            style={{
+              backgroundColor: bgColor,
+              color: iconColor
+            }}
+          >
+            {icon}
           </div>
+
+          {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <h4 className="text-sm font-semibold text-gray-900 line-clamp-1">
+              <h4 className="text-sm font-bold text-gray-900 line-clamp-1">
                 {notification.title}
               </h4>
               <button
@@ -70,22 +112,32 @@ export default function InAppNotification({ notification, onClose }) {
                   e.stopPropagation()
                   handleClose()
                 }}
-                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex-shrink-0 text-gray-400 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-gray-100"
+                aria-label="Close notification"
               >
-                <FaTimes className="w-4 h-4" />
+                <FaTimes className="w-3.5 h-3.5" />
               </button>
             </div>
-            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+            <p className="text-sm text-gray-600 mt-1.5 line-clamp-2 leading-relaxed">
               {notification.message}
             </p>
+            {notification.url && (
+              <p className="text-xs font-medium mt-2" style={{ color: iconColor }}>
+                Click to view →
+              </p>
+            )}
           </div>
         </div>
       </div>
-      {/* Progress bar */}
+
+      {/* Animated progress bar */}
       <div className="h-1 bg-gray-100">
         <div
-          className="h-full bg-blue-500 transition-all duration-[5000ms] ease-linear"
-          style={{ width: isVisible ? '0%' : '100%' }}
+          className="h-full transition-all duration-[5000ms] ease-linear"
+          style={{
+            width: isVisible ? '0%' : '100%',
+            backgroundColor: progressColor
+          }}
         />
       </div>
     </div>
