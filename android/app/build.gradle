@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -62,12 +63,14 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.webkit:webkit:1.9.0'
     implementation 'androidx.browser:browser:1.7.0'
-    
+
     // Play Services for Location
     implementation 'com.google.android.gms:play-services-location:21.1.0'
 
-    // OneSignal for Push Notifications
-    implementation 'com.onesignal:OneSignal:[5.0.0, 5.99.99]'
+    // Firebase Cloud Messaging for Push Notifications
+    implementation platform('com.google.firebase:firebase-bom:32.7.0')
+    implementation 'com.google.firebase:firebase-messaging-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
 
     // Socket.IO Client for real-time notifications
     implementation 'io.socket:socket.io-client:2.1.0'
@@ -75,7 +78,11 @@ dependencies {
     // Lifecycle
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
     implementation 'androidx.lifecycle:lifecycle-process:2.7.0'
-    
+
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3'
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'

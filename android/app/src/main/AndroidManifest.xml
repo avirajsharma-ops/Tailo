@@ -72,10 +72,14 @@
             </intent-filter>
         </activity>
 
-        <!-- OneSignal Notification Service -->
+        <!-- Firebase Cloud Messaging Service -->
         <service
-            android:name="com.onesignal.notifications.internal.display.impl.OneSignalNotificationDisplayer"
-            android:exported="false" />
+            android:name=".services.TalioFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <!-- Location Tracking Service -->
         <service

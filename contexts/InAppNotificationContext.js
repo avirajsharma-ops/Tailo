@@ -67,12 +67,15 @@ export function InAppNotificationProvider({ children }) {
           ? `${message.sender.firstName} ${message.sender.lastName || ''}`
           : 'Someone'
 
-        showNotification({
+        const notificationData = {
           title: `New message from ${senderName}`,
           message: message.content || message.fileName || 'Sent a file',
           url: `/dashboard/chat?chatId=${chatId}`,
           type: 'message'
-        })
+        }
+
+        console.log('[InAppNotification] Showing notification:', notificationData)
+        showNotification(notificationData)
       }
     })
 

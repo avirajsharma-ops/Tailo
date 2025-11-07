@@ -1,36 +1,85 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { FaTimes, FaComment, FaTasks, FaBullhorn, FaBell } from 'react-icons/fa'
 import { useRouter } from 'next/navigation'
 
 export default function InAppNotification({ notification, onClose }) {
   const [isVisible, setIsVisible] = useState(false)
+  const isMountedRef = useRef(true)
+  const timersRef = useRef([])
   const router = useRouter()
 
-  useEffect(() => {
-    // Fade in animation
-    setTimeout(() => setIsVisible(true), 10)
-
-    // Auto close after 5 seconds
-    const timer = setTimeout(() => {
-      handleClose()
-    }, 5000)
-
-    return () => clearTimeout(timer)
+  const clearAllTimers = useCallback(() => {
+    timersRef.current.forEach(timer => clearTimeout(timer))
+    timersRef.current = []
   }, [])
 
-  const handleClose = () => {
-    setIsVisible(false)
-    setTimeout(() => onClose(), 300) // Wait for fade out animation
-  }
+  const handleClose = useCallback(() => {
+    if (!isMountedRef.current) return
 
-  const handleClick = () => {
-    if (notification.url) {
-      router.push(notification.url)
+    setIsVisible(false)
+    const timer = setTimeout(() => {
+      if (isMountedRef.current && onClose) {
+        onClose()
+      }
+    }, 300)
+    timersRef.current.push(timer)
+  }, [onClose])
+
+  useEffect(() => {
+    isMountedRef.current = true
+
+    // Fade in animation
+    const fadeInTimer = setTimeout(() => {
+      if (isMountedRef.current) {
+        setIsVisible(true)
+      }
+    }, 10)
+    timersRef.current.push(fadeInTimer)
+
+    // Auto close after 5 seconds
+    const autoCloseTimer = setTimeout(() => {
+      if (isMountedRef.current) {
+        handleClose()
+      }
+    }, 5000)
+    timersRef.current.push(autoCloseTimer)
+
+    return () => {
+      isMountedRef.current = false
+      clearAllTimers()
     }
-    handleClose()
-  }
+  }, [handleClose, clearAllTimers])
+
+  const handleClick = useCallback((e) => {
+    if (!isMountedRef.current) return
+
+    // Prevent if clicking on close button
+    if (e?.target?.closest && e.target.closest('button[aria-label="Close notification"]')) {
+      return
+    }
+
+    console.log('[InAppNotification] Clicked notification:', {
+      url: notification.url,
+      type: notification.type,
+      title: notification.title
+    })
+
+    if (notification.url) {
+      console.log('[InAppNotification] Navigating to:', notification.url)
+      router.push(notification.url)
+      // Close after a short delay to allow navigation to start
+      const timer = setTimeout(() => {
+        if (isMountedRef.current) {
+          handleClose()
+        }
+      }, 100)
+      timersRef.current.push(timer)
+    } else {
+      handleClose()
+    }
+  }, [notification, router, handleClose])
 
   const getIconAndColor = () => {
     switch (notification.type) {
@@ -73,11 +122,20 @@ export default function InAppNotification({ notification, onClose }) {
     <div
       className={`max-w-sm w-full bg-white rounded-xl shadow-2xl border overflow-hidden transition-all duration-300 transform ${
         isVisible ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-full opacity-0 scale-95'
-      } ${notification.url ? 'cursor-pointer hover:shadow-3xl' : ''}`}
+      } ${notification.url ? 'cursor-pointer hover:shadow-3xl active:scale-95' : ''}`}
       onClick={handleClick}
+      role={notification.url ? 'button' : 'alert'}
+      tabIndex={notification.url ? 0 : -1}
+      onKeyDown={(e) => {
+        if (notification.url && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault()
+          handleClick(e)
+        }
+      }}
       style={{
         borderColor: progressColor,
-        borderWidth: '2px'
+        borderWidth: '2px',
+        pointerEvents: 'auto'
       }}
     >
       {/* Header with gradient */}

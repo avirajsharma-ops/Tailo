@@ -22,7 +22,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import com.google.android.gms.location.*
-import com.onesignal.OneSignal
+import com.google.firebase.messaging.FirebaseMessaging
 import sbs.zenova.twa.databinding.ActivityMainBinding
 import sbs.zenova.twa.services.NotificationService
 
@@ -196,6 +196,9 @@ class MainActivity : AppCompatActivity() {
             addJavascriptInterface(NavigationBarInterface(), "AndroidInterface")
             addJavascriptInterface(NotificationInterface(), "AndroidNotifications")
 
+            // Add JavaScript interface for Firebase token
+            addJavascriptInterface(FirebaseInterface(), "AndroidFirebase")
+
             webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                     val url = request?.url.toString()
@@ -328,9 +331,6 @@ class MainActivity : AppCompatActivity() {
                             });
                         })();
                     """.trimIndent(), null)
-
-                    // Inject OneSignal player ID into the page
-                    injectOneSignalPlayerId()
 
                     // Check if user is on dashboard and request permissions
                     checkDashboardAndRequestPermissions(url)
@@ -479,21 +479,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun injectOneSignalPlayerId() {
-        val playerId = OneSignal.User.pushSubscription.id
-        if (!playerId.isNullOrEmpty()) {
-            val javascript = """
-                (function() {
-                    localStorage.setItem('onesignal_player_id', '$playerId');
-                    if (typeof window.onOneSignalPlayerIdReceived === 'function') {
-                        window.onOneSignalPlayerIdReceived('$playerId');
-                    }
-                })();
-            """.trimIndent()
 
-            binding.webView.evaluateJavascript(javascript, null)
-        }
-    }
 
     private fun showPermissionDeniedDialog(permissionName: String) {
         AlertDialog.Builder(this)
@@ -604,6 +590,50 @@ class MainActivity : AppCompatActivity() {
                     Log.d("NotificationService", "Service stopped")
                 } catch (e: Exception) {
                     Log.e("NotificationService", "Failed to stop service", e)
+                }
+            }
+        }
+    }
+
+    // JavaScript Interface for Firebase Token
+    inner class FirebaseInterface {
+        @JavascriptInterface
+        fun getFCMToken(callback: String) {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    Log.d("Firebase", "FCM Token: $token")
+
+                    // Call JavaScript callback with token
+                    runOnUiThread {
+                        binding.webView.evaluateJavascript(
+                            "if (typeof $callback === 'function') { $callback('$token'); }",
+                            null
+                        )
+                    }
+                } else {
+                    Log.e("Firebase", "Failed to get FCM token", task.exception)
+                    runOnUiThread {
+                        binding.webView.evaluateJavascript(
+                            "if (typeof $callback === 'function') { $callback(null); }",
+                            null
+                        )
+                    }
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun requestNotificationPermission() {
+            runOnUiThread {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (ContextCompat.checkSelfPermission(
+                            this@MainActivity,
+                            Manifest.permission.POST_NOTIFICATIONS
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
                 }
             }
         }
