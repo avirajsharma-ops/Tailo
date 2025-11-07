@@ -653,7 +653,7 @@ export default function ChatPage() {
                     <div
                       key={chat._id}
                       onClick={() => setSelectedChat(chat)}
-                      className={`py-3.5 md:py-4 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
+                      className={`py-3.5 md:py-4 md:px-[1em] cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
                         selectedChat?._id === chat._id ? 'bg-gray-50' : ''
                       }`}
                     >

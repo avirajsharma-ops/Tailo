@@ -11,6 +11,7 @@ import {
 import toast from 'react-hot-toast'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { formatDesignation } from '@/lib/formatters'
+import CustomTooltip, { CustomPieTooltip } from '@/components/charts/CustomTooltip'
 
 // Fetch HR dashboard data
 const fetchHRStats = async () => {
@@ -442,10 +443,7 @@ export default function HRDashboard({ user }) {
                   <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
                   <XAxis dataKey="_id" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
                   <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
-                  <Tooltip
-                    labelStyle={{ fontSize: '11px', color: '#374151' }}
-                    contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                  />
+                  <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="count" fill="var(--color-primary-500)" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -480,10 +478,7 @@ export default function HRDashboard({ user }) {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    labelStyle={{ fontSize: '11px', color: '#374151' }}
-                    contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                  />
+                  <Tooltip content={<CustomPieTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

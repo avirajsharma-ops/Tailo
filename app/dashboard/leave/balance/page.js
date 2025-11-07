@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { FaCalendarAlt, FaClock, FaChartPie, FaHistory } from 'react-icons/fa'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import CustomTooltip, { CustomPieTooltip } from '@/components/charts/CustomTooltip'
 
 export default function LeaveBalancePage() {
   const [leaveBalance, setLeaveBalance] = useState([])
@@ -175,10 +176,7 @@ export default function LeaveBalancePage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
                 <XAxis dataKey="name" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
                 <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
-                <Tooltip
-                  labelStyle={{ fontSize: '11px', color: '#374151' }}
-                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                />
+                <Tooltip content={<CustomTooltip valueFormatter={(value) => `${value} days`} />} />
                 <Bar dataKey="used" fill="#ef4444" name="Used" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="remaining" fill="#10b981" name="Remaining" radius={[8, 8, 0, 0]} />
               </BarChart>

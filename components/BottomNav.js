@@ -18,31 +18,31 @@ export default function BottomNav() {
   const navItems = [
     {
       name: 'Home',
-      icon: '/assets/fi-rr-home.svg',
+      icon: '/assets/bottom bar/proicons_home.svg',
       path: '/dashboard',
       active: pathname === '/dashboard'
     },
     {
       name: 'Projects',
-      icon: '/assets/fi-rr-briefcase.svg',
+      icon: '/assets/bottom bar/Frame 69.svg',
       path: '/dashboard/tasks/my-tasks',
       active: pathname.startsWith('/dashboard/tasks')
     },
     {
       name: 'Chat',
-      icon: '/assets/fi-rr-comment.svg',
+      icon: '/assets/bottom bar/proicons_chat.svg',
       path: '/dashboard/chat',
       active: pathname.startsWith('/dashboard/chat')
     },
     {
       name: 'Leave',
-      icon: '/assets/fi-rr-calendar.svg',
+      icon: '/assets/bottom bar/proicons_calendar.svg',
       path: '/dashboard/leave',
       active: pathname.startsWith('/dashboard/leave')
     },
     {
       name: 'Ideas',
-      icon: '/assets/fi-rr-bulb.svg',
+      icon: '/assets/bottom bar/proicons_lightbulb.svg',
       path: '/dashboard/sandbox',
       active: pathname.startsWith('/dashboard/sandbox')
     }
@@ -67,6 +67,8 @@ export default function BottomNav() {
               <button
                 onClick={() => router.push(item.path)}
                 className={`relative p-0 h-14 w-14 rounded-full transition-all duration-300 ${
+                  isChat ? 'border-[1px] border-slate-300' : ''
+                } ${
                   item.active && !isChat
                     ? '-translate-y-[34px]'
                     : item.active && isChat

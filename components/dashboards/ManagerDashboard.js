@@ -11,6 +11,7 @@ import toast from 'react-hot-toast'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { formatDesignation } from '@/lib/formatters'
 import { useTheme } from '@/contexts/ThemeContext'
+import CustomTooltip from '@/components/charts/CustomTooltip'
 
 export default function ManagerDashboard({ user }) {
   const { theme } = useTheme()
@@ -464,10 +465,7 @@ export default function ManagerDashboard({ user }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
                 <XAxis dataKey="name" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
                 <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
-                <Tooltip
-                  labelStyle={{ fontSize: '11px', color: '#374151' }}
-                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                />
+                <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="present" fill="#10b981" name="Present" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="absent" fill="#ef4444" name="Absent" radius={[8, 8, 0, 0]} />
               </BarChart>
@@ -487,9 +485,7 @@ export default function ManagerDashboard({ user }) {
                 <XAxis dataKey="month" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
                 <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
                 <Tooltip
-                  formatter={(value) => [`${value}%`, 'Performance']}
-                  labelStyle={{ fontSize: '11px', color: '#374151' }}
-                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                  content={<CustomTooltip valueFormatter={(value) => `${value}%`} />}
                 />
                 <Line type="monotone" dataKey="performance" stroke="#8b5cf6" strokeWidth={2} name="Team Performance %" dot={{ r: 4, fill: '#8b5cf6', strokeWidth: 2, stroke: '#ffffff' }} activeDot={{ r: 6 }} />
               </LineChart>

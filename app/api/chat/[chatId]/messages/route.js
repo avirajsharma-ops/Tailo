@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
-import dbConnect from '@/lib/mongodb'
+import connectDB from '@/lib/mongodb'
 import Chat from '@/models/Chat'
 import Employee from '@/models/Employee'
 import User from '@/models/User'
@@ -19,7 +19,7 @@ export async function GET(request, context) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 })
     }
 
-    await dbConnect()
+    await connectDB()
 
     const params = await context.params
     const { chatId } = params
@@ -90,7 +90,7 @@ export async function POST(request, context) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 })
     }
 
-    await dbConnect()
+    await connectDB()
 
     const params = await context.params
     const { chatId } = params

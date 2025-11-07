@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
-import dbConnect from '@/lib/mongodb'
+import connectDB from '@/lib/mongodb'
 import Chat from '@/models/Chat'
 import Employee from '@/models/Employee'
 import User from '@/models/User'
@@ -8,7 +8,7 @@ import User from '@/models/User'
 // POST - Mark all messages in a chat as read
 export async function POST(request, context) {
   try {
-    await dbConnect()
+    await connectDB()
 
     // Get user from token
     const token = request.headers.get('authorization')?.replace('Bearer ', '')

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { FaDownload, FaChartBar, FaUsers, FaTrophy, FaCalendarAlt, FaFilter } from 'react-icons/fa'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
+import CustomTooltip, { CustomPieTooltip } from '@/components/charts/CustomTooltip'
 
 export default function PerformanceReportsPage() {
   const [loading, setLoading] = useState(true)
@@ -297,10 +298,7 @@ export default function PerformanceReportsPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
                 <XAxis dataKey="department" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
                 <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
-                <Tooltip
-                  labelStyle={{ fontSize: '11px', color: '#374151' }}
-                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: '10px' }} />
                 <Bar dataKey="avgScore" fill="#3B82F6" name="Avg Performance Score" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="taskCompletionRate" fill="#10B981" name="Task Completion %" radius={[8, 8, 0, 0]} />
@@ -372,10 +370,7 @@ export default function PerformanceReportsPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
                 <XAxis dataKey="quarter" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
                 <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
-                <Tooltip
-                  labelStyle={{ fontSize: '11px', color: '#374151' }}
-                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                />
+                <Tooltip content={<CustomTooltip valueFormatter={(value) => `${value}%`} />} />
                 <Bar dataKey="percentage" fill="#F59E0B" name="Completion %" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

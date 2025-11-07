@@ -8,6 +8,7 @@ import {
   FaCalendarAlt, FaHourglassHalf, FaArrowUp, FaArrowDown
 } from 'react-icons/fa'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
+import CustomTooltip, { CustomPieTooltip } from '@/components/charts/CustomTooltip'
 
 const TaskDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null)
@@ -217,10 +218,7 @@ const TaskDashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
                 <XAxis dataKey="_id" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
                 <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
-                <Tooltip
-                  labelStyle={{ fontSize: '11px', color: '#374151' }}
-                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                />
+                <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="count" fill="#3B82F6" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -250,10 +248,7 @@ const TaskDashboard = () => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip
-                  labelStyle={{ fontSize: '11px', color: '#374151' }}
-                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                />
+                <Tooltip content={<CustomPieTooltip />} />
               </PieChart>
             </ResponsiveContainer>
           </div>

@@ -11,6 +11,7 @@ import {
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { formatDesignation } from '@/lib/formatters'
 import { useTheme } from '@/contexts/ThemeContext'
+import CustomTooltip from '@/components/charts/CustomTooltip'
 
 export default function EmployeeDashboard({ user }) {
   const { theme } = useTheme()
@@ -605,9 +606,7 @@ export default function EmployeeDashboard({ user }) {
                   width={35}
                 />
                 <Tooltip
-                  formatter={(value) => [`${value} hours`, 'Working Hours']}
-                  labelStyle={{ fontSize: '11px', color: '#374151' }}
-                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                  content={<CustomTooltip valueFormatter={(value) => `${value} hours`} />}
                 />
                 <Line
                   type="monotone"
@@ -647,10 +646,7 @@ export default function EmployeeDashboard({ user }) {
                   stroke="#9ca3af"
                   width={35}
                 />
-                <Tooltip
-                  labelStyle={{ fontSize: '11px', color: '#374151' }}
-                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                />
+                <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="used" fill="#ef4444" name="Used" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="available" fill="#10b981" name="Available" radius={[8, 8, 0, 0]} />
               </BarChart>

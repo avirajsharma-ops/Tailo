@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { FaClock, FaCalendarAlt, FaChartLine, FaDownload, FaFilter } from 'react-icons/fa'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import CustomTooltip, { CustomPieTooltip } from '@/components/charts/CustomTooltip'
 
 export default function AttendanceReportPage() {
   const [attendanceData, setAttendanceData] = useState([])
@@ -227,10 +228,7 @@ export default function AttendanceReportPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
                 <XAxis dataKey="date" fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" />
                 <YAxis fontSize={9} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#9ca3af" width={35} />
-                <Tooltip
-                  labelStyle={{ fontSize: '11px', color: '#374151' }}
-                  contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                />
+                <Tooltip content={<CustomTooltip valueFormatter={(value) => `${value}h`} />} />
                 <Bar dataKey="hours" fill="#8b5cf6" name="Hours Worked" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

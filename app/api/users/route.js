@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
-import { verifyToken } from '@/lib/auth'
+import { verifyTokenFromRequest } from '@/lib/auth'
 
 export async function GET(request) {
   try {
     // Verify authentication
-    const authResult = await verifyToken(request)
+    const authResult = await verifyTokenFromRequest(request)
     if (!authResult.success) {
       return NextResponse.json(
         { message: authResult.message },

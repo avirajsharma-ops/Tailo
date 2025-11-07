@@ -6,11 +6,14 @@ import { FaBars, FaBell, FaUser, FaSignOutAlt, FaCog, FaSearch, FaComments, FaTi
 import toast from 'react-hot-toast'
 import { PWAStatus } from '@/components/PWAInstaller'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useUnreadMessages } from '@/contexts/UnreadMessagesContext'
+import UnreadBadge from '@/components/UnreadBadge'
 
 export default function Header({ toggleSidebar }) {
   const { theme } = useTheme()
   const router = useRouter()
   const pathname = usePathname()
+  const { unreadCount } = useUnreadMessages()
 
   // Fallback theme colors if theme is not loaded yet
   const primaryColor = theme?.primary?.[600] || '#2563EB'
@@ -440,24 +443,29 @@ export default function Header({ toggleSidebar }) {
         {/* Right side */}
         <div className="flex items-center space-x-2 sm:space-x-4 flex-1 justify-end">
           {/* Chat Button - Desktop Only */}
-          <button
-            onClick={() => router.push('/dashboard/chat')}
-            className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg transition-colors"
-            style={{
-              color: 'var(--color-text-secondary)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = primaryColor
-              e.currentTarget.style.backgroundColor = primaryLight
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-secondary)'
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
-          >
-            <FaComments className="w-5 h-5" />
-            <span className="text-sm font-medium">Chat</span>
-          </button>
+          <div className="relative hidden md:block">
+            <button
+              onClick={() => router.push('/dashboard/chat')}
+              className="flex items-center gap-2 px-3.5 py-3 rounded-lg transition-colors border-[1px] border-gray-300"
+              style={{
+                color: 'var(--color-text-secondary)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = primaryColor
+                e.currentTarget.style.backgroundColor = primaryLight
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--color-text-secondary)'
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }}
+            >
+              <FaComments className="w-5 h-5" />
+              <span className="text-sm font-medium">Chat</span>
+            </button>
+            {unreadCount > 0 && (
+              <UnreadBadge count={unreadCount} className="top-1 right-1" />
+            )}
+          </div>
 
           {/* PWA Status - Hidden */}
           {/* <PWAStatus /> */}
@@ -532,16 +540,20 @@ export default function Header({ toggleSidebar }) {
               }}
               className="flex items-center space-x-2 sm:space-x-3 p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              <div className="w-[30px] h-[30px] sm:w-8 sm:h-8 bg-primary-500 rounded-full flex items-center justify-center overflow-hidden">
-                {employeeData?.profilePicture ? (
-                  <img
-                    src={employeeData.profilePicture}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <FaUser className="w-4 h-4 sm:w-4 sm:h-4 text-white" />
-                )}
+              <div className="relative">
+                <div className="w-[30px] h-[30px] sm:w-8 sm:h-8 bg-primary-500 rounded-full flex items-center justify-center overflow-hidden">
+                  {employeeData?.profilePicture ? (
+                    <img
+                      src={employeeData.profilePicture}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <FaUser className="w-4 h-4 sm:w-4 sm:h-4 text-white" />
+                  )}
+                </div>
+                {/* Notification badge placeholder - can be added here if needed */}
+                {/* Example: {hasNotifications && <UnreadBadge count={notificationCount} className="top-0 right-0" />} */}
               </div>
               <div className="hidden md:block text-left">
                 <p className="text-sm font-medium text-gray-900 truncate max-w-32">

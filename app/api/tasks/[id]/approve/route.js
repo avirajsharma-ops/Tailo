@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
-import dbConnect from '@/lib/mongodb'
+import connectDB from '@/lib/mongodb'
 import Task from '@/models/Task'
 import Employee from '@/models/Employee'
 import User from '@/models/User'
@@ -11,7 +11,7 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secr
 
 export async function POST(request, { params }) {
   try {
-    await dbConnect()
+    await connectDB()
 
     // Get token from Authorization header
     const authHeader = request.headers.get('authorization')
@@ -198,7 +198,7 @@ export async function POST(request, { params }) {
 // Add remark to task (managers can add remarks anytime)
 export async function PUT(request, { params }) {
   try {
-    await dbConnect()
+    await connectDB()
 
     // Get token from Authorization header
     const authHeader = request.headers.get('authorization')

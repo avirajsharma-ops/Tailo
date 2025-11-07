@@ -14,7 +14,9 @@ export async function middleware(request) {
     '/api/auth/google/callback',
     '/api/create-user',
     '/api/clear-users',
-    '/api/debug/users'
+    '/api/debug/users',
+    '/api/test',
+    '/api/assetlinks'
   ]
 
   const isPublicRoute = publicRoutes.some(route =>

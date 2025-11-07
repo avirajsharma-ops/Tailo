@@ -13,6 +13,7 @@ import {
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { formatDesignation } from '@/lib/formatters'
 import { useTheme } from '@/contexts/ThemeContext'
+import CustomTooltip, { CustomPieTooltip } from '@/components/charts/CustomTooltip'
 
 export default function AdminDashboard({ user }) {
   const router = useRouter()
@@ -470,10 +471,7 @@ export default function AdminDashboard({ user }) {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    labelStyle={{ fontSize: '11px', color: '#374151' }}
-                    contentStyle={{ fontSize: '11px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                  />
+                  <Tooltip content={<CustomPieTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

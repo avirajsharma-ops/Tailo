@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
-import dbConnect from '@/lib/mongodb'
+import connectDB from '@/lib/mongodb'
 import Department from '@/models/Department'
 import Employee from '@/models/Employee'
 import Leave from '@/models/Leave'
@@ -20,7 +20,7 @@ export async function GET(request) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 })
     }
 
-    await dbConnect()
+    await connectDB()
 
     // Get user's employee ID
     const user = await User.findById(decoded.userId).select('employeeId')
@@ -88,7 +88,7 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 })
     }
 
-    await dbConnect()
+    await connectDB()
 
     // Get user's employee ID
     const user = await User.findById(decoded.userId).select('employeeId')

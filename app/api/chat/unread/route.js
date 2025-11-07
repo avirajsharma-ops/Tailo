@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
-import dbConnect from '@/lib/mongodb'
+import connectDB from '@/lib/mongodb'
 import Chat from '@/models/Chat'
 import Employee from '@/models/Employee'
 import User from '@/models/User'
@@ -8,7 +8,7 @@ import User from '@/models/User'
 // GET - Get unread message count for current user
 export async function GET(request) {
   try {
-    await dbConnect()
+    await connectDB()
 
     // Get user from token
     const token = request.headers.get('authorization')?.replace('Bearer ', '')

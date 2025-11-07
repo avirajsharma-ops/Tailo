@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
-import dbConnect from '@/lib/mongodb'
+import connectDB from '@/lib/mongodb'
 import Employee from '@/models/Employee'
 import User from '@/models/User'
 import Designation from '@/models/Designation'
@@ -19,7 +19,7 @@ export async function GET(request) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 })
     }
 
-    await dbConnect()
+    await connectDB()
 
     // Get current user
     const currentUserDoc = await User.findById(decoded.userId).select('employeeId role')
