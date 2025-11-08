@@ -81,7 +81,7 @@ export default function AnnouncementsPage() {
   }
 
   const canManageAnnouncements = () => {
-    return user && (user.role === 'admin' || user.role === 'hr' || user.role === 'department_head')
+    return user && (user.role === 'admin' || user.role === 'hr' || user.role === 'department_head' || user.role === 'manager')
   }
 
   return (

@@ -9,11 +9,14 @@ export default function CreateAnnouncementPage() {
   const router = useRouter()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [teamMembers, setTeamMembers] = useState([])
+  const [departments, setDepartments] = useState([])
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     priority: 'medium',
     targetAudience: 'all',
+    departments: [],
     expiryDate: '',
     isActive: true,
   })
@@ -23,37 +26,94 @@ export default function CreateAnnouncementPage() {
     if (userData) {
       const parsedUser = JSON.parse(userData)
       setUser(parsedUser)
-      
-      // Check if user is admin
-      if (parsedUser.role !== 'admin') {
-        toast.error('Access denied. Only Admin can create announcements.')
+
+      // Check if user has permission to create announcements
+      const allowedRoles = ['admin', 'hr', 'department_head', 'manager']
+      if (!allowedRoles.includes(parsedUser.role)) {
+        toast.error('Access denied. You do not have permission to create announcements.')
         router.push('/dashboard')
         return
+      }
+
+      // Fetch team members for managers
+      if (parsedUser.role === 'manager') {
+        fetchTeamMembers()
+      }
+
+      // Fetch departments for admin/hr/department_head
+      if (['admin', 'hr', 'department_head'].includes(parsedUser.role)) {
+        fetchDepartments()
       }
     }
   }, [router])
 
+  const fetchTeamMembers = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/team/members', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setTeamMembers(data.data || [])
+      }
+    } catch (error) {
+      console.error('Fetch team members error:', error)
+    }
+  }
+
+  const fetchDepartments = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/departments', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setDepartments(data.data || [])
+      }
+    } catch (error) {
+      console.error('Fetch departments error:', error)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    
+
     try {
       const token = localStorage.getItem('token')
+
+      // Prepare announcement data
+      const announcementData = {
+        ...formData,
+        createdBy: user.employeeId._id,
+      }
+
+      // For managers, set as department announcement
+      if (user.role === 'manager') {
+        announcementData.isDepartmentAnnouncement = true
+        announcementData.targetAudience = 'department'
+        // Get manager's department from employeeId
+        if (user.employeeId?.department?._id) {
+          announcementData.departments = [user.employeeId.department._id]
+        }
+      }
+
       const response = await fetch('/api/announcements', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          ...formData,
-          createdBy: user.employeeId._id,
-        }),
+        body: JSON.stringify(announcementData),
       })
 
       const data = await response.json()
       if (data.success) {
-        toast.success('Announcement created successfully')
+        toast.success('Announcement created successfully! 📢')
         router.push('/dashboard/announcements')
       } else {
         toast.error(data.message || 'Failed to create announcement')
@@ -100,7 +160,18 @@ export default function CreateAnnouncementPage() {
           <FaBullhorn className="w-8 h-8 text-primary-500" />
           <h1 className="text-3xl font-bold text-gray-800">Create Announcement</h1>
         </div>
-        <p className="text-gray-600">Create a new announcement for employees</p>
+        <p className="text-gray-600">
+          {user.role === 'manager'
+            ? 'Create a new announcement for your team members'
+            : 'Create a new announcement for employees'}
+        </p>
+        {user.role === 'manager' && (
+          <div className="mt-2 px-4 py-2 bg-purple-50 border border-purple-200 rounded-lg">
+            <p className="text-sm text-purple-700">
+              <strong>Note:</strong> This announcement will be sent to all members of your team.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Form */}
@@ -162,30 +233,99 @@ export default function CreateAnnouncementPage() {
               </div>
             </div>
 
-            {/* Target Audience */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Target Audience *
-              </label>
-              <select
-                value={formData.targetAudience}
-                onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
-                <option value="all">All Employees</option>
-                <option value="managers">Managers Only</option>
-                <option value="hr">HR Department</option>
-                <option value="engineering">Engineering</option>
-                <option value="sales">Sales</option>
-                <option value="marketing">Marketing</option>
-              </select>
-              <div className="mt-2 flex items-center space-x-2">
-                <FaUsers className="w-4 h-4 text-blue-600" />
-                <span className="text-sm text-blue-600">
-                  {formData.targetAudience === 'all' ? 'All Employees' : formData.targetAudience.charAt(0).toUpperCase() + formData.targetAudience.slice(1)}
-                </span>
+            {/* Target Audience - Only show for non-managers */}
+            {user.role !== 'manager' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Target Audience *
+                </label>
+                {user.role === 'department_head' ? (
+                  <div className="w-full px-4 py-2 border border-purple-300 bg-purple-50 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <FaUsers className="w-4 h-4 text-purple-600" />
+                      <span className="text-sm text-purple-700 font-medium">
+                        Your Department Members
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      value={formData.targetAudience}
+                      onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="all">All Employees</option>
+                      <option value="department">Specific Department(s)</option>
+                    </select>
+                    {formData.targetAudience === 'department' && departments.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Select Department(s)
+                        </label>
+                        <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-2">
+                          {departments.map((dept) => (
+                            <label key={dept._id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={formData.departments.includes(dept._id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData({
+                                      ...formData,
+                                      departments: [...formData.departments, dept._id]
+                                    })
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      departments: formData.departments.filter(id => id !== dept._id)
+                                    })
+                                  }
+                                }}
+                                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                              />
+                              <span className="text-sm text-gray-700">{dept.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+                <div className="mt-2 flex items-center space-x-2">
+                  <FaUsers className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm text-blue-600">
+                    {user.role === 'department_head'
+                      ? 'Department Members'
+                      : formData.targetAudience === 'all'
+                        ? 'All Employees'
+                        : formData.targetAudience === 'department' && formData.departments.length > 0
+                          ? `${formData.departments.length} Department(s) Selected`
+                          : 'Select Target Audience'}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* For managers, show team info */}
+            {user.role === 'manager' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Target Audience
+                </label>
+                <div className="w-full px-4 py-2 border border-purple-300 bg-purple-50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <FaUsers className="w-4 h-4 text-purple-600" />
+                    <span className="text-sm text-purple-700 font-medium">
+                      Your Team Members ({teamMembers.length} members)
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  This announcement will be sent to all your direct reports
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Expiry Date */}
@@ -222,11 +362,22 @@ export default function CreateAnnouncementPage() {
           {/* Preview */}
           <div className="border-t pt-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Preview</h3>
-            <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-primary-500">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-lg font-semibold text-gray-900">
-                  {formData.title || 'Announcement Title'}
-                </h4>
+            <div className={`rounded-lg p-4 border-l-4 ${
+              user.role === 'manager' || user.role === 'department_head'
+                ? 'bg-purple-50 border-purple-500'
+                : 'bg-gray-50 border-primary-500'
+            }`}>
+              <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                <div className="flex items-center space-x-2">
+                  <h4 className="text-lg font-semibold text-gray-900">
+                    {formData.title || 'Announcement Title'}
+                  </h4>
+                  {(user.role === 'manager' || user.role === 'department_head') && (
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                      {user.role === 'manager' ? 'Team' : 'Department'}
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center space-x-2">
                   {React.createElement(getPriorityIcon(formData.priority), {
                     className: `w-4 h-4 ${getPriorityColor(formData.priority)}`
@@ -243,8 +394,20 @@ export default function CreateAnnouncementPage() {
               <p className="text-gray-700 whitespace-pre-wrap">
                 {formData.content || 'Announcement content will appear here...'}
               </p>
-              <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
-                <span>Target: {formData.targetAudience === 'all' ? 'All Employees' : formData.targetAudience}</span>
+              <div className="mt-3 flex items-center justify-between text-sm text-gray-500 flex-wrap gap-2">
+                <span>
+                  Target: {
+                    user.role === 'manager'
+                      ? `Your Team (${teamMembers.length} members)`
+                      : user.role === 'department_head'
+                        ? 'Your Department'
+                        : formData.targetAudience === 'all'
+                          ? 'All Employees'
+                          : formData.targetAudience === 'department' && formData.departments.length > 0
+                            ? `${formData.departments.length} Department(s)`
+                            : formData.targetAudience
+                  }
+                </span>
                 {formData.expiryDate && (
                   <span>Expires: {new Date(formData.expiryDate).toLocaleDateString()}</span>
                 )}

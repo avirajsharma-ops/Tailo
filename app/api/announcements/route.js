@@ -84,18 +84,20 @@ export async function POST(request) {
     const token = request.headers.get('authorization')?.replace('Bearer ', '')
     let creatorRole = null
     let creatorDepartment = null
+    let creatorEmployeeId = null
 
     if (token) {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET)
         const user = await User.findById(decoded.userId).select('role')
-        const employee = await Employee.findOne({ userId: decoded.userId }).select('department isDepartmentHead')
+        const employee = await Employee.findOne({ userId: decoded.userId }).select('_id department isDepartmentHead')
 
         if (user) {
           creatorRole = user.role
         }
 
         if (employee) {
+          creatorEmployeeId = employee._id
           creatorDepartment = employee.department
 
           // If user is department head, set department-specific fields
@@ -103,6 +105,16 @@ export async function POST(request) {
             data.isDepartmentAnnouncement = true
             data.departments = [creatorDepartment]
             data.targetAudience = 'department'
+          }
+
+          // If user is manager, set team-specific fields
+          if (user.role === 'manager') {
+            data.isDepartmentAnnouncement = true
+            data.targetAudience = 'department'
+            // Department should already be set from frontend, but ensure it's set
+            if (!data.departments || data.departments.length === 0) {
+              data.departments = [creatorDepartment]
+            }
           }
         }
       } catch (err) {
