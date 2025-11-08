@@ -1,26 +1,66 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { FaArrowLeft, FaEdit, FaTrash, FaStar, FaCalendar, FaUser } from 'react-icons/fa'
 
 export default function PerformanceReviewDetailsPage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const [review, setReview] = useState(null)
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState(null)
+  const [isEmployeeReview, setIsEmployeeReview] = useState(false)
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
     if (userData) {
       setUser(JSON.parse(userData))
     }
-    fetchReview()
-  }, [params.id])
 
-  const fetchReview = async () => {
+    // Check if this is an employee review (from reviews array) or performance review
+    const employeeId = searchParams.get('employeeId')
+    if (employeeId) {
+      setIsEmployeeReview(true)
+      fetchEmployeeReview(employeeId)
+    } else {
+      fetchPerformanceReview()
+    }
+  }, [params.id, searchParams])
+
+  const fetchEmployeeReview = async (employeeId) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/employees/${employeeId}/reviews`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // Find the specific review by ID
+        const specificReview = data.data.find(r => r._id === params.id)
+        if (specificReview) {
+          setReview(specificReview)
+        } else {
+          toast.error('Review not found')
+        }
+      } else {
+        toast.error(data.message || 'Failed to fetch review details')
+      }
+    } catch (error) {
+      console.error('Fetch employee review error:', error)
+      toast.error('Failed to fetch review details')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchPerformanceReview = async () => {
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(`/api/performance/reviews/${params.id}`, {
@@ -49,12 +89,24 @@ export default function PerformanceReviewDetailsPage() {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`/api/performance/reviews/${params.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+
+      let response
+      if (isEmployeeReview) {
+        const employeeId = searchParams.get('employeeId')
+        response = await fetch(`/api/employees/${employeeId}/reviews?reviewId=${params.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+      } else {
+        response = await fetch(`/api/performance/reviews/${params.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+      }
 
       const data = await response.json()
 
@@ -144,6 +196,115 @@ export default function PerformanceReviewDetailsPage() {
     )
   }
 
+  // Render employee review (simple review/remark)
+  if (isEmployeeReview) {
+    const getTypeColor = (type) => {
+      switch (type) {
+        case 'review': return 'bg-blue-100 text-blue-800 border-blue-200'
+        case 'remark': return 'bg-purple-100 text-purple-800 border-purple-200'
+        case 'feedback': return 'bg-green-100 text-green-800 border-green-200'
+        case 'warning': return 'bg-red-100 text-red-800 border-red-200'
+        case 'appreciation': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+        default: return 'bg-gray-100 text-gray-800 border-gray-200'
+      }
+    }
+
+    const getCategoryColor = (category) => {
+      switch (category) {
+        case 'performance': return 'bg-indigo-100 text-indigo-800'
+        case 'behavior': return 'bg-pink-100 text-pink-800'
+        case 'skills': return 'bg-teal-100 text-teal-800'
+        case 'general': return 'bg-gray-100 text-gray-800'
+        default: return 'bg-gray-100 text-gray-800'
+      }
+    }
+
+    return (
+      <div className="p-3 sm:p-6 pb-20 sm:pb-6 bg-gray-50 min-h-screen">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
+            <button
+              onClick={() => router.back()}
+              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+            >
+              <FaArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 break-words">Review Details</h1>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1 truncate">
+                {review.type?.charAt(0).toUpperCase() + review.type?.slice(1)} - {review.category}
+              </p>
+            </div>
+          </div>
+          {canManageReviews() && (
+            <div className="flex space-x-2 sm:space-x-3">
+              <button
+                onClick={handleDelete}
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg text-sm sm:text-base"
+              >
+                <FaTrash className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="font-medium">Delete</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Review Content */}
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100">
+          {/* Type and Category Badges */}
+          <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+            <span className={`px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border ${getTypeColor(review.type)}`}>
+              {review.type?.charAt(0).toUpperCase() + review.type?.slice(1)}
+            </span>
+            <span className={`px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg ${getCategoryColor(review.category)}`}>
+              {review.category?.charAt(0).toUpperCase() + review.category?.slice(1)}
+            </span>
+            {review.rating && (
+              <div className="flex items-center space-x-1 bg-gradient-to-r from-amber-50 to-orange-50 px-3 py-1.5 rounded-lg border border-amber-200">
+                <div className="flex scale-90 sm:scale-100">{getRatingStars(review.rating)}</div>
+                <span className="text-xs sm:text-sm font-bold text-amber-700 ml-1">{review.rating}/5</span>
+              </div>
+            )}
+          </div>
+
+          {/* Content */}
+          <div className="mb-4 sm:mb-6">
+            <h3 className="text-sm sm:text-base font-semibold text-gray-700 mb-2">Content</h3>
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-100">
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-wrap">{review.content}</p>
+            </div>
+          </div>
+
+          {/* Reviewer Info */}
+          <div className="border-t border-gray-200 pt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base shadow-md flex-shrink-0">
+                  {review.reviewedBy?.firstName?.charAt(0)}{review.reviewedBy?.lastName?.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-gray-500 font-medium">Reviewed By</p>
+                  <p className="text-sm sm:text-base font-semibold text-gray-800 truncate">
+                    {review.reviewedBy?.firstName} {review.reviewedBy?.lastName}
+                  </p>
+                  {review.reviewedBy?.designation && (
+                    <p className="text-xs text-gray-500 truncate">{review.reviewedBy?.designation}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 text-gray-500 text-xs sm:text-sm">
+                <FaCalendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span>{new Date(review.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Render performance review (complex review)
   return (
     <div className="p-3 sm:p-6 pb-20 sm:pb-6 bg-gray-50 min-h-screen">
       {/* Header */}

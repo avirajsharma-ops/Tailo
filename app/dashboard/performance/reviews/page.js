@@ -97,13 +97,40 @@ export default function PerformanceReviewsPage() {
     }
   }
 
-  const handleDelete = async (reviewId) => {
+  const handleDelete = async (reviewId, employeeId = null) => {
     if (!confirm('Are you sure you want to delete this review?')) return
 
     try {
-      // Mock delete
-      setReviews(reviews.filter(r => r._id !== reviewId))
-      toast.success('Review deleted successfully')
+      const token = localStorage.getItem('token')
+
+      let response
+      if (employeeId) {
+        // Delete team review (employee review)
+        response = await fetch(`/api/employees/${employeeId}/reviews?reviewId=${reviewId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+      } else {
+        // Delete performance review
+        response = await fetch(`/api/performance/reviews/${reviewId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+      }
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast.success('Review deleted successfully')
+        fetchReviews()
+        fetchTeamReviews()
+      } else {
+        toast.error(data.message || 'Failed to delete review')
+      }
     } catch (error) {
       console.error('Delete review error:', error)
       toast.error('Failed to delete review')
@@ -296,21 +323,29 @@ export default function PerformanceReviewsPage() {
                   {canManageReviews() && (
                     <div className="flex space-x-1 sm:space-x-2">
                       <button
-                        onClick={() => router.push(`/dashboard/performance/reviews/${review._id}`)}
+                        onClick={() => {
+                          if (review.type === 'team_review') {
+                            router.push(`/dashboard/performance/reviews/${review._id}?employeeId=${review.employee._id}`)
+                          } else {
+                            router.push(`/dashboard/performance/reviews/${review._id}`)
+                          }
+                        }}
                         className="text-blue-600 hover:text-blue-800 p-1.5 sm:p-2 rounded-lg hover:bg-blue-50 transition-colors"
                         title="View Review"
                       >
                         <FaEye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </button>
+                      {review.type !== 'team_review' && (
+                        <button
+                          onClick={() => router.push(`/dashboard/performance/reviews/edit/${review._id}`)}
+                          className="text-green-600 hover:text-green-800 p-1.5 sm:p-2 rounded-lg hover:bg-green-50 transition-colors"
+                          title="Edit Review"
+                        >
+                          <FaEdit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        </button>
+                      )}
                       <button
-                        onClick={() => router.push(`/dashboard/performance/reviews/edit/${review._id}`)}
-                        className="text-green-600 hover:text-green-800 p-1.5 sm:p-2 rounded-lg hover:bg-green-50 transition-colors"
-                        title="Edit Review"
-                      >
-                        <FaEdit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(review._id)}
+                        onClick={() => handleDelete(review._id, review.type === 'team_review' ? review.employee._id : null)}
                         className="text-red-600 hover:text-red-800 p-1.5 sm:p-2 rounded-lg hover:bg-red-50 transition-colors"
                         title="Delete Review"
                       >
