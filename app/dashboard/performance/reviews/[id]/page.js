@@ -22,58 +22,20 @@ export default function PerformanceReviewDetailsPage() {
 
   const fetchReview = async () => {
     try {
-      // Mock data for now - replace with actual API call
-      const mockReview = {
-        _id: params.id,
-        employee: { 
-          _id: 'emp1',
-          firstName: 'John', 
-          lastName: 'Doe', 
-          employeeCode: 'EMP001',
-          department: 'Engineering',
-          position: 'Senior Developer'
-        },
-        reviewer: { 
-          _id: 'rev1',
-          firstName: 'Jane', 
-          lastName: 'Smith',
-          position: 'Engineering Manager'
-        },
-        reviewPeriod: 'Q4 2024',
-        overallRating: 4.2,
-        status: 'completed',
-        reviewDate: '2024-12-15T00:00:00.000Z',
-        summary: 'John has demonstrated excellent performance throughout Q4 2024. His technical skills and leadership abilities have been instrumental in delivering key projects on time. He consistently goes above and beyond expectations and serves as a mentor to junior team members.',
-        strengths: ['Leadership', 'Problem Solving', 'Communication', 'Technical Excellence', 'Mentoring'],
-        areasOfImprovement: ['Time Management', 'Delegation', 'Strategic Planning'],
-        goals: [
-          { 
-            title: 'Improve team collaboration', 
-            description: 'Lead cross-functional initiatives to improve team communication',
-            status: 'achieved',
-            dueDate: '2024-12-31'
-          },
-          { 
-            title: 'Complete AWS certification', 
-            description: 'Obtain AWS Solutions Architect certification',
-            status: 'in-progress',
-            dueDate: '2025-03-31'
-          }
-        ],
-        ratings: {
-          communication: 4,
-          teamwork: 5,
-          leadership: 4,
-          problemSolving: 5,
-          technicalSkills: 5,
-          productivity: 4
-        },
-        comments: 'John is a valuable asset to the team and shows great potential for advancement to a senior leadership role.',
-        createdAt: '2024-12-15T00:00:00.000Z',
-        updatedAt: '2024-12-15T00:00:00.000Z'
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/performance/reviews/${params.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setReview(data.data)
+      } else {
+        toast.error(data.message || 'Failed to fetch review details')
       }
-      
-      setReview(mockReview)
     } catch (error) {
       console.error('Fetch review error:', error)
       toast.error('Failed to fetch review details')
@@ -86,9 +48,22 @@ export default function PerformanceReviewDetailsPage() {
     if (!confirm('Are you sure you want to delete this review?')) return
 
     try {
-      // Mock delete - replace with actual API call
-      toast.success('Review deleted successfully')
-      router.push('/dashboard/performance/reviews')
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/performance/reviews/${params.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast.success('Review deleted successfully')
+        router.push('/dashboard/performance/reviews')
+      } else {
+        toast.error(data.message || 'Failed to delete review')
+      }
     } catch (error) {
       console.error('Delete review error:', error)
       toast.error('Failed to delete review')
@@ -144,20 +119,23 @@ export default function PerformanceReviewDetailsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-primary-500"></div>
       </div>
     )
   }
 
   if (!review) {
     return (
-      <div className="p-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Review Not Found</h1>
-          <p className="text-gray-600 mb-4">The performance review you&apos;re looking for doesn&apos;t exist.</p>
+      <div className="p-3 sm:p-6 pb-20 sm:pb-6">
+        <div className="text-center bg-white rounded-xl shadow-md p-8 sm:p-12 border border-gray-100">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+            <FaStar className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-4">Review Not Found</h1>
+          <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">The performance review you&apos;re looking for doesn&apos;t exist.</p>
           <button
             onClick={() => router.push('/dashboard/performance/reviews')}
-            className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+            className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base font-medium"
           >
             Back to Reviews
           </button>
@@ -167,66 +145,68 @@ export default function PerformanceReviewDetailsPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6 pb-20 sm:pb-6 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
           <button
             onClick={() => router.back()}
-            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
           >
-            <FaArrowLeft className="w-5 h-5" />
+            <FaArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">Performance Review Details</h1>
-            <p className="text-gray-600 mt-1">
-              {review.employee.firstName} {review.employee.lastName} - {review.reviewPeriod}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 break-words">Performance Review Details</h1>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1 truncate">
+              {review.employee?.firstName} {review.employee?.lastName} - {review.reviewPeriod}
             </p>
           </div>
         </div>
         {canManageReviews() && (
-          <div className="flex space-x-3">
+          <div className="flex space-x-2 sm:space-x-3">
             <button
               onClick={() => router.push(`/dashboard/performance/reviews/edit/${review._id}`)}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg text-sm sm:text-base"
             >
-              <FaEdit className="w-4 h-4" />
-              <span>Edit</span>
+              <FaEdit className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="font-medium">Edit</span>
             </button>
             <button
               onClick={handleDelete}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center space-x-2"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg text-sm sm:text-base"
             >
-              <FaTrash className="w-4 h-4" />
-              <span>Delete</span>
+              <FaTrash className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="font-medium">Delete</span>
             </button>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-3 sm:space-y-4 lg:space-y-6">
           {/* Employee Info */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-start space-x-4">
-              <div className="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-xl">
-                {review.employee.firstName.charAt(0)}{review.employee.lastName.charAt(0)}
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-800">
-                  {review.employee.firstName} {review.employee.lastName}
-                </h2>
-                <p className="text-gray-600">{review.employee.employeeCode}</p>
-                <p className="text-gray-600">{review.employee.position}</p>
-                <p className="text-gray-600">{review.employee.department}</p>
-              </div>
-              <div className="text-right">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="flex">{getRatingStars(Math.round(review.overallRating))}</div>
-                  <span className="text-xl font-bold text-gray-800">{review.overallRating}</span>
+          <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+              <div className="relative flex-shrink-0 mx-auto sm:mx-0">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white font-bold text-lg sm:text-2xl shadow-md">
+                  {review.employee?.firstName?.charAt(0)}{review.employee?.lastName?.charAt(0)}
                 </div>
-                <span className={`px-3 py-1 text-sm rounded-full ${getStatusColor(review.status)}`}>
+              </div>
+              <div className="flex-1 min-w-0 text-center sm:text-left">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 break-words">
+                  {review.employee?.firstName} {review.employee?.lastName}
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-600 truncate">{review.employee?.employeeCode}</p>
+                <p className="text-xs sm:text-sm text-gray-600 truncate">{review.employee?.position || 'N/A'}</p>
+                <p className="text-xs sm:text-sm text-gray-600 truncate">{review.employee?.department?.name || review.employee?.department || 'N/A'}</p>
+              </div>
+              <div className="flex flex-col items-center sm:items-end gap-2 sm:gap-3">
+                <div className="flex items-center space-x-2 bg-gradient-to-r from-amber-50 to-orange-50 px-3 py-2 rounded-lg border border-amber-200">
+                  <div className="flex scale-90 sm:scale-100">{getRatingStars(Math.round(review.overallRating))}</div>
+                  <span className="text-base sm:text-xl font-bold text-amber-700">{review.overallRating}</span>
+                </div>
+                <span className={`px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg ${getStatusColor(review.status)} shadow-sm whitespace-nowrap`}>
                   {review.status}
                 </span>
               </div>
@@ -234,21 +214,23 @@ export default function PerformanceReviewDetailsPage() {
           </div>
 
           {/* Summary */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Review Summary</h3>
-            <p className="text-gray-700 leading-relaxed">{review.summary}</p>
+          <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100">
+            <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-3 sm:mb-4">Review Summary</h3>
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-100">
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{review.summary || 'No summary provided'}</p>
+            </div>
           </div>
 
           {/* Detailed Ratings */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Detailed Ratings</h3>
-            <div className="space-y-4">
+          <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100">
+            <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-3 sm:mb-4">Detailed Ratings</h3>
+            <div className="space-y-3 sm:space-y-4">
               {ratingCategories.map((category) => (
-                <div key={category.key} className="flex items-center justify-between">
-                  <span className="text-gray-700 font-medium">{category.label}</span>
-                  <div className="flex items-center space-x-3">
-                    <div className="flex">{getRatingStars(review.ratings[category.key])}</div>
-                    <span className="text-gray-600 w-8">{review.ratings[category.key]}/5</span>
+                <div key={category.key} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
+                  <span className="text-sm sm:text-base text-gray-700 font-semibold">{category.label}</span>
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <div className="flex scale-90 sm:scale-100">{getRatingStars(review.ratings?.[category.key] || 0)}</div>
+                    <span className="text-sm sm:text-base text-gray-600 font-medium min-w-[3rem]">{review.ratings?.[category.key] || 0}/5</span>
                   </div>
                 </div>
               ))}
@@ -256,105 +238,138 @@ export default function PerformanceReviewDetailsPage() {
           </div>
 
           {/* Strengths and Areas of Improvement */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">Strengths</h3>
-              <div className="space-y-2">
-                {review.strengths.map((strength, index) => (
-                  <span key={index} className="inline-block px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full mr-2 mb-2">
-                    {strength}
-                  </span>
-                ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow-md p-4 sm:p-6 border border-green-200">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-green-800">Strengths</h3>
+              </div>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {review.strengths && review.strengths.length > 0 ? (
+                  review.strengths.map((strength, index) => (
+                    <span key={index} className="px-2.5 py-1 bg-white text-green-700 text-xs sm:text-sm font-medium rounded-md border border-green-200 shadow-sm">
+                      {strength}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-green-700">No strengths listed</p>
+                )}
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">Areas of Improvement</h3>
-              <div className="space-y-2">
-                {review.areasOfImprovement.map((area, index) => (
-                  <span key={index} className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full mr-2 mb-2">
-                    {area}
-                  </span>
-                ))}
+            <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl shadow-md p-4 sm:p-6 border border-amber-200">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-amber-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-amber-800">Areas of Improvement</h3>
+              </div>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {review.areasOfImprovement && review.areasOfImprovement.length > 0 ? (
+                  review.areasOfImprovement.map((area, index) => (
+                    <span key={index} className="px-2.5 py-1 bg-white text-amber-700 text-xs sm:text-sm font-medium rounded-md border border-amber-200 shadow-sm">
+                      {area}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-amber-700">No areas of improvement listed</p>
+                )}
               </div>
             </div>
           </div>
 
           {/* Goals */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Goals & Objectives</h3>
-            <div className="space-y-4">
-              {review.goals.map((goal, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-semibold text-gray-800">{goal.title}</h4>
-                    <span className={`px-2 py-1 text-xs rounded-full ${getGoalStatusColor(goal.status)}`}>
-                      {goal.status}
-                    </span>
+          {review.goals && review.goals.length > 0 && (
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100">
+              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-3 sm:mb-4">Goals & Objectives</h3>
+              <div className="space-y-3 sm:space-y-4">
+                {review.goals.map((goal, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-3 sm:p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                      <h4 className="font-semibold text-sm sm:text-base text-gray-800 break-words flex-1">{goal.title}</h4>
+                      <span className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${getGoalStatusColor(goal.status)} whitespace-nowrap self-start`}>
+                        {goal.status}
+                      </span>
+                    </div>
+                    <p className="text-gray-600 text-xs sm:text-sm mb-2 leading-relaxed">{goal.description}</p>
+                    <div className="flex items-center gap-1.5 text-gray-500 text-xs">
+                      <FaCalendar className="w-3 h-3" />
+                      <span>Due: {new Date(goal.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    </div>
                   </div>
-                  <p className="text-gray-600 text-sm mb-2">{goal.description}</p>
-                  <p className="text-gray-500 text-xs">Due: {new Date(goal.dueDate).toLocaleDateString()}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Comments */}
           {review.comments && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">Additional Comments</h3>
-              <p className="text-gray-700 leading-relaxed">{review.comments}</p>
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100">
+              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-3 sm:mb-4">Additional Comments</h3>
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-100">
+                <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{review.comments}</p>
+              </div>
             </div>
           )}
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
           {/* Review Info */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Review Information</h3>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <FaCalendar className="w-4 h-4 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Review Date</p>
-                  <p className="font-medium">{new Date(review.reviewDate).toLocaleDateString()}</p>
+          <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100">
+            <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">Review Information</h3>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-start space-x-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
+                <FaCalendar className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-gray-500 font-medium">Review Date</p>
+                  <p className="text-sm sm:text-base font-semibold text-gray-800 truncate">
+                    {new Date(review.reviewDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <FaUser className="w-4 h-4 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Reviewed By</p>
-                  <p className="font-medium">{review.reviewer.firstName} {review.reviewer.lastName}</p>
-                  <p className="text-sm text-gray-500">{review.reviewer.position}</p>
+              <div className="flex items-start space-x-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
+                <FaUser className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-gray-500 font-medium">Reviewed By</p>
+                  <p className="text-sm sm:text-base font-semibold text-gray-800 truncate">
+                    {review.reviewer?.firstName} {review.reviewer?.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">{review.reviewer?.position || 'N/A'}</p>
                 </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Review Period</p>
-                <p className="font-medium">{review.reviewPeriod}</p>
+              <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                <p className="text-xs text-gray-500 font-medium mb-1">Review Period</p>
+                <p className="text-sm sm:text-base font-semibold text-gray-800">{review.reviewPeriod}</p>
               </div>
             </div>
           </div>
 
           {/* Quick Stats */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Stats</h3>
+          <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl shadow-md p-4 sm:p-6 border border-primary-200">
+            <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">Quick Stats</h3>
             <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Overall Rating</span>
-                <span className="font-bold text-primary-600">{review.overallRating}/5</span>
+              <div className="flex justify-between items-center bg-white rounded-lg p-3 shadow-sm">
+                <span className="text-xs sm:text-sm text-gray-600 font-medium">Overall Rating</span>
+                <span className="text-base sm:text-lg font-bold text-primary-600">{review.overallRating}/5</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Strengths</span>
-                <span className="font-medium">{review.strengths.length}</span>
+              <div className="flex justify-between items-center bg-white rounded-lg p-3 shadow-sm">
+                <span className="text-xs sm:text-sm text-gray-600 font-medium">Strengths</span>
+                <span className="text-base sm:text-lg font-semibold text-green-600">{review.strengths?.length || 0}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Improvement Areas</span>
-                <span className="font-medium">{review.areasOfImprovement.length}</span>
+              <div className="flex justify-between items-center bg-white rounded-lg p-3 shadow-sm">
+                <span className="text-xs sm:text-sm text-gray-600 font-medium">Improvement Areas</span>
+                <span className="text-base sm:text-lg font-semibold text-amber-600">{review.areasOfImprovement?.length || 0}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Goals Set</span>
-                <span className="font-medium">{review.goals.length}</span>
+              <div className="flex justify-between items-center bg-white rounded-lg p-3 shadow-sm">
+                <span className="text-xs sm:text-sm text-gray-600 font-medium">Goals Set</span>
+                <span className="text-base sm:text-lg font-semibold text-blue-600">{review.goals?.length || 0}</span>
               </div>
             </div>
           </div>
