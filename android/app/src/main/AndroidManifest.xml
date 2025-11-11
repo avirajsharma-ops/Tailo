@@ -68,7 +68,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="zenova.sbs" />
+                    android:host="mwg.talio.in" />
             </intent-filter>
         </activity>
 

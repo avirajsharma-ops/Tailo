@@ -161,45 +161,67 @@ export default function EmployeeDashboard({ user: userProp }) {
     setAttendanceLoading(true)
 
     try {
-      // Get user's location
+      // Get user's location - REQUIRED for clock in
       let latitude = null
       let longitude = null
       let address = 'Location not available'
 
       console.log('📍 Requesting location...')
 
-      if (navigator.geolocation) {
-        try {
-          const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0
-            })
+      if (!navigator.geolocation) {
+        toast.error('Geolocation is not supported by your browser')
+        setAttendanceLoading(false)
+        return
+      }
+
+      try {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
           })
+        })
 
-          latitude = position.coords.latitude
-          longitude = position.coords.longitude
-          console.log('✅ Location obtained:', latitude, longitude)
+        latitude = position.coords.latitude
+        longitude = position.coords.longitude
+        console.log('✅ Location obtained:', latitude, longitude)
 
-          // Try to get address from coordinates
-          try {
-            const geocodeResponse = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-            )
-            const geocodeData = await geocodeResponse.json()
-            address = geocodeData.display_name || 'Location detected'
-            console.log('✅ Address:', address)
-          } catch (geocodeError) {
-            console.warn('⚠️ Geocoding failed:', geocodeError)
-            address = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
-          }
-        } catch (geoError) {
-          console.error('❌ Geolocation error:', geoError)
-          toast.error('Location access denied. Continuing without location...')
+        // Try to get address from coordinates
+        try {
+          const geocodeResponse = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          )
+          const geocodeData = await geocodeResponse.json()
+          address = geocodeData.display_name || 'Location detected'
+          console.log('✅ Address:', address)
+        } catch (geocodeError) {
+          console.warn('⚠️ Geocoding failed:', geocodeError)
+          address = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
         }
-      } else {
-        console.warn('⚠️ Geolocation not supported')
+      } catch (geoError) {
+        console.error('❌ Geolocation error:', geoError)
+
+        let errorMessage = 'Location access is required for attendance'
+
+        if (geoError.code === 1) {
+          errorMessage = 'Please enable location permission in your browser settings to clock in'
+        } else if (geoError.code === 2) {
+          errorMessage = 'Location unavailable. Please check your device GPS settings'
+        } else if (geoError.code === 3) {
+          errorMessage = 'Location request timed out. Please try again'
+        }
+
+        toast.error(errorMessage, { duration: 5000 })
+        setAttendanceLoading(false)
+        return
+      }
+
+      // Validate that we have location data
+      if (!latitude || !longitude) {
+        toast.error('Unable to get your location. Please enable location services and try again')
+        setAttendanceLoading(false)
+        return
       }
 
       console.log('📤 Sending clock-in request...')
@@ -262,45 +284,67 @@ export default function EmployeeDashboard({ user: userProp }) {
     setAttendanceLoading(true)
 
     try {
-      // Get user's location
+      // Get user's location - REQUIRED for clock out
       let latitude = null
       let longitude = null
       let address = 'Location not available'
 
       console.log('📍 Requesting location...')
 
-      if (navigator.geolocation) {
-        try {
-          const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0
-            })
+      if (!navigator.geolocation) {
+        toast.error('Geolocation is not supported by your browser')
+        setAttendanceLoading(false)
+        return
+      }
+
+      try {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
           })
+        })
 
-          latitude = position.coords.latitude
-          longitude = position.coords.longitude
-          console.log('✅ Location obtained:', latitude, longitude)
+        latitude = position.coords.latitude
+        longitude = position.coords.longitude
+        console.log('✅ Location obtained:', latitude, longitude)
 
-          // Try to get address from coordinates
-          try {
-            const geocodeResponse = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-            )
-            const geocodeData = await geocodeResponse.json()
-            address = geocodeData.display_name || 'Location detected'
-            console.log('✅ Address:', address)
-          } catch (geocodeError) {
-            console.warn('⚠️ Geocoding failed:', geocodeError)
-            address = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
-          }
-        } catch (geoError) {
-          console.error('❌ Geolocation error:', geoError)
-          toast.error('Location access denied. Continuing without location...')
+        // Try to get address from coordinates
+        try {
+          const geocodeResponse = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          )
+          const geocodeData = await geocodeResponse.json()
+          address = geocodeData.display_name || 'Location detected'
+          console.log('✅ Address:', address)
+        } catch (geocodeError) {
+          console.warn('⚠️ Geocoding failed:', geocodeError)
+          address = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
         }
-      } else {
-        console.warn('⚠️ Geolocation not supported')
+      } catch (geoError) {
+        console.error('❌ Geolocation error:', geoError)
+
+        let errorMessage = 'Location access is required for attendance'
+
+        if (geoError.code === 1) {
+          errorMessage = 'Please enable location permission in your browser settings to clock out'
+        } else if (geoError.code === 2) {
+          errorMessage = 'Location unavailable. Please check your device GPS settings'
+        } else if (geoError.code === 3) {
+          errorMessage = 'Location request timed out. Please try again'
+        }
+
+        toast.error(errorMessage, { duration: 5000 })
+        setAttendanceLoading(false)
+        return
+      }
+
+      // Validate that we have location data
+      if (!latitude || !longitude) {
+        toast.error('Unable to get your location. Please enable location services and try again')
+        setAttendanceLoading(false)
+        return
       }
 
       console.log('📤 Sending clock-out request...')

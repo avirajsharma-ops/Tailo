@@ -1,7 +1,13 @@
 # Talio HRMS - Android Release
 
+## ⚠️ DEPRECATED - OLD BUILD FOR zenova.sbs
+
+This is the old build for zenova.sbs domain.
+
+**For the new mwg.talio.in domain, use the build in `release-mwg/` folder.**
+
 ## Build Information
-- **Package Name**: sbs.zenova.twa
+- **Package Name**: sbs.zenova.twa (OLD)
 - **Version**: 1.0.0
 - **Build Date**: Thu Nov  6 11:39:32 IST 2025
 - **SHA256 Fingerprint**: 02:4A:49:F6:DD:07:DD:E1:CF:A1:2C:F5:09:1C:7B:DA:61:78:D3:45:5C:5F:9D:C3:A2:5B:E7:31:5A:AE:A3:DC
