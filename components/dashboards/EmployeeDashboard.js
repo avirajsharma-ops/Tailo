@@ -548,9 +548,9 @@ export default function EmployeeDashboard({ user: userProp }) {
         <div className="flex items-center gap-3 mb-4">
           {/* Profile Picture */}
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center flex-shrink-0">
-            {dashboardStats?.employee?.profilePicture || user?.employeeId?.profilePicture ? (
+            {dashboardStats?.employee?.profilePicture || user?.profilePicture || user?.employeeId?.profilePicture ? (
               <img
-                src={dashboardStats?.employee?.profilePicture || user.employeeId.profilePicture}
+                src={dashboardStats?.employee?.profilePicture || user?.profilePicture || user?.employeeId?.profilePicture}
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
@@ -562,17 +562,22 @@ export default function EmployeeDashboard({ user: userProp }) {
           {/* User Name and ID */}
           <div>
             <p className="text-xs text-gray-300 mb-0.5">
-              ID: {dashboardStats?.employee?.employeeId || user?.employeeId?.employeeCode || '---'}
+              ID: {dashboardStats?.employee?.employeeId ||
+                   user?.employeeNumber ||
+                   user?.employeeId?.employeeCode ||
+                   '---'}
             </p>
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold uppercase tracking-wide">
               {dashboardStats?.employee?.name ||
-               (user?.employeeId?.firstName && user?.employeeId?.lastName
+               (user?.firstName && user?.lastName
+                ? `${user.firstName} ${user.lastName}`
+                : user?.employeeId?.firstName && user?.employeeId?.lastName
                 ? `${user.employeeId.firstName} ${user.employeeId.lastName}`
                 : 'User')}
             </h2>
-            {dashboardStats?.employee?.designation && (
+            {(dashboardStats?.employee?.designation || user?.designation) && (
               <p className="text-xs text-gray-300 mt-0.5">
-                {formatDesignation(dashboardStats.employee.designation)}
+                {formatDesignation(dashboardStats?.employee?.designation || user?.designation)}
               </p>
             )}
           </div>

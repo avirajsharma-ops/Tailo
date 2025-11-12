@@ -44,7 +44,8 @@ export default function HRDashboard({ user }) {
       setLoading(false)
     }
     loadStats()
-    if (user?.employeeId?._id) {
+    // user.employeeId is the ID string, not an object
+    if (user?.employeeId) {
       fetchTodayAttendance()
       fetchEmployeeData()
     }
@@ -55,7 +56,7 @@ export default function HRDashboard({ user }) {
       const token = localStorage.getItem('token')
       const today = new Date().toISOString().split('T')[0]
 
-      const response = await fetch(`/api/attendance?employeeId=${user.employeeId._id}&date=${today}`, {
+      const response = await fetch(`/api/attendance?employeeId=${user.employeeId}&date=${today}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
 
@@ -71,7 +72,7 @@ export default function HRDashboard({ user }) {
   const fetchEmployeeData = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`/api/employees/${user.employeeId._id}`, {
+      const response = await fetch(`/api/employees/${user.employeeId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const result = await response.json()
@@ -84,7 +85,7 @@ export default function HRDashboard({ user }) {
   }
 
   const handleClockIn = async () => {
-    if (!user?.employeeId?._id) return
+    if (!user?.employeeId) return
     setAttendanceLoading(true)
 
     try {
@@ -131,7 +132,7 @@ export default function HRDashboard({ user }) {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          employeeId: user.employeeId._id,
+          employeeId: user.employeeId,
           type: 'clock-in',
           latitude,
           longitude,
@@ -156,7 +157,7 @@ export default function HRDashboard({ user }) {
   }
 
   const handleClockOut = async () => {
-    if (!user?.employeeId?._id) return
+    if (!user?.employeeId) return
     setAttendanceLoading(true)
 
     try {
@@ -202,7 +203,7 @@ export default function HRDashboard({ user }) {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          employeeId: user.employeeId._id,
+          employeeId: user.employeeId,
           type: 'clock-out',
           latitude,
           longitude,
@@ -326,17 +327,17 @@ export default function HRDashboard({ user }) {
           {/* User Name and ID */}
           <div>
             <p className="text-xs text-gray-300 mb-0.5">
-              ID: {employeeData?.employeeCode || user?.employeeId?.employeeCode || '---'}
+              ID: {employeeData?.employeeCode || user?.employeeNumber || '---'}
             </p>
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold uppercase tracking-wide">
               {employeeData ? `${employeeData.firstName} ${employeeData.lastName}` :
-               (user?.employeeId?.firstName && user?.employeeId?.lastName
-                ? `${user.employeeId.firstName} ${user.employeeId.lastName}`
+               (user?.firstName && user?.lastName
+                ? `${user.firstName} ${user.lastName}`
                 : 'User')}
             </h2>
-            {employeeData?.designation && (
+            {(employeeData?.designation || user?.designation) && (
               <p className="text-xs text-gray-300 mt-0.5">
-                {formatDesignation(employeeData.designation)}
+                {formatDesignation(employeeData?.designation || user?.designation)}
               </p>
             )}
           </div>
