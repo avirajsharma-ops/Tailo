@@ -3,7 +3,7 @@ services:
     build:
       context: .
       args:
-        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://zenova.sbs}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://app.talio.in}
         - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-Talio HRMS}
     env_file:
       - .env

@@ -38,8 +38,8 @@ export default function DownloadPage() {
               <div>
                 <h3 className="font-semibold text-blue-900 mb-1">Latest Version</h3>
                 <p className="text-sm text-blue-700">Version 1.0.1 (Build 2)</p>
-                <p className="text-sm text-blue-700">Package: in.talio.mwg</p>
-                <p className="text-sm text-blue-700">Domain: mwg.talio.in</p>
+                <p className="text-sm text-blue-700">Package: sbs.zenova.twa</p>
+                <p className="text-sm text-blue-700">Domain: app.talio.in</p>
               </div>
             </div>
           </div>
@@ -69,7 +69,7 @@ export default function DownloadPage() {
 
           {/* Download Button */}
           <a
-            href="/downloads/talio-hrms-mwg.apk"
+            href="/downloads/talio-hrms-app.apk"
             download
             onClick={handleDownload}
             className="block w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-center"

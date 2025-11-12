@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
     private var geolocationOrigin: String? = null
 
     companion object {
-        private const val URL = "https://mwg.talio.in"
+        private const val URL = "https://app.talio.in"
         private const val LOCATION_PERMISSION_REQUEST_CODE = 100
     }
 

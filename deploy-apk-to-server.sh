@@ -34,9 +34,9 @@ echo ""
 
 # Step 1: Build APK
 echo -e "${BLUE}📦 Step 1: Building APK...${NC}"
-./build-apk-mwg.sh
+./build-apk-app.sh
 
-if [ ! -f "release-mwg/talio-hrms-mwg.apk" ]; then
+if [ ! -f "release-app/talio-hrms-app.apk" ]; then
     echo -e "${RED}❌ APK build failed${NC}"
     exit 1
 fi
@@ -52,19 +52,19 @@ echo ""
 
 # Step 3: Upload APK
 echo -e "${BLUE}📤 Step 3: Uploading APK to server...${NC}"
-scp release-mwg/talio-hrms-mwg.apk ${SERVER_USER}@${SERVER_IP}:${SERVER_PATH}/public/downloads/
+scp release-app/talio-hrms-app.apk ${SERVER_USER}@${SERVER_IP}:${SERVER_PATH}/public/downloads/
 echo -e "${GREEN}✅ APK uploaded${NC}"
 echo ""
 
 # Step 4: Upload assetlinks.json
 echo -e "${BLUE}📤 Step 4: Uploading assetlinks.json...${NC}"
-scp release-mwg/assetlinks.json ${SERVER_USER}@${SERVER_IP}:${SERVER_PATH}/public/.well-known/
+scp release-app/assetlinks.json ${SERVER_USER}@${SERVER_IP}:${SERVER_PATH}/public/.well-known/
 echo -e "${GREEN}✅ assetlinks.json uploaded${NC}"
 echo ""
 
 # Step 5: Set permissions
 echo -e "${BLUE}🔐 Step 5: Setting permissions...${NC}"
-ssh ${SERVER_USER}@${SERVER_IP} "chmod 755 ${SERVER_PATH}/public/downloads && chmod 644 ${SERVER_PATH}/public/downloads/talio-hrms-mwg.apk && chmod 644 ${SERVER_PATH}/public/.well-known/assetlinks.json"
+ssh ${SERVER_USER}@${SERVER_IP} "chmod 755 ${SERVER_PATH}/public/downloads && chmod 644 ${SERVER_PATH}/public/downloads/talio-hrms-app.apk && chmod 644 ${SERVER_PATH}/public/.well-known/assetlinks.json"
 echo -e "${GREEN}✅ Permissions set${NC}"
 echo ""
 
@@ -78,7 +78,7 @@ echo ""
 echo -e "${BLUE}🔍 Step 7: Verifying deployment...${NC}"
 
 # Get domain from server
-DOMAIN=$(ssh ${SERVER_USER}@${SERVER_IP} "cd ${SERVER_PATH} && grep -o 'mwg.talio.in' docker-compose.yml | head -1" || echo "mwg.talio.in")
+DOMAIN=$(ssh ${SERVER_USER}@${SERVER_IP} "cd ${SERVER_PATH} && grep -o 'app.talio.in' docker-compose.yml | head -1" || echo "app.talio.in")
 
 echo ""
 echo -e "${GREEN}=============================================="
@@ -86,7 +86,7 @@ echo "✅ Deployment Complete!"
 echo "==============================================\${NC}"
 echo ""
 echo -e "${YELLOW}📱 Download APK:${NC}"
-echo "   https://${DOMAIN}/downloads/talio-hrms-mwg.apk"
+echo "   https://${DOMAIN}/downloads/talio-hrms-app.apk"
 echo ""
 echo -e "${YELLOW}🌐 Download Page:${NC}"
 echo "   https://${DOMAIN}/download"

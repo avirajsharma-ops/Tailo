@@ -91,7 +91,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="mwg.talio.in"
+                    android:host="app.talio.in"
                     android:scheme="https" />
             </intent-filter>
         </activity>
