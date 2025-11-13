@@ -61,7 +61,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             
-            <!-- Deep Links -->
+            <!-- Deep Links for all app.talio.in URLs -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -69,6 +69,28 @@
                 <data
                     android:scheme="https"
                     android:host="app.talio.in" />
+            </intent-filter>
+
+            <!-- Specific intent filter for OAuth callback -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="app.talio.in"
+                    android:pathPrefix="/api/auth/google/callback" />
+            </intent-filter>
+
+            <!-- Specific intent filter for auth callback page -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="app.talio.in"
+                    android:pathPrefix="/auth/callback" />
             </intent-filter>
         </activity>
 

@@ -8,6 +8,13 @@ function AuthCallbackContent() {
   useEffect(() => {
     const processAuth = async () => {
       console.log('🔵 Auth Callback - Start')
+
+      // Check if running in TWA (Android app)
+      const isInApp = window.matchMedia('(display-mode: standalone)').matches ||
+                      window.navigator.standalone ||
+                      document.referrer.includes('android-app://')
+
+      console.log('🔵 Running in app:', isInApp)
       setStatus('Reading authentication data...')
 
       // Wait a moment for cookies to be set
@@ -65,7 +72,14 @@ function AuthCallbackContent() {
 
           // Redirect based on role
           const dashboardUrl = '/dashboard'
-          window.location.href = dashboardUrl
+
+          // If in app (TWA), use location.replace to close Chrome Custom Tab
+          if (isInApp) {
+            console.log('🔵 In app - using location.replace to close Chrome Custom Tab')
+            window.location.replace(dashboardUrl)
+          } else {
+            window.location.href = dashboardUrl
+          }
         } catch (error) {
           console.error('❌ Error processing auth callback:', error)
           console.error('Error details:', error.message)

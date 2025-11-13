@@ -104,8 +104,12 @@ export default function LoginPage() {
       setLoading(true)
       toast.loading('Redirecting to Google...')
 
+      // Check if running in TWA (Trusted Web Activity) / Android app
+      const isInApp = window.matchMedia('(display-mode: standalone)').matches ||
+                      window.navigator.standalone ||
+                      document.referrer.includes('android-app://')
+
       // Redirect to Google OAuth
-      // You'll need to set up Google OAuth credentials first
       const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}&` +
         `redirect_uri=${encodeURIComponent(window.location.origin + '/api/auth/google/callback')}&` +
@@ -114,7 +118,14 @@ export default function LoginPage() {
         `access_type=offline&` +
         `prompt=consent`
 
-      window.location.href = googleAuthUrl
+      // If in app, try to open in the same window to avoid Chrome Custom Tabs
+      if (isInApp) {
+        // For TWA, this will open in Chrome Custom Tabs but will redirect back to app
+        window.location.href = googleAuthUrl
+      } else {
+        // For web browser, normal redirect
+        window.location.href = googleAuthUrl
+      }
     } catch (error) {
       toast.error('Failed to initiate Google Sign-In')
       setLoading(false)
