@@ -17,21 +17,20 @@ export async function GET(request) {
     console.log('Code received:', code ? 'Yes' : 'No')
     console.log('Error from Google:', error)
 
-    // Use NEXT_PUBLIC_APP_URL for all redirects to ensure correct domain
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
-
     if (error) {
       console.error('Google OAuth error:', error)
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
       return NextResponse.redirect(new URL(`/login?error=${error}`, baseUrl))
     }
 
     if (!code) {
       console.error('No authorization code received')
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
       return NextResponse.redirect(new URL('/login?error=no_code', baseUrl))
     }
 
     // Prepare token exchange parameters
-    const redirectUri = `${baseUrl}/api/auth/google/callback`
+    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/auth/google/callback`
     console.log('Redirect URI:', redirectUri)
     console.log('Client ID:', process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)
 
@@ -53,6 +52,7 @@ export async function GET(request) {
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text()
       console.error('❌ Token exchange failed:', errorText)
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
       return NextResponse.redirect(new URL('/login?error=token_exchange_failed', baseUrl))
     }
 
@@ -71,6 +71,7 @@ export async function GET(request) {
     if (!userInfoResponse.ok) {
       const errorText = await userInfoResponse.text()
       console.error('❌ Failed to get user info:', errorText)
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
       return NextResponse.redirect(new URL('/login?error=user_info_failed', baseUrl))
     }
 
@@ -87,12 +88,14 @@ export async function GET(request) {
     // Only allow login if user exists in database
     if (!user) {
       console.log('❌ Google login attempt for non-existent user:', googleUser.email)
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
       return NextResponse.redirect(new URL('/login?error=user_not_found', baseUrl))
     }
 
     // Check if user is active
     if (!user.isActive) {
       console.log('❌ User account is deactivated:', googleUser.email)
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
       return NextResponse.redirect(new URL('/login?error=account_deactivated', baseUrl))
     }
 
@@ -161,8 +164,8 @@ export async function GET(request) {
 
     // Create response with redirect to auth callback page
     // This page will transfer cookie data to localStorage
-    // IMPORTANT: Use baseUrl to ensure correct domain
-    console.log('🔵 Redirecting to:', baseUrl + '/auth/callback')
+    // IMPORTANT: Use NEXT_PUBLIC_APP_URL to ensure correct domain
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
     const response = NextResponse.redirect(new URL('/auth/callback', baseUrl))
 
     // Set token cookie (httpOnly for security)
@@ -185,6 +188,7 @@ export async function GET(request) {
 
     console.log('✅ Google OAuth login successful for:', googleUser.email)
     console.log('🔵 Redirecting to auth callback page to set localStorage')
+    console.log('🔵 Redirect URL:', baseUrl + '/auth/callback')
 
     return response
 
@@ -195,5 +199,4 @@ export async function GET(request) {
     return NextResponse.redirect(new URL('/login?error=authentication_failed', baseUrl))
   }
 }
-
 
