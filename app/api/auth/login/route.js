@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
 import Employee from '@/models/Employee'
 import { SignJWT } from 'jose'
+import { sendLoginAlertEmail } from '@/lib/mailer'
 
 export async function POST(request) {
   try {
@@ -112,6 +113,29 @@ export async function POST(request) {
       } catch (error) {
         console.error('Error fetching employee data:', error)
       }
+    }
+
+    // Best-effort: send login alert email to the user
+    try {
+      const userAgent = request.headers.get('user-agent') || undefined
+      const ipAddress =
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+        request.headers.get('x-real-ip') ||
+        undefined
+
+      const name = employeeData
+        ? [employeeData.firstName, employeeData.lastName].filter(Boolean).join(' ')
+        : undefined
+
+      await sendLoginAlertEmail({
+        to: user.email,
+        name,
+        loginTime: user.lastLogin || new Date(),
+        userAgent,
+        ipAddress,
+      })
+    } catch (emailError) {
+      console.error('Failed to send login alert email:', emailError)
     }
 
     // Return user data without password, including employee details
